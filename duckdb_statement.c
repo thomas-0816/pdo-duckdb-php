@@ -89,23 +89,19 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 	return 1;
 }
 
-/* ---------------- get column data (called by PDO after fetch) ---------------- */
-static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum pdo_param_type *type)
+/* Recursively convert a value from a DuckDB vector to a PHP zval.
+   The logical_type is used to determine the type and to access child types
+   for nested/complex types (struct, list, map). */
+static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logical_type, idx_t row_idx, zval *result)
 {
-	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
-	duckdb_result *res = &S->result;
-	idx_t row_idx = S->chunk_idx;
-
-	duckdb_vector vec = duckdb_data_chunk_get_vector(S->chunk, colno);
+	duckdb_type col_type = duckdb_get_type_id(logical_type);
 	uint64_t *validity = duckdb_vector_get_validity(vec);
-	bool is_null = !duckdb_validity_row_is_valid(validity, row_idx);
 
-	if (is_null) {
+	if (!duckdb_validity_row_is_valid(validity, row_idx)) {
 		ZVAL_NULL(result);
-		return 1;
+		return;
 	}
 
-	duckdb_type col_type = duckdb_column_type(res, colno);
 	switch (col_type) {
 		case DUCKDB_TYPE_BOOLEAN: {
 			bool val = ((bool *)duckdb_vector_get_data(vec))[row_idx];
@@ -150,11 +146,9 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 			break;
 		}
 		case DUCKDB_TYPE_DECIMAL: {
-			duckdb_logical_type logical_type = duckdb_column_logical_type(res, colno);
 			uint8_t width = duckdb_decimal_width(logical_type);
 			uint8_t scale = duckdb_decimal_scale(logical_type);
 			duckdb_type internal_type = duckdb_decimal_internal_type(logical_type);
-			duckdb_destroy_logical_type(&logical_type);
 
 			duckdb_hugeint hugeint_val;
 			switch (internal_type) {
@@ -216,13 +210,85 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 			ZVAL_STRING(result, buf);
 			break;
 		}
+		case DUCKDB_TYPE_LIST: {
+			duckdb_list_entry entry = ((duckdb_list_entry *)duckdb_vector_get_data(vec))[row_idx];
+			duckdb_vector child_vec = duckdb_list_vector_get_child(vec);
+			duckdb_logical_type child_type = duckdb_list_type_child_type(logical_type);
+
+			array_init(result);
+			for (idx_t i = entry.offset; i < entry.offset + entry.length; i++) {
+				zval child_val;
+				duckdb_val_from_vector(child_vec, child_type, i, &child_val);
+				add_next_index_zval(result, &child_val);
+			}
+
+			duckdb_destroy_logical_type(&child_type);
+			break;
+		}
+		case DUCKDB_TYPE_STRUCT: {
+			idx_t child_count = duckdb_struct_type_child_count(logical_type);
+
+			array_init(result);
+			for (idx_t i = 0; i < child_count; i++) {
+				const char *name = duckdb_struct_type_child_name(logical_type, i);
+				duckdb_logical_type child_type = duckdb_struct_type_child_type(logical_type, i);
+				duckdb_vector child_vec = duckdb_struct_vector_get_child(vec, i);
+
+				zval child_val;
+				duckdb_val_from_vector(child_vec, child_type, row_idx, &child_val);
+				add_assoc_zval(result, name, &child_val);
+
+				duckdb_free((void *)name);
+				duckdb_destroy_logical_type(&child_type);
+			}
+			break;
+		}
+		case DUCKDB_TYPE_MAP: {
+			duckdb_list_entry entry = ((duckdb_list_entry *)duckdb_vector_get_data(vec))[row_idx];
+			duckdb_vector list_child_vec = duckdb_list_vector_get_child(vec);
+
+			duckdb_logical_type key_type = duckdb_map_type_key_type(logical_type);
+			duckdb_logical_type val_type = duckdb_map_type_value_type(logical_type);
+			duckdb_vector key_vec = duckdb_struct_vector_get_child(list_child_vec, 0);
+			duckdb_vector val_vec = duckdb_struct_vector_get_child(list_child_vec, 1);
+
+			array_init(result);
+			for (idx_t i = entry.offset; i < entry.offset + entry.length; i++) {
+				zval key_val, val_val;
+				duckdb_val_from_vector(key_vec, key_type, i, &key_val);
+				duckdb_val_from_vector(val_vec, val_type, i, &val_val);
+
+				zend_string *key_str = zval_get_string(&key_val);
+				add_assoc_zval(result, ZSTR_VAL(key_str), &val_val);
+				zend_string_release(key_str);
+				zval_ptr_dtor(&key_val);
+			}
+
+			duckdb_destroy_logical_type(&key_type);
+			duckdb_destroy_logical_type(&val_type);
+			break;
+		}
 		default: {
 			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 			ZVAL_STRINGL(result, duckdb_string_t_data(&str), duckdb_string_t_length(str));
 			break;
 		}
 	}
+}
 
+/* ---------------- get column data (called by PDO after fetch) ---------------- */
+static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum pdo_param_type *type)
+{
+	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
+	duckdb_result *res = &S->result;
+	idx_t row_idx = S->chunk_idx;
+
+	duckdb_vector vec = duckdb_data_chunk_get_vector(S->chunk, colno);
+	duckdb_logical_type logical_type = duckdb_column_logical_type(res, colno);
+
+	duckdb_val_from_vector(vec, logical_type, row_idx, result);
+
+	duckdb_destroy_logical_type(&logical_type);
 	return 1;
 }
 
@@ -290,6 +356,7 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_SMALLINT: type_str = "smallint"; break;
 		case DUCKDB_TYPE_INTEGER: type_str = "integer"; break;
 		case DUCKDB_TYPE_BIGINT: type_str = "bigint"; break;
+		case DUCKDB_TYPE_HUGEINT: type_str = "hugeint"; break;
 		case DUCKDB_TYPE_FLOAT: type_str = "float"; break;
 		case DUCKDB_TYPE_DOUBLE: type_str = "double"; break;
 		case DUCKDB_TYPE_VARCHAR: type_str = "varchar"; break;
@@ -297,6 +364,10 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_DATE: type_str = "date"; break;
 		case DUCKDB_TYPE_TIME: type_str = "time"; break;
 		case DUCKDB_TYPE_TIMESTAMP: type_str = "timestamp"; break;
+		case DUCKDB_TYPE_DECIMAL: type_str = "decimal"; break;
+		case DUCKDB_TYPE_LIST: type_str = "list"; break;
+		case DUCKDB_TYPE_STRUCT: type_str = "struct"; break;
+		case DUCKDB_TYPE_MAP: type_str = "map"; break;
 		default: type_str = "unknown";
 	}
 
