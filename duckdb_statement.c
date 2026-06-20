@@ -36,11 +36,15 @@ static int fetch_next_chunk(pdo_duckdb_stmt *S)
 	duckdb_result *res = &S->result;
 
 	if (S->is_streaming) {
-		/* For streaming results, retrieve the next chunk and advance */
+		if (S->chunk) {
+			duckdb_destroy_data_chunk(&S->chunk);
+		}
 		S->chunk = duckdb_fetch_chunk(*res);
 	} else {
-		/* Non-streaming: access the chunk at current index, then increment */
 		if (S->next_chunk_index >= duckdb_result_chunk_count(*res)) {
+			if (S->chunk) {
+				duckdb_destroy_data_chunk(&S->chunk);
+			}
 			S->chunk = NULL;
 		} else {
 			S->chunk = duckdb_result_get_chunk(*res, S->next_chunk_index++);
@@ -894,15 +898,13 @@ static int duckdb_stmt_cursor_closer(pdo_stmt_t *stmt)
 {
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
 	if (S) {
+		if (S->chunk) {
+			duckdb_destroy_data_chunk(&S->chunk);
+			S->chunk = NULL;
+		}
 		if (S->result_set) {
-			/* Destroy data chunks? The API says we must destroy only the result,
-			   and the chunks are owned by the result. */
 			duckdb_destroy_result(&S->result);
 			S->result_set = 0;
-		}
-		if (S->chunk) {
-			/* Not owned separately, just nullify */
-			S->chunk = NULL;
 		}
 		if (S->stmt) {
 			duckdb_destroy_prepare(&S->stmt);
