@@ -365,3 +365,41 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT INTERVAL 1 YEAR, INTERVAL (4 * 10) YEAR, INTERVAL '1 month 1 day', '16 months'::INTERVAL, '48:00:00'::INTERVAL");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT INTERVAL '1.5' YEARS");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT DATE '2000-01-01' + INTERVAL (i) MONTH as i FROM range(2) t(i)");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT datepart('decade', INTERVAL 12 YEARS), datepart('year', INTERVAL 12 YEARS), datepart('second', INTERVAL 1_234 MILLISECONDS), datepart('microsecond', INTERVAL 1_234 MILLISECONDS)");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT DATE '2000-01-01' + INTERVAL 1 YEAR,
+    TIMESTAMP '2000-01-01 01:33:30' - INTERVAL '1 month 13 hours',
+    TIME '02:00:00' - INTERVAL '3 days 23 hours'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT
+    TIMESTAMP '2000-02-06 12:00:00' - TIMESTAMP '2000-01-01 11:00:00',
+    TIMESTAMP '2000-02-01' + (TIMESTAMP '2000-02-01' - TIMESTAMP '2000-01-01'),
+");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 'clubs'::ENUM ('spades', 'hearts', 'diamonds', 'clubs')");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db->exec("CREATE TYPE priority AS ENUM ('low', 'medium', 'high')");
+$statement = $db->query("SELECT unnest(['medium'::priority, 'high'::priority, 'low'::priority]) AS m ORDER BY m");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query('SELECT \'\xAA\'::BLOB as a');
+echo bin2hex($statement->fetchAll(PDO::FETCH_ASSOC)[0]['a']), PHP_EOL;
+
+$statement = $db->query('SELECT \'\xAA\xAB\xAC\'::BLOB as a');
+echo bin2hex($statement->fetchAll(PDO::FETCH_ASSOC)[0]['a']), PHP_EOL;
+
+$statement = $db->query("SELECT '101010'::BITSTRING AS b");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+;
