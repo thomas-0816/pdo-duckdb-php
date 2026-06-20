@@ -15,5 +15,5 @@ PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c du
 PHP_ADD_EXTENSION_DEP(pdo_duckdb, pdo)
 
 dnl Link duckdb_static with --whole-archive to force all symbols into the .so
-PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive -Wl,$ext_srcdir/libduckdb_static.a -Wl,--no-whole-archive"
+PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive -Wl,$ext_srcdir/libduckdb_static.a -Wl,--no-whole-archive -Wl,-lstdc++"
 PHP_SUBST(PDO_DUCKDB_SHARED_LIBADD)

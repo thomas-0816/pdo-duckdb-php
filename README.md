@@ -2,11 +2,11 @@
 
 ### Setup
 
-    git https://github.com/thomas-0816/pdo-duckdb.git
+    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
     cd pdo_duckdb
 
     wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-linux-amd64.zip
-    unzip libduckdb-linux-amd64.zip -d ./
+    unzip -o libduckdb-linux-amd64.zip -d ./
 
     phpize
     ./configure --with-pdo-duckdb
