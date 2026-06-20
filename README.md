@@ -6,7 +6,7 @@ This repository provides a native DuckDB database driver for the PHP Data Object
 
 The build process bundles libduckdb directly into `pdo_duckdb.so`.
 
-All DuckDB types are supported: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstrings, Blobs and Boolean.
+This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstrings, Blobs and Boolean.
 
 ### Usage examples
 
