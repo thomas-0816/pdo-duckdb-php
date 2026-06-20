@@ -5,6 +5,8 @@ PHP_ARG_WITH(pdo-duckdb, for DuckDB support,
 
 PHP_REQUIRE_CXX()
 
+PHP_CHECK_PDO_INCLUDES
+
 PHP_ADD_INCLUDE($ext_srcdir)
 
 PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp,
