@@ -235,8 +235,11 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 		case DUCKDB_TYPE_TIME: {
 			duckdb_time time_val = ((duckdb_time *)duckdb_vector_get_data(vec))[row_idx];
 			duckdb_time_struct ts = duckdb_from_time(time_val);
-			char buf[16];
-			snprintf(buf, sizeof(buf), "%02d:%02d:%02d", ts.hour, ts.min, ts.sec);
+			char buf[32];
+			int len = snprintf(buf, sizeof(buf), "%02d:%02d:%02d", ts.hour, ts.min, ts.sec);
+			if (ts.micros) {
+				len += snprintf(buf + len, sizeof(buf) - len, ".%06d", ts.micros);
+			}
 			ZVAL_STRING(result, buf);
 			break;
 		}

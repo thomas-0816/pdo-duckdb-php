@@ -156,7 +156,7 @@ $db->exec("INSERT INTO enum_table VALUES (1, 'ok'), (2, 'happy'), (3, 'sad')");
 $statement = $db->query("SELECT * FROM enum_table ORDER BY id");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT TIMESTAMP '1992-09-20 11:30:00.123456789'");
+$statement = $db->query("SELECT TIMESTAMP '1992-09-20 11:30:00.123456789', TIMESTAMP '1992-09-20 11:30:00'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT TIMESTAMP_NS '1992-09-20 11:30:00.123456789'");
@@ -168,12 +168,31 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT TIMESTAMP_S '1992-09-20 11:30:00.123456789'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-
-$statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 11:30:00.123456789'");
+$statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 11:30:00.123456789'"); // TODO fix +00
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00'");
+$statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00'"); // TODO fix +00
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40')");
+$statement = $db->query("SELECT timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40')"); // TODO fix +00
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+// $statement = $db->query("SELECT '-infinity'::TIMESTAMP, 'epoch'::TIMESTAMP, 'infinity'::TIMESTAMP");
+//print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT TIME '1992-09-20 11:30:00.123456', TIME '1992-09-20 11:30:00'"); // TODO missing ms
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT TIMETZ '1992-09-20 11:30:00.123456'"); // TODO missing ms+tz
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+/*
+$statement = $db->query("SELECT TIMETZ '1992-09-20 11:30:00.123456-02:00'");
+//print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT TIMETZ '1992-09-20 11:30:00.123456+05:30'");
+//print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT '15:30:00.123456789'::TIME_NS");
+//print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+*/
