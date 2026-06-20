@@ -136,3 +136,9 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("select 0.9::float, pi(), 9223372036854775808, -9223372036854775809");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("select '2969-01-01'::date, '0001-01-01'::date");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("select '2969-01-01'::datetime, '0001-01-01'::datetime");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));

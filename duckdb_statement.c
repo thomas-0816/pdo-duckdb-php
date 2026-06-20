@@ -149,7 +149,30 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 		}
 		case DUCKDB_TYPE_HUGEINT: {
 			duckdb_hugeint val = ((duckdb_hugeint *)duckdb_vector_get_data(vec))[row_idx];
-			ZVAL_DOUBLE(result, duckdb_hugeint_to_double(val));
+			unsigned __int128 v;
+			int neg = 0;
+			if (val.upper < 0) {
+				neg = 1;
+				v = ~((unsigned __int128)(uint64_t)val.upper << 64 | val.lower) + 1;
+			} else {
+				v = (unsigned __int128)(uint64_t)val.upper << 64 | val.lower;
+			}
+			char buf[40];
+			if (v == 0) {
+				snprintf(buf, sizeof(buf), "0");
+			} else {
+				char tmp[40];
+				int i = 0;
+				while (v > 0) {
+					tmp[i++] = '0' + (char)(v % 10);
+					v /= 10;
+				}
+				int pos = 0;
+				if (neg) buf[pos++] = '-';
+				while (i > 0) buf[pos++] = tmp[--i];
+				buf[pos] = '\0';
+			}
+			ZVAL_STRING(result, buf);
 			break;
 		}
 		case DUCKDB_TYPE_VARCHAR: {
