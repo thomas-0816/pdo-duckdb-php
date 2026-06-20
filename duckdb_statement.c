@@ -238,6 +238,7 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 		const char *err = duckdb_result_error(&S->result);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
 			"SQLSTATE[HY000]: %s", err ? err : "execute error");
+		duckdb_destroy_result(&S->result);
 		return 0;
 	}
 
