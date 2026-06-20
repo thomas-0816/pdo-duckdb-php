@@ -20,6 +20,7 @@ $stmt = $db->prepare("INSERT INTO t VALUES (?, ?)");
 $stmt->execute([1, 'hello']);
 $stmt = $db->query("SELECT * FROM t");
 while ($row = $stmt->fetch()) { print_r($row); }
+unset($db);
 
 $db = new PDO('duckdb::memory:');
 $statement = $db->query("SELECT {'birds': ['duck', 'goose', 'heron'], 'aliens': NULL, 'amphibians': ['frog', 'toad']} as struct");
@@ -165,11 +166,8 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT TIMESTAMP_NS '1992-09-20 11:30:00.123456789', TIMESTAMP_MS '1992-09-20 11:30:00.123456789', TIMESTAMP_S '1992-09-20 11:30:00.123456789'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 11:30:00.123456789', TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00', timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40')"); // TODO tz hour offset
+$statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 11:30:00.123456789', TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00', timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40')");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
-
-exit;
-
 
 $statement = $db->query("SELECT '-infinity'::TIMESTAMP, 'epoch'::TIMESTAMP, 'infinity'::TIMESTAMP");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
@@ -419,3 +417,5 @@ $stmt->bindValue(2, '110011', PDO::PARAM_STR);
 $stmt->execute();
 $statement = $db->query("SELECT * FROM bit_table ORDER BY id");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+unset($db);

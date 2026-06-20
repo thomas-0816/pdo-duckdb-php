@@ -339,15 +339,27 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			if (!duckdb_is_finite_timestamp(ts)) {
 				ZVAL_STRING(result, ts.micros < 0 ? "-infinity" : "infinity");
 			} else {
-				duckdb_timestamp_struct tss = duckdb_from_timestamp(ts);
+				time_t secs = (time_t)(ts.micros / 1000000);
+				int64_t usec = ts.micros % 1000000;
+				if (usec < 0) {
+					secs--;
+					usec += 1000000;
+				}
+				struct tm tm;
+				localtime_r(&secs, &tm);
+				int offs = (int)tm.tm_gmtoff;
+				char sign = offs >= 0 ? '+' : '-';
+				if (offs < 0) offs = -offs;
+				int offs_hours = offs / 3600;
+				int offs_mins = (offs % 3600) / 60;
 				char buf[64];
 				int len = snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-				                   tss.date.year, tss.date.month, tss.date.day,
-				                   tss.time.hour, tss.time.min, tss.time.sec);
-				if (tss.time.micros) {
-					len += snprintf(buf + len, sizeof(buf) - len, ".%06d", tss.time.micros);
+				                   tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+				                   tm.tm_hour, tm.tm_min, tm.tm_sec);
+				if (usec) {
+					len += snprintf(buf + len, sizeof(buf) - len, ".%06d", (int)usec);
 				}
-				len += snprintf(buf + len, sizeof(buf) - len, "+00");
+				len += snprintf(buf + len, sizeof(buf) - len, "%c%02d:%02d", sign, offs_hours, offs_mins);
 				ZVAL_STRING(result, buf);
 			}
 			break;
