@@ -243,6 +243,34 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			ZVAL_STRING(result, buf);
 			break;
 		}
+		case DUCKDB_TYPE_TIME_TZ: {
+			duckdb_time_tz time_tz_val = ((duckdb_time_tz *)duckdb_vector_get_data(vec))[row_idx];
+			duckdb_time_tz_struct tts = duckdb_from_time_tz(time_tz_val);
+			char buf[48];
+			int len = snprintf(buf, sizeof(buf), "%02d:%02d:%02d", tts.time.hour, tts.time.min, tts.time.sec);
+			if (tts.time.micros) {
+				len += snprintf(buf + len, sizeof(buf) - len, ".%06d", tts.time.micros);
+			}
+			int32_t offset_abs = tts.offset < 0 ? -tts.offset : tts.offset;
+			len += snprintf(buf + len, sizeof(buf) - len, "%c%02d:%02d",
+			                tts.offset >= 0 ? '+' : '-',
+			                offset_abs / 3600, (offset_abs % 3600) / 60);
+			ZVAL_STRING(result, buf);
+			break;
+		}
+		case DUCKDB_TYPE_TIME_NS: {
+			duckdb_time_ns time_ns_val = ((duckdb_time_ns *)duckdb_vector_get_data(vec))[row_idx];
+			duckdb_time time_us;
+			time_us.micros = time_ns_val.nanos / 1000;
+			duckdb_time_struct ts = duckdb_from_time(time_us);
+			char buf[32];
+			int len = snprintf(buf, sizeof(buf), "%02d:%02d:%02d", ts.hour, ts.min, ts.sec);
+			if (ts.micros) {
+				len += snprintf(buf + len, sizeof(buf) - len, ".%06d", ts.micros);
+			}
+			ZVAL_STRING(result, buf);
+			break;
+		}
 		case DUCKDB_TYPE_TIMESTAMP: {
 			duckdb_timestamp ts = ((duckdb_timestamp *)duckdb_vector_get_data(vec))[row_idx];
 			duckdb_timestamp_struct tss = duckdb_from_timestamp(ts);
@@ -552,6 +580,8 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_BLOB: type_str = "blob"; break;
 		case DUCKDB_TYPE_DATE: type_str = "date"; break;
 		case DUCKDB_TYPE_TIME: type_str = "time"; break;
+		case DUCKDB_TYPE_TIME_TZ: type_str = "timetz"; break;
+		case DUCKDB_TYPE_TIME_NS: type_str = "time_ns"; break;
 		case DUCKDB_TYPE_TIMESTAMP: type_str = "timestamp"; break;
 		case DUCKDB_TYPE_TIMESTAMP_S: type_str = "timestamp_s"; break;
 		case DUCKDB_TYPE_TIMESTAMP_MS: type_str = "timestamp_ms"; break;

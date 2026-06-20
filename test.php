@@ -186,13 +186,11 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT TIMETZ '1992-09-20 11:30:00.123456'"); // TODO missing ms+tz
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-/*
 $statement = $db->query("SELECT TIMETZ '1992-09-20 11:30:00.123456-02:00'");
-//print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT TIMETZ '1992-09-20 11:30:00.123456+05:30'");
-//print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT '15:30:00.123456789'::TIME_NS");
-//print_r($statement->fetchAll(PDO::FETCH_ASSOC));
-*/
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
