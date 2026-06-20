@@ -20,6 +20,7 @@ $stmt = $db->prepare("INSERT INTO t VALUES (?, ?)");
 $stmt->execute([1, 'hello']);
 $stmt = $db->query("SELECT * FROM t");
 while ($row = $stmt->fetch()) { print_r($row); }
+foreach ($db->query("SELECT * FROM t") as $row) { print_r($row); }
 unset($db);
 
 $db = new PDO('duckdb::memory:');

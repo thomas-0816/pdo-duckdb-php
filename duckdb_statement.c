@@ -1097,7 +1097,7 @@ static int duckdb_stmt_cursor_closer(pdo_stmt_t *stmt)
 
 /* ---------------- statement method table ---------------- */
 struct pdo_stmt_methods duckdb_stmt_methods = {
-	NULL,                         /* dtor */
+	duckdb_stmt_cursor_closer,    /* dtor */
 	duckdb_stmt_execute,          /* executer */
 	duckdb_stmt_fetch,            /* fetcher */
 	duckdb_stmt_describe_col,     /* describer */
