@@ -514,6 +514,55 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			ZVAL_STRING(result, buf);
 			break;
 		}
+		case DUCKDB_TYPE_INTERVAL: {
+			duckdb_interval interval_val = ((duckdb_interval *)duckdb_vector_get_data(vec))[row_idx];
+			char buf[128];
+			int pos = 0;
+			int32_t months = interval_val.months;
+			int32_t days = interval_val.days;
+			int64_t micros = interval_val.micros;
+			int has_prev = 0;
+			if (months != 0) {
+				int32_t years = months / 12;
+				months = months % 12;
+				if (years != 0) {
+					pos += snprintf(buf + pos, sizeof(buf) - pos, "%d year%s", years, years == 1 ? "" : "s");
+					has_prev = 1;
+				}
+				if (months != 0) {
+					if (has_prev) buf[pos++] = ' ';
+					pos += snprintf(buf + pos, sizeof(buf) - pos, "%d month%s", months, months == 1 ? "" : "s");
+					has_prev = 1;
+				}
+			}
+			if (days != 0) {
+				if (has_prev) buf[pos++] = ' ';
+				pos += snprintf(buf + pos, sizeof(buf) - pos, "%d day%s", days, days == 1 ? "" : "s");
+				has_prev = 1;
+			}
+			if (micros != 0 || !has_prev) {
+				if (has_prev) buf[pos++] = ' ';
+				int64_t remaining = micros;
+				int neg = remaining < 0;
+				if (neg) remaining = -remaining;
+				int64_t hours = remaining / 3600000000LL;
+				remaining %= 3600000000LL;
+				int64_t mins = remaining / 60000000LL;
+				remaining %= 60000000LL;
+				int64_t secs = remaining / 1000000LL;
+				int64_t usecs = remaining % 1000000LL;
+				if (neg) {
+					pos += snprintf(buf + pos, sizeof(buf) - pos, "-%02lld:%02lld:%02lld", (long long)hours, (long long)mins, (long long)secs);
+				} else {
+					pos += snprintf(buf + pos, sizeof(buf) - pos, "%02lld:%02lld:%02lld", (long long)hours, (long long)mins, (long long)secs);
+				}
+				if (usecs) {
+					pos += snprintf(buf + pos, sizeof(buf) - pos, ".%06lld", (long long)usecs);
+				}
+			}
+			ZVAL_STRINGL(result, buf, pos);
+			break;
+		}
 		case DUCKDB_TYPE_VARIANT: {
 			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 			const char *str_data = duckdb_string_t_data(&str);
@@ -661,6 +710,7 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_ENUM: type_str = "enum"; break;
 		case DUCKDB_TYPE_UNION: type_str = "union"; break;
 		case DUCKDB_TYPE_UUID: type_str = "uuid"; break;
+		case DUCKDB_TYPE_INTERVAL: type_str = "interval"; break;
 		case DUCKDB_TYPE_VARIANT: type_str = "json"; break;
 		default: type_str = "unknown";
 	}
