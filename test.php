@@ -255,3 +255,25 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query('SELECT \'[1, null, {"key": "value"}]\'::JSON');
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+try {
+    $statement = $db->query("SELECT 'unquoted'::JSON");
+    var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$statement = $db->query('SELECT \'{  "a":5 }\'::JSON::VARCHAR');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query('SELECT \'{"a":1,"a":2}\'::JSON');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query('SELECT \'{"duck": 42}\'::JSON::STRUCT(duck INTEGER)');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query('SELECT {duck: 42}::JSON');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query('SELECT \'2023-05-12\'::DATE::JSON');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
