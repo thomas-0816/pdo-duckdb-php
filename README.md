@@ -27,7 +27,6 @@ All DuckDB types are supported: Text, Numeric, Date, Time, Interval, JSON, Array
                 [amount] => 42.21
                 [description] => Hello DuckDB! 🐘 💓 🦆
             )
-
     )
     Array
     (
@@ -38,7 +37,6 @@ All DuckDB types are supported: Text, Numeric, Date, Time, Interval, JSON, Array
                 [foo] => bar
                 [baz] => 42
             )
-
     )
 
 
@@ -65,13 +63,11 @@ All DuckDB types are supported: Text, Numeric, Date, Time, Interval, JSON, Array
                 [date] => 2026-01-02 03:04:05
                 [log] => log text
             )
-
         [1] => Array
             (
                 [date] => 2026-02-03 04:05:06
                 [log] => log text 2
             )
-
     )
 
 
@@ -98,16 +94,13 @@ All DuckDB types are supported: Text, Numeric, Date, Time, Interval, JSON, Array
                 [bbb] => 456
                 [ccc] => 789
             )
-
         [1] => Array
             (
                 [aaa] => aaa
                 [bbb] => bbb
                 [ccc] => ccc
             )
-
     )
-
 
 ### Setup
 
