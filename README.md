@@ -14,8 +14,11 @@
     php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
-    valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file=valgrind-out.txt php -d extension=$(pwd)/modules/pdo_duckdb.so test.php 2>&1; echo "EXIT_CODE=$?"
-
     sudo make install
     php -d extension=pdo_duckdb.so -m | grep duckdb
     php -d extension=pdo_duckdb.so test.php
+
+### AI Disclosure
+
+    Yes for the C code
+    (the tests are not written by AI)
