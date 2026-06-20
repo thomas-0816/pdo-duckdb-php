@@ -30,21 +30,201 @@
 #include <math.h>
 #include "ext/json/php_json.h"
 
+/* ---------------- WKB to WKT conversion ---------------- */
+
+#define WKB_POINT               1
+#define WKB_LINESTRING          2
+#define WKB_POLYGON             3
+#define WKB_MULTIPOINT          4
+#define WKB_MULTILINESTRING     5
+#define WKB_MULTIPOLYGON        6
+#define WKB_GEOMETRYCOLLECTION  7
+
+typedef struct {
+    char *str;
+    size_t len;
+    size_t cap;
+} wkt_buf;
+
+static void wkt_buf_init(wkt_buf *b) {
+    b->str = NULL; b->len = 0; b->cap = 0;
+}
+
+static void wkt_buf_free(wkt_buf *b) {
+    if (b->str) efree(b->str);
+    b->str = NULL; b->len = 0; b->cap = 0;
+}
+
+static void wkt_buf_grow(wkt_buf *b, size_t needed) {
+    if (b->len + needed > b->cap) {
+        b->cap = b->cap ? b->cap : 256;
+        while (b->len + needed >= b->cap) b->cap *= 2;
+        b->str = erealloc(b->str, b->cap);
+    }
+}
+
+static void wkt_buf_printf(wkt_buf *b, const char *fmt, ...) {
+    va_list ap; int n;
+    va_start(ap, fmt); n = vsnprintf(NULL, 0, fmt, ap); va_end(ap);
+    if (n < 0) return;
+    wkt_buf_grow(b, (size_t)n + 1);
+    va_start(ap, fmt); vsnprintf(b->str + b->len, (size_t)n + 1, fmt, ap); va_end(ap);
+    b->len += n;
+}
+
+static void wkt_buf_append(wkt_buf *b, const char *s, size_t n) {
+    wkt_buf_grow(b, n + 1);
+    memcpy(b->str + b->len, s, n);
+    b->len += n;
+    b->str[b->len] = '\0';
+}
+
+static uint32_t wkb_r32(const uint8_t **p, int le) {
+    uint32_t v; memcpy(&v, *p, 4); *p += 4;
+    if (!le) v = __builtin_bswap32(v);
+    return v;
+}
+
+static double wkb_r64(const uint8_t **p, int le) {
+    union { double d; uint64_t u; } vu;
+    memcpy(&vu.u, *p, 8); *p += 8;
+    if (!le) vu.u = __builtin_bswap64(vu.u);
+    return vu.d;
+}
+
+/* Read WKB geometry header: returns type, sets le (byte order) */
+static int wkb_read_header(const uint8_t **p, int *le) {
+    *le = ((*p)[0] == 1);
+    (*p)++;
+    return (int)wkb_r32(p, *le);
+}
+
+/* Parse bare coordinates for a known geometry type (no type keyword emitted) */
+static void wkb_parse_bare(const uint8_t **p, wkt_buf *b, int type, int le);
+
+/* Parse a full sub-geometry (with its own WKB header) and emit bare coords */
+static void wkb_parse_sub_bare(const uint8_t **p, wkt_buf *b) {
+    int le, type = wkb_read_header(p, &le);
+    wkb_parse_bare(p, b, type, le);
+}
+
+/* Parse bare coordinates: point coords, linestring coords, etc. */
+static void wkb_parse_point_coords(const uint8_t **p, wkt_buf *b, int le) {
+    double x = wkb_r64(p, le), y = wkb_r64(p, le);
+    wkt_buf_printf(b, "%.15g %.15g", x, y);
+}
+
+static void wkb_parse_line_coords(const uint8_t **p, wkt_buf *b, int le) {
+    uint32_t n = wkb_r32(p, le);
+    for (uint32_t i = 0; i < n; i++) {
+        if (i) wkt_buf_append(b, ", ", 2);
+        wkb_parse_point_coords(p, b, le);
+    }
+}
+
+static void wkb_parse_poly_coords(const uint8_t **p, wkt_buf *b, int le) {
+    uint32_t n = wkb_r32(p, le);
+    for (uint32_t i = 0; i < n; i++) {
+        if (i) wkt_buf_append(b, ", ", 2);
+        wkt_buf_append(b, "(", 1);
+        wkb_parse_line_coords(p, b, le);
+        wkt_buf_append(b, ")", 1);
+    }
+}
+
+/* Initialize bare coords of a collection sub-geometry: each sub-geom is a
+   full WKB geometry.  MultiPoint strips all outer punctuation, while
+   MultiLineString / MultiPolygon wrap each element in (...). */
+static void wkb_parse_multi_bare(const uint8_t **p, wkt_buf *b, int type, int le) {
+    uint32_t n = wkb_r32(p, le);
+    int wrap = (type != WKB_MULTIPOINT);
+    for (uint32_t i = 0; i < n; i++) {
+        if (i) wkt_buf_append(b, ", ", 2);
+        if (wrap) wkt_buf_append(b, "(", 1);
+        wkb_parse_sub_bare(p, b);
+        if (wrap) wkt_buf_append(b, ")", 1);
+    }
+}
+
+/* Dispatcher: output bare coordinates for a given WKB geometry type */
+static void wkb_parse_bare(const uint8_t **p, wkt_buf *b, int type, int le) {
+    switch (type) {
+        case WKB_POINT:            wkb_parse_point_coords(p, b, le); break;
+        case WKB_LINESTRING:       wkb_parse_line_coords(p, b, le); break;
+        case WKB_POLYGON:          wkb_parse_poly_coords(p, b, le); break;
+        case WKB_MULTIPOINT:
+        case WKB_MULTILINESTRING:
+        case WKB_MULTIPOLYGON:     wkb_parse_multi_bare(p, b, type, le); break;
+        case WKB_GEOMETRYCOLLECTION: {
+            uint32_t n = wkb_r32(p, le);
+            for (uint32_t i = 0; i < n; i++) {
+                if (i) wkt_buf_append(b, ", ", 2);
+                int sub_le, sub_type = wkb_read_header(p, &sub_le);
+                static const char *names[] = {
+                    [WKB_POINT] = "POINT",
+                    [WKB_LINESTRING] = "LINESTRING",
+                    [WKB_POLYGON] = "POLYGON",
+                    [WKB_MULTIPOINT] = "MULTIPOINT",
+                    [WKB_MULTILINESTRING] = "MULTILINESTRING",
+                    [WKB_MULTIPOLYGON] = "MULTIPOLYGON",
+                    [WKB_GEOMETRYCOLLECTION] = "GEOMETRYCOLLECTION"
+                };
+                const char *name = (sub_type >= 1 && sub_type <= 7) ? names[sub_type] : "UNKNOWN";
+                wkt_buf_printf(b, "%s (", name);
+                wkb_parse_bare(p, b, sub_type, sub_le);
+                wkt_buf_append(b, ")", 1);
+            }
+            break;
+        }
+        default:
+            wkt_buf_append(b, "UNKNOWN", 7);
+            break;
+    }
+}
+
+/* Output full WKT for a top-level geometry */
+static void wkb_parse_full(const uint8_t **p, wkt_buf *b) {
+    int le, type = wkb_read_header(p, &le);
+    static const char *names[] = {
+        [WKB_POINT] = "POINT",
+        [WKB_LINESTRING] = "LINESTRING",
+        [WKB_POLYGON] = "POLYGON",
+        [WKB_MULTIPOINT] = "MULTIPOINT",
+        [WKB_MULTILINESTRING] = "MULTILINESTRING",
+        [WKB_MULTIPOLYGON] = "MULTIPOLYGON",
+        [WKB_GEOMETRYCOLLECTION] = "GEOMETRYCOLLECTION"
+    };
+    const char *name = (type >= 1 && type <= 7) ? names[type] : "UNKNOWN";
+    wkt_buf_printf(b, "%s (", name);
+    wkb_parse_bare(p, b, type, le);
+    wkt_buf_append(b, ")", 1);
+}
+
+static char *wkb_to_wkt(const char *data, size_t len) {
+    if (len < 5) return NULL;
+    const uint8_t *p = (const uint8_t *)data, *end = p + len;
+    wkt_buf b; wkt_buf_init(&b);
+    wkb_parse_full(&p, &b);
+    if (p > end) { wkt_buf_free(&b); return NULL; }
+    return b.str;
+}
+
 /* Helper: fetch the next data chunk (handles both streaming and non-streaming) */
 static int fetch_next_chunk(pdo_duckdb_stmt *S)
 {
 	duckdb_result *res = &S->result;
 
+	/* Accumulate total rows consumed before replacing the current chunk */
+	if (S->chunk) {
+		S->total_rows += S->chunk_size;
+		duckdb_destroy_data_chunk(&S->chunk);
+		S->chunk = NULL;
+	}
+
 	if (S->is_streaming) {
-		if (S->chunk) {
-			duckdb_destroy_data_chunk(&S->chunk);
-		}
 		S->chunk = duckdb_fetch_chunk(*res);
 	} else {
 		if (S->next_chunk_index >= duckdb_result_chunk_count(*res)) {
-			if (S->chunk) {
-				duckdb_destroy_data_chunk(&S->chunk);
-			}
 			S->chunk = NULL;
 		} else {
 			S->chunk = duckdb_result_get_chunk(*res, S->next_chunk_index++);
@@ -85,6 +265,7 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 	S->chunk = NULL;
 	S->chunk_idx = 0;
 	S->chunk_size = 0;
+	S->total_rows = 0;
 
 	/* For statements that return a result set (SELECT, etc.), set column count.
 	   For INSERT/UPDATE, there are no columns and we are done immediately. */
@@ -629,6 +810,19 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			}
 			break;
 		}
+		case DUCKDB_TYPE_GEOMETRY: {
+			duckdb_string_t blob = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
+			const char *data = duckdb_string_t_data(&blob);
+			size_t len = duckdb_string_t_length(blob);
+			char *wkt = wkb_to_wkt(data, len);
+			if (wkt) {
+				ZVAL_STRING(result, wkt);
+				efree(wkt);
+			} else {
+				ZVAL_STRINGL(result, data, len);
+			}
+			break;
+		}
 		case DUCKDB_TYPE_BIT: {
 			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 			const char *str_data = duckdb_string_t_data(&str);
@@ -791,6 +985,7 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_INTERVAL: type_str = "interval"; break;
 		case DUCKDB_TYPE_VARIANT: type_str = "json"; break;
 		case DUCKDB_TYPE_BIT: type_str = "bit"; break;
+		case DUCKDB_TYPE_GEOMETRY: type_str = "geometry"; break;
 		default: type_str = "unknown";
 	}
 

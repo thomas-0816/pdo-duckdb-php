@@ -65,6 +65,7 @@ typedef struct _pdo_duckdb_stmt {
 	int                       result_set; /* TRUE if execute() returned a result set */
 	int                       is_streaming; /* TRUE if result is streaming */
 	idx_t                     next_chunk_index; /* for non‑streaming results, index of next chunk */
+	idx_t                     total_rows;       /* total rows consumed from previous chunks */
 } pdo_duckdb_stmt;
 
 #endif /* PHP_PDO_DUCKDB_INT_H */
