@@ -142,3 +142,38 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("select '2969-01-01'::datetime, '0001-01-01'::datetime");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db->exec("CREATE TABLE tbl1 (u UNION(num INTEGER, str VARCHAR))");
+$db->exec("INSERT INTO tbl1 VALUES (1), ('two'), (union_value(str := 'three'))");
+$statement = $db->query("SELECT u, u.str, union_extract(u, 'str') AS str2, union_tag(u) AS t FROM tbl1");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db->exec("CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy')");
+$statement = $db->query("SELECT 'sad'::mood AS m1, 'happy'::mood AS m2, NULL::mood AS mn");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+$db->exec("CREATE TABLE enum_table (id INTEGER, m mood)");
+$db->exec("INSERT INTO enum_table VALUES (1, 'ok'), (2, 'happy'), (3, 'sad')");
+$statement = $db->query("SELECT * FROM enum_table ORDER BY id");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT TIMESTAMP '1992-09-20 11:30:00.123456789'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT TIMESTAMP_NS '1992-09-20 11:30:00.123456789'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT TIMESTAMP_MS '1992-09-20 11:30:00.123456789'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT TIMESTAMP_S '1992-09-20 11:30:00.123456789'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+
+$statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 11:30:00.123456789'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40')");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
