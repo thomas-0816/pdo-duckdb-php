@@ -11,6 +11,8 @@
     phpize
     ./configure --with-pdo-duckdb
     make -j$(nproc)
+    make test
+
     php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
