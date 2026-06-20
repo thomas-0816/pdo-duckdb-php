@@ -28,6 +28,10 @@
     docker build -t pdo_duckdb .
     docker run --rm -it pdo_duckdb php test.php
 
+### Development
+
+    php run-tests.php --show-diff --show-clean -q
+
 ### AI Disclosure
 
     Yes for the C code
