@@ -3,6 +3,35 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+$duckDb = new PDO('duckdb::memory:');
+$duckDb->exec("CREATE TABLE table1 (id INTEGER, amount DECIMAL(10, 2), description VARCHAR USING COMPRESSION zstd)");
+
+$statement = $duckDb->prepare("INSERT INTO table1 VALUES (?, ?, ?)");
+$statement->execute([1, 42.21, 'Hello DuckDB! 🐘 💓 🦆']);
+
+$statement = $duckDb->query("SELECT * FROM table1");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+if (file_exists('/tmp/pdo_duckdb_test.db')) {
+    unlink('/tmp/pdo_duckdb_test.db');
+}
+
+$duckDb = new PDO('duckdb:/tmp/pdo_duckdb_test.db');
+$duckDb->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR, data JSON)");
+
+$statement = $duckDb->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
+$statement->execute([1, 'Hello DuckDB 🦆', json_encode(['foo' => 'bar', 'baz' => 42])]);
+
+$statement = $duckDb->exec("
+    COPY (SELECT * FROM table2)
+    TO '/tmp/pdo_duckdb_test_table1.parquet'
+    (FORMAT parquet, COMPRESSION zstd, ROW_GROUP_SIZE 100_000)
+");
+
+foreach ($duckDb->query("SELECT * FROM '/tmp/pdo_duckdb_test_table1.parquet'", PDO::FETCH_ASSOC) as $row) {
+    print_r($row);
+}
+
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
 $stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
@@ -22,6 +51,37 @@ $stmt = $db->query("SELECT * FROM t");
 while ($row = $stmt->fetch()) { print_r($row); }
 foreach ($db->query("SELECT * FROM t") as $row) { print_r($row); }
 unset($db);
+
+if (file_exists('/tmp/test_logs.json')) {
+    unlink('/tmp/test_logs.json');
+}
+
+file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL, FILE_APPEND);
+file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-02-03 04:05:06', 'log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
+
+$db = new PDO('duckdb::memory:');
+$statement = $db->query("SELECT * FROM '/tmp/test_logs.json'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+
+if (file_exists('/tmp/test.csv')) {
+    unlink('/tmp/test.csv');
+}
+
+$list = [
+    ['aaa', 'bbb', 'ccc'],
+    ['123', '456', '789'],
+    ['aaa', 'bbb', 'ccc']
+];
+$fp = fopen('/tmp/test.csv', 'w');
+foreach ($list as $fields) {
+    fputcsv($fp, $fields, ',', '"', "");
+}
+fclose($fp);
+
+$db = new PDO('duckdb::memory:');
+$statement = $db->query("SELECT * FROM '/tmp/test.csv'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:');
 $statement = $db->query("SELECT {'birds': ['duck', 'goose', 'heron'], 'aliens': NULL, 'amphibians': ['frog', 'toad']} as struct");
