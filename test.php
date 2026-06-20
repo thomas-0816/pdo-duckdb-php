@@ -204,50 +204,54 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT {'x': 1, 'y': 2, 'z': 3} AS s");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query('SELECT \'[1, null, {"key": "value"}]\'::JSON');
+$statement = $db->query("SELECT {'yes': 'duck', 'maybe': 'goose', 'huh': NULL, 'no': 'heron'} AS s");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-/*
-SELECT {'yes': 'duck', 'maybe': 'goose', 'huh': NULL, 'no': 'heron'} AS s;
+$statement = $db->query("SELECT {'key1': 'string', 'key2': 1, 'key3': 12.345} AS s");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$statement = $db->query("SELECT {
+    'birds': {'yes': 'duck', 'maybe': 'goose', 'huh': NULL, 'no': 'heron'}, 'aliens': NULL,
+    'amphibians': {'yes': 'frog', 'maybe': 'salamander', 'huh': 'dragon', 'no': 'toad'}
+} AS s;
+");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-SELECT {'key1': 'string', 'key2': 1, 'key3': 12.345} AS s;
+$statement = $db->query("SELECT struct_update({'a': 1, 'b': 2}, b := 3, c := 4) AS s");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-SELECT {
-        'birds': {'yes': 'duck', 'maybe': 'goose', 'huh': NULL, 'no': 'heron'},
-        'aliens': NULL,
-        'amphibians': {'yes': 'frog', 'maybe': 'salamander', 'huh': 'dragon', 'no': 'toad'}
-    } AS s;
+$statement = $db->query("SELECT a.x FROM (SELECT {'x': 1, 'y': 2, 'z': 3} AS a)");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$statement = $db->query("SELECT a.\"x space\" FROM (SELECT {'x space': 1, 'y': 2, 'z': 3} AS a)");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-SELECT struct_update({'a': 1, 'b': 2}, b := 3, c := 4) AS s;
+$statement = $db->query("SELECT a['x space'] FROM (SELECT {'x space': 1, 'y': 2, 'z': 3} AS a)");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-SELECT a.x FROM (SELECT {'x': 1, 'y': 2, 'z': 3} AS a);
+$statement = $db->query("SELECT struct_extract({'x space': 1, 'y': 2, 'z': 3}, 'x space')");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-SELECT a."x space" FROM (SELECT {'x space': 1, 'y': 2, 'z': 3} AS a);
+$statement = $db->query("SELECT unnest(a) FROM (SELECT {'x': 1, 'y': 2, 'z': 3} AS a)");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-SELECT a['x space'] FROM (SELECT {'x space': 1, 'y': 2, 'z': 3} AS a);
+$statement = $db->query("SELECT a.* EXCLUDE ('y') FROM (SELECT {'x': 1, 'y': 2, 'z': 3} AS a)");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-SELECT struct_extract({'x space': 1, 'y': 2, 'z': 3}, 'x space');
+$statement = $db->query("SELECT struct_pack(y := a.x) AS b FROM (SELECT {'x': 42} AS a)");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-SELECT unnest(a)
-FROM (SELECT {'x': 1, 'y': 2, 'z': 3} AS a);
+$statement = $db->query("SELECT row(x, x + 1, y) as a FROM (SELECT 1 AS x, 'a' AS y) AS s"); // TODO fix
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-SELECT a.* EXCLUDE ('y')
-FROM (SELECT {'x': 1, 'y': 2, 'z': 3} AS a);
+$statement = $db->query("SELECT (x, x + 1, y) AS s FROM (SELECT 1 AS x, 'a' AS y)"); // TODO fix
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-SELECT a::STRUCT(y INTEGER) AS b
-FROM
-    (SELECT {'x': 42} AS a);
+$statement = $db->query("SELECT {'k1': 1, 'k2': 0} < {'k1': 0, 'k2': 1}");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-SELECT struct_pack(y := a.x) AS b
-FROM
-    (SELECT {'x': 42} AS a);
+$statement = $db->query("SELECT {'k1': 1, 'k2': 0} > {'k3': 0, 'k1': 0}");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-SELECT row(x, x + 1, y) FROM (SELECT 1 AS x, 'a' AS y) AS s;
-
-SELECT (x, x + 1, y) AS s FROM (SELECT 1 AS x, 'a' AS y);
-
-SELECT {'k1': 1, 'k2': 0} < {'k1': 0, 'k2': 1};
-SELECT {'k1': 1, 'k2': 0} > {'k3': 0, 'k1': 0};
-*/
+$statement = $db->query('SELECT \'[1, null, {"key": "value"}]\'::JSON');
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));

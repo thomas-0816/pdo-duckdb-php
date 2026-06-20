@@ -28,6 +28,7 @@
 #include "Zend/zend_exceptions.h"
 #include "php_pdo_duckdb_int.h"
 #include <math.h>
+#include "ext/json/php_json.h"
 
 /* Helper: fetch the next data chunk (handles both streaming and non-streaming) */
 static int fetch_next_chunk(pdo_duckdb_stmt *S)
@@ -513,6 +514,15 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			ZVAL_STRING(result, buf);
 			break;
 		}
+		case DUCKDB_TYPE_VARIANT: {
+			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
+			const char *str_data = duckdb_string_t_data(&str);
+			size_t str_len = duckdb_string_t_length(str);
+			if (php_json_decode(result, str_data, str_len, 1, 512) != SUCCESS) {
+				ZVAL_STRINGL(result, str_data, str_len);
+			}
+			break;
+		}
 		default: {
 			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 			ZVAL_STRINGL(result, duckdb_string_t_data(&str), duckdb_string_t_length(str));
@@ -530,6 +540,35 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 
 	duckdb_vector vec = duckdb_data_chunk_get_vector(S->chunk, colno);
 	duckdb_logical_type logical_type = duckdb_column_logical_type(res, colno);
+	duckdb_type col_type = duckdb_get_type_id(logical_type);
+
+	/* Handle JSON type: DuckDB may report it as VARIANT (newer versions)
+	   or as VARCHAR with "JSON" alias (older versions). */
+	if (col_type == DUCKDB_TYPE_VARIANT) {
+		duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
+		const char *str_data = duckdb_string_t_data(&str);
+		size_t str_len = duckdb_string_t_length(str);
+		if (php_json_decode(result, str_data, str_len, 1, 512) != SUCCESS) {
+			ZVAL_STRINGL(result, str_data, str_len);
+		}
+		duckdb_destroy_logical_type(&logical_type);
+		return 1;
+	}
+	if (col_type == DUCKDB_TYPE_VARCHAR) {
+		char *alias = duckdb_logical_type_get_alias(logical_type);
+		int is_json = (alias && strcmp(alias, "JSON") == 0);
+		duckdb_free(alias);
+		if (is_json) {
+			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
+			const char *str_data = duckdb_string_t_data(&str);
+			size_t str_len = duckdb_string_t_length(str);
+			if (php_json_decode(result, str_data, str_len, 1, 512) != SUCCESS) {
+				ZVAL_STRINGL(result, str_data, str_len);
+			}
+			duckdb_destroy_logical_type(&logical_type);
+			return 1;
+		}
+	}
 
 	duckdb_val_from_vector(vec, logical_type, row_idx, result);
 
@@ -622,6 +661,7 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_ENUM: type_str = "enum"; break;
 		case DUCKDB_TYPE_UNION: type_str = "union"; break;
 		case DUCKDB_TYPE_UUID: type_str = "uuid"; break;
+		case DUCKDB_TYPE_VARIANT: type_str = "json"; break;
 		default: type_str = "unknown";
 	}
 
