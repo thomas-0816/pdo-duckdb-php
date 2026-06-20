@@ -55,8 +55,11 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT '-infinity'::DATE AS negative, 'epoch'::DATE AS epoch, 'infinity'::DATE AS positive");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT 0/0, 0//0"); // TODO fix?
-var_export($statement->fetchAll(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT 0/0, 0//0"); // -nan, null
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 1/0, -1/0, 1//0, -1//0"); // inf, -inf, null, null
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db->exec("CREATE TABLE array_table (id INTEGER, arr INTEGER[3])");
 $db->exec("INSERT INTO array_table VALUES (10, [1, 2, 3]), (20, [4, 5, 6])");
@@ -162,14 +165,11 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT TIMESTAMP_NS '1992-09-20 11:30:00.123456789', TIMESTAMP_MS '1992-09-20 11:30:00.123456789', TIMESTAMP_S '1992-09-20 11:30:00.123456789'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 11:30:00.123456789'"); // TODO fix +00 DUCKDB_TYPE_TIMESTAMP_TZ
+$statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 11:30:00.123456789', TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00', timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40')"); // TODO tz hour offset
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00'"); // TODO fix +00
-print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+exit;
 
-$statement = $db->query("SELECT timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40')"); // TODO fix +00
-print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT '-infinity'::TIMESTAMP, 'epoch'::TIMESTAMP, 'infinity'::TIMESTAMP");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));

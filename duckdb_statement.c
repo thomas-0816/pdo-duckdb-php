@@ -164,9 +164,9 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 		case DUCKDB_TYPE_FLOAT: {
 			float val = ((float *)duckdb_vector_get_data(vec))[row_idx];
 			if (isnan(val)) {
-				ZVAL_STRING(result, "NAN");
+				ZVAL_DOUBLE(result, NAN);
 			} else if (isinf(val)) {
-				ZVAL_STRING(result, val > 0 ? "INF" : "-INF");
+				ZVAL_DOUBLE(result, val > 0 ? INFINITY : -INFINITY);
 			} else {
 				char buf[32];
 				snprintf(buf, sizeof(buf), "%.7g", (double)val);
@@ -177,9 +177,9 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 		case DUCKDB_TYPE_DOUBLE: {
 			double val = ((double *)duckdb_vector_get_data(vec))[row_idx];
 			if (isnan(val)) {
-				ZVAL_STRING(result, "NAN");
+				ZVAL_DOUBLE(result, NAN);
 			} else if (isinf(val)) {
-				ZVAL_STRING(result, val > 0 ? "INF" : "-INF");
+				ZVAL_DOUBLE(result, val > 0 ? INFINITY : -INFINITY);
 			} else {
 				ZVAL_DOUBLE(result, val);
 			}
