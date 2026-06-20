@@ -402,7 +402,11 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 
 				zval child_val;
 				duckdb_val_from_vector(child_vec, child_type, row_idx, &child_val);
-				add_assoc_zval(result, name, &child_val);
+				if (name && name[0]) {
+					add_assoc_zval(result, name, &child_val);
+				} else {
+					add_next_index_zval(result, &child_val);
+				}
 
 				duckdb_free((void *)name);
 				duckdb_destroy_logical_type(&child_type);

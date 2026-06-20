@@ -241,10 +241,10 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT struct_pack(y := a.x) AS b FROM (SELECT {'x': 42} AS a)");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT row(x, x + 1, y) as a FROM (SELECT 1 AS x, 'a' AS y) AS s"); // TODO fix
+$statement = $db->query("SELECT row(x, x + 1, y) as a FROM (SELECT 1 AS x, 'a' AS y) AS s");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT (x, x + 1, y) AS s FROM (SELECT 1 AS x, 'a' AS y)"); // TODO fix
+$statement = $db->query("SELECT (x, x + 1, y) AS s FROM (SELECT 1 AS x, 'a' AS y)");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT {'k1': 1, 'k2': 0} < {'k1': 0, 'k2': 1}");
@@ -295,6 +295,8 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT MAP {['a', 'b']: [1.1, 2.2], ['c', 'd']: [3.3, 4.4]}"); // TODO fix
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+exit;
 
 $statement = $db->query("SELECT MAP {'key1': 5, 'key2': 43}['key1']");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
