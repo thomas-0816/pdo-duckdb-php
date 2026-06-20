@@ -252,10 +252,6 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT {'k1': 1, 'k2': 0} > {'k3': 0, 'k1': 0}");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-
-
-
-
 $statement = $db->query('SELECT \'[1, null, {"key": "value"}]\'::JSON');
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
