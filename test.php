@@ -188,3 +188,66 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT '15:30:00.123456789'::TIME_NS");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 'Hello' || chr(10) || 'world' AS msg");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT struct_pack(key1 := 'value1', key2 := 42) AS s");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT {'key1': 'value1', 'key2': 42} AS s");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT d AS s FROM (SELECT 'value1' AS key1, 42 AS key2) d");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT {'x': 1, 'y': 2, 'z': 3} AS s");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query('SELECT \'[1, null, {"key": "value"}]\'::JSON');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+/*
+SELECT {'yes': 'duck', 'maybe': 'goose', 'huh': NULL, 'no': 'heron'} AS s;
+
+
+SELECT {'key1': 'string', 'key2': 1, 'key3': 12.345} AS s;
+
+SELECT {
+        'birds': {'yes': 'duck', 'maybe': 'goose', 'huh': NULL, 'no': 'heron'},
+        'aliens': NULL,
+        'amphibians': {'yes': 'frog', 'maybe': 'salamander', 'huh': 'dragon', 'no': 'toad'}
+    } AS s;
+
+
+SELECT struct_update({'a': 1, 'b': 2}, b := 3, c := 4) AS s;
+
+SELECT a.x FROM (SELECT {'x': 1, 'y': 2, 'z': 3} AS a);
+
+SELECT a."x space" FROM (SELECT {'x space': 1, 'y': 2, 'z': 3} AS a);
+
+SELECT a['x space'] FROM (SELECT {'x space': 1, 'y': 2, 'z': 3} AS a);
+
+SELECT struct_extract({'x space': 1, 'y': 2, 'z': 3}, 'x space');
+
+SELECT unnest(a)
+FROM (SELECT {'x': 1, 'y': 2, 'z': 3} AS a);
+
+SELECT a.* EXCLUDE ('y')
+FROM (SELECT {'x': 1, 'y': 2, 'z': 3} AS a);
+
+SELECT a::STRUCT(y INTEGER) AS b
+FROM
+    (SELECT {'x': 42} AS a);
+
+SELECT struct_pack(y := a.x) AS b
+FROM
+    (SELECT {'x': 42} AS a);
+
+SELECT row(x, x + 1, y) FROM (SELECT 1 AS x, 'a' AS y) AS s;
+
+SELECT (x, x + 1, y) AS s FROM (SELECT 1 AS x, 'a' AS y);
+
+SELECT {'k1': 1, 'k2': 0} < {'k1': 0, 'k2': 1};
+SELECT {'k1': 1, 'k2': 0} > {'k3': 0, 'k1': 0};
+*/
