@@ -226,10 +226,14 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 		}
 		case DUCKDB_TYPE_DATE: {
 			duckdb_date date = ((duckdb_date *)duckdb_vector_get_data(vec))[row_idx];
-			duckdb_date_struct ds = duckdb_from_date(date);
-			char buf[11];
-			snprintf(buf, sizeof(buf), "%04d-%02d-%02d", ds.year, ds.month, ds.day);
-			ZVAL_STRING(result, buf);
+			if (!duckdb_is_finite_date(date)) {
+				ZVAL_STRING(result, date.days < 0 ? "-infinity" : "infinity");
+			} else {
+				duckdb_date_struct ds = duckdb_from_date(date);
+				char buf[11];
+				snprintf(buf, sizeof(buf), "%04d-%02d-%02d", ds.year, ds.month, ds.day);
+				ZVAL_STRING(result, buf);
+			}
 			break;
 		}
 		case DUCKDB_TYPE_TIME: {
@@ -277,78 +281,98 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 		}
 		case DUCKDB_TYPE_TIMESTAMP: {
 			duckdb_timestamp ts = ((duckdb_timestamp *)duckdb_vector_get_data(vec))[row_idx];
-			duckdb_timestamp_struct tss = duckdb_from_timestamp(ts);
-			char buf[64];
-			int len = snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-			                   tss.date.year, tss.date.month, tss.date.day,
-			                   tss.time.hour, tss.time.min, tss.time.sec);
-			if (tss.time.micros) {
-				len += snprintf(buf + len, sizeof(buf) - len, ".%06d", tss.time.micros);
+			if (!duckdb_is_finite_timestamp(ts)) {
+				ZVAL_STRING(result, ts.micros < 0 ? "-infinity" : "infinity");
+			} else {
+				duckdb_timestamp_struct tss = duckdb_from_timestamp(ts);
+				char buf[64];
+				int len = snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+				                   tss.date.year, tss.date.month, tss.date.day,
+				                   tss.time.hour, tss.time.min, tss.time.sec);
+				if (tss.time.micros) {
+					len += snprintf(buf + len, sizeof(buf) - len, ".%06d", tss.time.micros);
+				}
+				ZVAL_STRING(result, buf);
 			}
-			ZVAL_STRING(result, buf);
 			break;
 		}
 		case DUCKDB_TYPE_TIMESTAMP_TZ: {
 			duckdb_timestamp ts = ((duckdb_timestamp *)duckdb_vector_get_data(vec))[row_idx];
-			duckdb_timestamp_struct tss = duckdb_from_timestamp(ts);
-			char buf[64];
-			int len = snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-			                   tss.date.year, tss.date.month, tss.date.day,
-			                   tss.time.hour, tss.time.min, tss.time.sec);
-			if (tss.time.micros) {
-				len += snprintf(buf + len, sizeof(buf) - len, ".%06d", tss.time.micros);
+			if (!duckdb_is_finite_timestamp(ts)) {
+				ZVAL_STRING(result, ts.micros < 0 ? "-infinity" : "infinity");
+			} else {
+				duckdb_timestamp_struct tss = duckdb_from_timestamp(ts);
+				char buf[64];
+				int len = snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+				                   tss.date.year, tss.date.month, tss.date.day,
+				                   tss.time.hour, tss.time.min, tss.time.sec);
+				if (tss.time.micros) {
+					len += snprintf(buf + len, sizeof(buf) - len, ".%06d", tss.time.micros);
+				}
+				len += snprintf(buf + len, sizeof(buf) - len, "+00");
+				ZVAL_STRING(result, buf);
 			}
-			len += snprintf(buf + len, sizeof(buf) - len, "+00");
-			ZVAL_STRING(result, buf);
 			break;
 		}
 		case DUCKDB_TYPE_TIMESTAMP_S: {
 			duckdb_timestamp_s ts = ((duckdb_timestamp_s *)duckdb_vector_get_data(vec))[row_idx];
-			duckdb_timestamp ts_us;
-			ts_us.micros = ts.seconds * 1000000;
-			duckdb_timestamp_struct tss = duckdb_from_timestamp(ts_us);
-			char buf[64];
-			snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-			         tss.date.year, tss.date.month, tss.date.day,
-			         tss.time.hour, tss.time.min, tss.time.sec);
-			ZVAL_STRING(result, buf);
+			if (!duckdb_is_finite_timestamp_s(ts)) {
+				ZVAL_STRING(result, ts.seconds < 0 ? "-infinity" : "infinity");
+			} else {
+				duckdb_timestamp ts_us;
+				ts_us.micros = ts.seconds * 1000000;
+				duckdb_timestamp_struct tss = duckdb_from_timestamp(ts_us);
+				char buf[64];
+				snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+				         tss.date.year, tss.date.month, tss.date.day,
+				         tss.time.hour, tss.time.min, tss.time.sec);
+				ZVAL_STRING(result, buf);
+			}
 			break;
 		}
 		case DUCKDB_TYPE_TIMESTAMP_MS: {
 			duckdb_timestamp_ms ts = ((duckdb_timestamp_ms *)duckdb_vector_get_data(vec))[row_idx];
-			duckdb_timestamp ts_us;
-			ts_us.micros = ts.millis * 1000;
-			duckdb_timestamp_struct tss = duckdb_from_timestamp(ts_us);
-			char buf[64];
-			int len = snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-			                   tss.date.year, tss.date.month, tss.date.day,
-			                   tss.time.hour, tss.time.min, tss.time.sec);
-			int ms = ts.millis % 1000;
-			if (ms) {
-				len += snprintf(buf + len, sizeof(buf) - len, ".%03d", ms);
+			if (!duckdb_is_finite_timestamp_ms(ts)) {
+				ZVAL_STRING(result, ts.millis < 0 ? "-infinity" : "infinity");
+			} else {
+				duckdb_timestamp ts_us;
+				ts_us.micros = ts.millis * 1000;
+				duckdb_timestamp_struct tss = duckdb_from_timestamp(ts_us);
+				char buf[64];
+				int len = snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+				                   tss.date.year, tss.date.month, tss.date.day,
+				                   tss.time.hour, tss.time.min, tss.time.sec);
+				int ms = ts.millis % 1000;
+				if (ms) {
+					len += snprintf(buf + len, sizeof(buf) - len, ".%03d", ms);
+				}
+				ZVAL_STRING(result, buf);
 			}
-			ZVAL_STRING(result, buf);
 			break;
 		}
 		case DUCKDB_TYPE_TIMESTAMP_NS: {
 			duckdb_timestamp_ns ts = ((duckdb_timestamp_ns *)duckdb_vector_get_data(vec))[row_idx];
-			int64_t micros_part = ts.nanos / 1000;
-			int64_t nanos_remainder = ts.nanos % 1000;
-			if (nanos_remainder < 0) {
-				micros_part--;
-				nanos_remainder += 1000;
+			if (!duckdb_is_finite_timestamp_ns(ts)) {
+				ZVAL_STRING(result, ts.nanos < 0 ? "-infinity" : "infinity");
+			} else {
+				int64_t micros_part = ts.nanos / 1000;
+				int64_t nanos_remainder = ts.nanos % 1000;
+				if (nanos_remainder < 0) {
+					micros_part--;
+					nanos_remainder += 1000;
+				}
+				duckdb_timestamp ts_us;
+				ts_us.micros = micros_part;
+				duckdb_timestamp_struct tss = duckdb_from_timestamp(ts_us);
+				char buf[64];
+				int len = snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+				                   tss.date.year, tss.date.month, tss.date.day,
+				                   tss.time.hour, tss.time.min, tss.time.sec);
+				if (tss.time.micros || nanos_remainder) {
+					len += snprintf(buf + len, sizeof(buf) - len, ".%06d%03ld", tss.time.micros, (long)nanos_remainder);
+				}
+				ZVAL_STRING(result, buf);
 			}
-			duckdb_timestamp ts_us;
-			ts_us.micros = micros_part;
-			duckdb_timestamp_struct tss = duckdb_from_timestamp(ts_us);
-			char buf[64];
-			int len = snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-			                   tss.date.year, tss.date.month, tss.date.day,
-			                   tss.time.hour, tss.time.min, tss.time.sec);
-			if (tss.time.micros || nanos_remainder) {
-				len += snprintf(buf + len, sizeof(buf) - len, ".%06d%03ld", tss.time.micros, (long)nanos_remainder);
-			}
-			ZVAL_STRING(result, buf);
 			break;
 		}
 		case DUCKDB_TYPE_LIST: {

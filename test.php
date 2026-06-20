@@ -52,7 +52,7 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT uuidv4(), uuidv7()");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT '-infinity'::DATE AS negative, 'epoch'::DATE AS epoch, 'infinity'::DATE AS positive"); // TODO fix?
+$statement = $db->query("SELECT '-infinity'::DATE AS negative, 'epoch'::DATE AS epoch, 'infinity'::DATE AS positive");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT 0/0, 0//0"); // TODO fix?
@@ -173,7 +173,6 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT '-infinity'::TIMESTAMP, 'epoch'::TIMESTAMP, 'infinity'::TIMESTAMP");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
-exit;
 
 $statement = $db->query("SELECT TIME '1992-09-20 11:30:00.123456', TIME '1992-09-20 11:30:00'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
