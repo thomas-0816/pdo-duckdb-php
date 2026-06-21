@@ -139,6 +139,24 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     docker build -t pdo_duckdb .
     docker run --rm -it pdo_duckdb php test.php
 
+### Security
+
+    # Disable extension loading
+    SET autoload_known_extensions = false;
+    SET autoinstall_known_extensions = false;
+    SET allow_community_extensions = false;
+
+    # Disable external file access, directory white listing
+    SET allowed_directories = ['/tmp'];
+    SET enable_external_access = false;
+
+    # Resource limits
+    SET threads = 4;
+    SET memory_limit = '4GB';
+    SET max_temp_directory_size = '4GB';
+
+    https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview
+
 ### Why DuckDB?
 
 Its main advantages include:
@@ -176,7 +194,7 @@ Direct File Querying: You can query large datasets in open formats like Parquet 
 
 ### Development
 
-    php run-tests.php --show-diff --show-clean -q
+    php -d extension=$(pwd)/modules/pdo_duckdb.so run-tests.php --show-diff --show-clean -q
 
 ### AI Disclosure
 
