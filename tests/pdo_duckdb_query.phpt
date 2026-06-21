@@ -108,6 +108,19 @@ $statement = $db->query("INSERT INTO t1
     RETURNING *");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$count = 0;
+$db = new PDO('duckdb::memory:');
+$db->setAttribute(PDO::DUCKDB_ATTR_UNBUFFERED, false);
+foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") as $row) {
+    $count++;
+}
+$db->setAttribute(PDO::DUCKDB_ATTR_UNBUFFERED, true);
+var_dump($db->getAttribute(PDO::DUCKDB_ATTR_UNBUFFERED));
+foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") as $row) {
+    $count++;
+}
+echo $count . PHP_EOL;
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -309,3 +322,5 @@ array(1) {
     int(42)
   }
 }
+bool(true)
+20000

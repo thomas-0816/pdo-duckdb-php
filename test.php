@@ -676,33 +676,17 @@ $db = new PDO('duckdb::memory:');
 $statement = $db->query('SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE installed = 1 OR loaded = 1');
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-unset($db);
-
-// Test unbuffered (streaming) mode
+$count = 0;
 $db = new PDO('duckdb::memory:');
-$db->exec("CREATE TABLE stream_test AS SELECT range::INTEGER AS n FROM range(10000)");
-
-// Buffered mode (default)
 $db->setAttribute(PDO::DUCKDB_ATTR_UNBUFFERED, false);
-$stmt = $db->query("SELECT n FROM stream_test ORDER BY n");
-$count = 0;
-while ($row = $stmt->fetch()) { $count++; }
-echo "Buffered mode: $count rows\n";
-
-// Unbuffered mode (streaming)
+foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") as $row) {
+    $count++;
+}
 $db->setAttribute(PDO::DUCKDB_ATTR_UNBUFFERED, true);
-$stmt = $db->query("SELECT n FROM stream_test ORDER BY n");
-$count = 0;
-while ($row = $stmt->fetch()) { $count++; }
-echo "Unbuffered mode: $count rows\n";
-
-// Unbuffered with prepared statement
-$stmt = $db->prepare("SELECT n FROM stream_test WHERE n > ? ORDER BY n");
-$stmt->execute([5000]);
-$count = 0;
-while ($row = $stmt->fetch()) { $count++; }
-echo "Unbuffered prepared: $count rows\n";
-
 var_dump($db->getAttribute(PDO::DUCKDB_ATTR_UNBUFFERED));
+foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") as $row) {
+    $count++;
+}
+echo $count . PHP_EOL;
 
 unset($db);
