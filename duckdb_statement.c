@@ -886,7 +886,13 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 
 	/* Handle JSON type: DuckDB may report it as VARIANT (newer versions)
 	   or as VARCHAR with "JSON" alias (older versions). */
+	uint64_t *validity = duckdb_vector_get_validity(vec);
 	if (col_type == DUCKDB_TYPE_VARIANT) {
+		if (!duckdb_validity_row_is_valid(validity, row_idx)) {
+			ZVAL_NULL(result);
+			duckdb_destroy_logical_type(&logical_type);
+			return 1;
+		}
 		duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 		const char *str_data = duckdb_string_t_data(&str);
 		size_t str_len = duckdb_string_t_length(str);
@@ -902,6 +908,11 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 		int is_json = (alias && strcmp(alias, "JSON") == 0);
 		duckdb_free(alias);
 		if (is_json) {
+			if (!duckdb_validity_row_is_valid(validity, row_idx)) {
+				ZVAL_NULL(result);
+				duckdb_destroy_logical_type(&logical_type);
+				return 1;
+			}
 			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
 			const char *str_data = duckdb_string_t_data(&str);
 			size_t str_len = duckdb_string_t_length(str);
