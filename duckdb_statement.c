@@ -1100,8 +1100,8 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 		} else {
 			idx = duckdb_resolve_named_param(S->stmt, ZSTR_VAL(param->name));
 			if (idx == 0) {
-				pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) stmt->dbh->driver_data;
-				strncpy(H->error_msg, "could not resolve named parameter", sizeof(H->error_msg) - 1);
+				zend_throw_exception_ex(php_pdo_get_exception(), 0,
+					"SQLSTATE[HY000]: could not resolve named parameter '%s'", ZSTR_VAL(param->name));
 				return 0;
 			}
 		}
@@ -1149,8 +1149,9 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 		}
 
 		if (state != DuckDBSuccess) {
-			pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) stmt->dbh->driver_data;
-			strncpy(H->error_msg, "parameter binding failed", sizeof(H->error_msg) - 1);
+			zend_throw_exception_ex(php_pdo_get_exception(), 0,
+				"SQLSTATE[HY000]: parameter binding failed for parameter '%s'",
+				param->name ? ZSTR_VAL(param->name) : "");
 			return 0;
 		}
 	}
