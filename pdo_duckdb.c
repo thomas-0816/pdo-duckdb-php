@@ -37,6 +37,7 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_OPEN_FLAGS", sizeof("DUCKDB_ATTR_OPEN_FLAGS") - 1, (zend_long)PDO_DUCKDB_ATTR_OPEN_FLAGS);
 	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_READONLY", sizeof("DUCKDB_ATTR_READONLY") - 1, (zend_long)PDO_DUCKDB_ATTR_READONLY);
 	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_UNBUFFERED", sizeof("DUCKDB_ATTR_UNBUFFERED") - 1, (zend_long)PDO_DUCKDB_ATTR_UNBUFFERED);
+	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_CONFIG", sizeof("DUCKDB_ATTR_CONFIG") - 1, (zend_long)PDO_DUCKDB_ATTR_CONFIG);
 
 	return SUCCESS;
 }

@@ -31,6 +31,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	const char *data_source = dbh->data_source;
 	char *dbname = NULL, *err = NULL;
 	duckdb_state state;
+	duckdb_config config = NULL;
 
 	H = ecalloc(1, sizeof(pdo_duckdb_db_handle));
 	H->error_msg[0] = '\0';
@@ -38,11 +39,35 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 
 	/* Extract path — PDO passes the part after the first colon */
 	dbname = estrdup(data_source);
-	if (strcmp(dbname, ":memory:") == 0) {
-		state = duckdb_open_ext(NULL, &H->db, NULL, &err);
-	} else {
-		state = duckdb_open_ext(dbname, &H->db, NULL, &err);
+
+	/* Check for DuckDB config options in driver_options */
+	if (driver_options && Z_TYPE_P(driver_options) == IS_ARRAY) {
+		zval *config_zval = zend_hash_index_find(Z_ARRVAL_P(driver_options), PDO_DUCKDB_ATTR_CONFIG);
+		if (config_zval && Z_TYPE_P(config_zval) == IS_ARRAY) {
+			if (duckdb_create_config(&config) == DuckDBSuccess) {
+				zend_string *key;
+				zval *val;
+				ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(config_zval), key, val) {
+					if (key) {
+						zend_string *str_val = zval_get_string(val);
+						duckdb_set_config(config, ZSTR_VAL(key), ZSTR_VAL(str_val));
+						zend_string_release(str_val);
+					}
+				} ZEND_HASH_FOREACH_END();
+			}
+		}
 	}
+
+	if (strcmp(dbname, ":memory:") == 0) {
+		state = duckdb_open_ext(NULL, &H->db, config, &err);
+	} else {
+		state = duckdb_open_ext(dbname, &H->db, config, &err);
+	}
+
+	if (config) {
+		duckdb_destroy_config(&config);
+	}
+
 	if (state != DuckDBSuccess) {
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
 			"SQLSTATE[HY000]: Could not open DuckDB database: %s",
@@ -68,13 +93,6 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	/* Assign db handle methods */
 	dbh->methods = &duckdb_methods;
 	dbh->alloc_own_columns = 1;
-
-	/* Process driver options (if any) */
-	if (driver_options) {
-		/* e.g., access mode, threads, etc. */
-		/* For now a minimal example: if PDO::ATTR_AUTOCOMMIT is passed,
-		   we do nothing because DuckDB is always autocommit. */
-	}
 
 	return 1;
 }

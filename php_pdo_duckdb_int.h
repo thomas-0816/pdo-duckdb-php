@@ -25,7 +25,8 @@ extern struct pdo_stmt_methods  duckdb_stmt_methods;
 enum {
 	PDO_DUCKDB_ATTR_OPEN_FLAGS = PDO_ATTR_DRIVER_SPECIFIC,
 	PDO_DUCKDB_ATTR_READONLY,
-	PDO_DUCKDB_ATTR_UNBUFFERED
+	PDO_DUCKDB_ATTR_UNBUFFERED,
+	PDO_DUCKDB_ATTR_CONFIG
 };
 
 /* Connection data – one per PDO handle */
