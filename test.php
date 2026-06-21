@@ -3,6 +3,8 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+var_dump(in_array('duckdb', PDO::getAvailableDrivers()));
+
 $duckDb = new PDO('duckdb::memory:');
 $duckDb->exec("CREATE TABLE table1 (id INTEGER, amount DECIMAL(10, 2), description VARCHAR USING COMPRESSION zstd)");
 
@@ -21,7 +23,6 @@ $duckDb->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR, data JSON)");
 
 $statement = $duckDb->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
 $statement->execute([1, 'Hello DuckDB 🦆', json_encode(['foo' => 'bar', 'baz' => 42])]);
-
 $statement = $duckDb->exec("
     COPY (SELECT * FROM table2)
     TO '/tmp/pdo_duckdb_test_table1.parquet'
@@ -35,6 +36,7 @@ foreach ($duckDb->query("SELECT * FROM '/tmp/pdo_duckdb_test_table1.parquet'", P
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
 $stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
+var_dump($db->lastInsertId());
 $stmt->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $stmt->fetch()) { print_r($row); }
@@ -550,8 +552,24 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+$db = new PDO('duckdb::memory:');
+$string = 'Nice O\'Brian $dollar "quote" \'single quote\' 🐘🐋🦀🌍 öäüß';
+var_dump($db->quote($string));
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
+$stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
+$stmt->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
+$statement = $db->query('SELECT * FROM t');
+var_dump($statement->getColumnMeta(0)); // TODO fix segfault
+var_dump($statement->getColumnMeta(1));
+var_dump($statement->getColumnMeta(2));
+var_dump($statement->getColumnMeta(3));
+var_dump($statement->getColumnMeta(4));
+
 
 // TODO nullable columns
 // TODO pdo column meta
+
 
 unset($db);

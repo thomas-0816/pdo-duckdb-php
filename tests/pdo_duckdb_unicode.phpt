@@ -21,6 +21,10 @@ $statement->execute([2, 'café résumé', 'four-byte: 🐘🐋🦀🌍']);
 $statement = $db->query("SELECT * FROM unicode_test ORDER BY id");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$string = 'Nice O\'Brian $dollar "quote" \'single quote\' 🐘🐋🦀🌍 öäüß';
+var_dump($db->quote($string));
+
 ?>
 --EXPECTF--
 array(1) {
@@ -67,3 +71,4 @@ array(2) {
     string(27) "four-byte: 🐘🐋🦀🌍"
   }
 }
+string(74) "'Nice O''Brian $dollar "quote" ''single quote'' 🐘🐋🦀🌍 öäüß'"
