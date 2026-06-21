@@ -101,6 +101,13 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE TABLE t1 (i INTEGER)');
+$statement = $db->query("INSERT INTO t1
+    SELECT 42
+    RETURNING *");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -295,3 +302,10 @@ array(3) {
 }
 Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: cc, dd, ee
 Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 3, 4, 5
+array(1) {
+  [0]=>
+  array(1) {
+    ["i"]=>
+    int(42)
+  }
+}

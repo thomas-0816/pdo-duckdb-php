@@ -643,4 +643,11 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE TABLE t1 (i INTEGER)');
+$statement = $db->query("INSERT INTO t1
+    SELECT 42
+    RETURNING *");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
 unset($db);
