@@ -37,10 +37,10 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     $statement->execute([1, 'Hello DuckDB 🦆', json_encode(['foo' => 'bar', 'baz' => 42])]);
 
     $statement = $db->exec("
-        COPY (SELECT * FROM table2) TO '/tmp/test_table2.parquet' (COMPRESSION zstd)
+        COPY (SELECT * FROM table2) TO '/tmp/table2.parquet' (COMPRESSION zstd)
     ");
 
-    foreach ($db->query("SELECT * FROM '/tmp/test_table2.parquet'", PDO::FETCH_ASSOC) as $row) {
+    foreach ($db->query("SELECT * FROM '/tmp/table2.parquet'", PDO::FETCH_ASSOC) as $row) {
         print_r($row);
     }
 
