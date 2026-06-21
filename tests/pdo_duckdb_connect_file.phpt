@@ -18,6 +18,34 @@ while ($row = $stmt->fetch()) { var_dump($row); }
 foreach ($db->query("SELECT * FROM t") as $row) { var_dump($row); }
 unset($db);
 
+try {
+    $duckDb = new PDO('duckdb:/tmp/invalid/test.db');
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$db = new PDO('duckdb::memory:');
+try {
+    $db->exec("
+        LOAD parquet;
+        SET enable_external_access = false;
+        select * from 'http://127.0.0.1/tmp/pdo_duckdb_test_table1.parquet';
+    ");
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$db = new PDO('duckdb::memory:');
+try {
+    $db->exec("
+        LOAD parquet;
+        SET enable_external_access = false;
+        select * from '/tmp/pdo_duckdb_test_table1.parquet';
+    ");
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
 ?>
 --EXPECTF--
 array(4) {
@@ -40,3 +68,6 @@ array(4) {
   [1]=>
   string(5) "hello"
 }
+Caught: Could not open DuckDB database:
+Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "http://127.0.0.1/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration
+Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration

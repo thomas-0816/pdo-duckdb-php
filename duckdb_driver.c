@@ -29,7 +29,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 {
 	pdo_duckdb_db_handle *H;
 	const char *data_source = dbh->data_source;
-	char *dbname = NULL;
+	char *dbname = NULL, *err = NULL;
 	duckdb_state state;
 
 	H = ecalloc(1, sizeof(pdo_duckdb_db_handle));
@@ -39,25 +39,29 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	/* Extract path — PDO passes the part after the first colon */
 	dbname = estrdup(data_source);
 	if (strcmp(dbname, ":memory:") == 0) {
-		/* in‑memory database */
-		state = duckdb_open(NULL, &H->db);
+		state = duckdb_open_ext(NULL, &H->db, NULL, &err);
 	} else {
-		state = duckdb_open(dbname, &H->db);
+		state = duckdb_open_ext(dbname, &H->db, NULL, &err);
 	}
-	efree(dbname);
-
 	if (state != DuckDBSuccess) {
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
-			"Could not open DuckDB database");
+			"SQLSTATE[HY000]: Could not open DuckDB database: %s",
+			err ? err : "unknown error");
+		if (err) duckdb_free(err);
+		efree(dbname);
+		dbh->driver_data = NULL;
 		efree(H);
 		return 0;
 	}
+	if (err) duckdb_free(err);
+	efree(dbname);
 
 	if (duckdb_connect(H->db, &H->conn) != DuckDBSuccess) {
 		duckdb_close(&H->db);
-		efree(H);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
-			"Could not create DuckDB connection");
+			"SQLSTATE[HY000]: Could not create DuckDB connection");
+		dbh->driver_data = NULL;
+		efree(H);
 		return 0;
 	}
 

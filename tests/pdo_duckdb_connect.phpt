@@ -14,12 +14,6 @@ $statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $statement->fetch()) { var_dump($row); }
 
-try {
-    $duckDb = new PDO('duckdb:/tmp/invalid/test.db');
-} catch (Exception $e) {
-    echo "Caught: " . $e->getMessage() . "\n";
-}
-
 var_dump(in_array('duckdb', PDO::getAvailableDrivers()));
 
 ?>
@@ -34,5 +28,4 @@ array(4) {
   ["v"]=>
   string(5) "hello"
 }
-Caught: Could not open DuckDB database
 bool(true)
