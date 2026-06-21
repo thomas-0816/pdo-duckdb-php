@@ -184,14 +184,14 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db->exec("CREATE TABLE txn_test (id INTEGER, val VARCHAR)");
 $db->beginTransaction();
-$statement = $db->prepare("INSERT INTO txn_test VALUES (?, ?)");
-$statement->execute([1, 'committed']);
+$insert = $db->prepare("INSERT INTO txn_test VALUES (?, ?)");
+$insert->execute([1, 'committed']);
 $db->commit();
 $statement = $db->query("SELECT * FROM txn_test");
 echo "After commit:\n";
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $db->beginTransaction();
-$statement->execute([2, 'rolled_back']);
+$insert->execute([2, 'rolled_back']);
 $db->rollback();
 $statement = $db->query("SELECT * FROM txn_test");
 echo "After rollback:\n";
@@ -609,24 +609,29 @@ $statement->bindValue('cc', 300, PDO::PARAM_INT);
 $statement->bindValue('dd', 42.21, PDO::PARAM_STR);
 $statement->bindValue('ee', 'test', PDO::PARAM_STR);
 $statement->execute();
+$statement = $db->prepare('INSERT INTO t VALUES (?, ?, ?, ?, ?)');
+$statement->bindValue(1, null);
+$statement->bindValue(2, 202);
+$statement->bindValue(3, 300);
+$statement->bindValue(4, 42.21);
+$statement->bindValue(5, 'test');
+$statement->execute();
 $statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
 $statement->bindValue('aa', null);
-$statement->bindValue('bb', 202);
+$statement->bindValue('bb', 203);
 $statement->bindValue('cc', 300);
 $statement->bindValue('dd', 42.21);
 $statement->bindValue('ee', 'test');
 $statement->execute();
-$statement = $db->prepare('INSERT INTO t VALUES (?, ?, ?, ?, ?)');
-$statement->bindValue('aa', null);
-$statement->bindValue('bb', 203);
-$statement->execute(); // TODO throw exception if execute fails
-$statement = $db->prepare('INSERT INTO t VALUES (?, ?, ?, ?, ?)');
-$statement->bindValue('aa', null);
-$statement->bindValue('bb', 203);
-$statement->bindValue('cc', 300);
-$statement->bindValue('dd', 42.21);
-$statement->bindValue('ee', 'test');
-$statement->execute(); // TODO fix missing row in the database
 print_r($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->prepare('INSERT INTO t VALUES ($aa, $bb, $cc, $dd, $ee)');
+$statement->bindValue('aa', null);
+$statement->bindValue('bb', 203);
+try {
+    $statement->execute();
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
 
 unset($db);
