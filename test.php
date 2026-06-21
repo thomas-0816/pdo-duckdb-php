@@ -63,7 +63,6 @@ $db = new PDO('duckdb::memory:');
 $statement = $db->query("SELECT * FROM '/tmp/test_logs.json'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-
 if (file_exists('/tmp/test.csv')) {
     unlink('/tmp/test.csv');
 }

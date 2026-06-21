@@ -28,16 +28,6 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
                 [description] => Hello DuckDB! 🐘 💓 🦆
             )
     )
-    Array
-    (
-        [id] => 1
-        [text] => Hello DuckDB 🦆
-        [data] => Array
-            (
-                [foo] => bar
-                [baz] => 42
-            )
-    )
 
 
     $db = new PDO('duckdb:/tmp/test.db');
@@ -47,9 +37,7 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     $statement->execute([1, 'Hello DuckDB 🦆', json_encode(['foo' => 'bar', 'baz' => 42])]);
 
     $statement = $db->exec("
-        COPY (SELECT * FROM table2)
-        TO '/tmp/test_table2.parquet'
-        (FORMAT parquet, COMPRESSION zstd, ROW_GROUP_SIZE 100_000)
+        COPY (SELECT * FROM table2) TO '/tmp/test_table2.parquet' (COMPRESSION zstd)
     ");
 
     foreach ($db->query("SELECT * FROM '/tmp/test_table2.parquet'", PDO::FETCH_ASSOC) as $row) {
@@ -58,15 +46,12 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
 
     Array
     (
-        [0] => Array
+        [id] => 1
+        [text] => Hello DuckDB 🦆
+        [data] => Array
             (
-                [date] => 2026-01-02 03:04:05
-                [log] => log text
-            )
-        [1] => Array
-            (
-                [date] => 2026-02-03 04:05:06
-                [log] => log text 2
+                [foo] => bar
+                [baz] => 42
             )
     )
 
@@ -101,6 +86,30 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
                 [ccc] => ccc
             )
     )
+
+
+    file_put_contents('/tmp/logs.json', json_encode(['log' => 'log text']) . PHP_EOL, FILE_APPEND);
+    file_put_contents('/tmp/logs.json', json_encode(['log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
+
+    $db = new PDO('duckdb::memory:');
+    $statement = $db->query("SELECT * FROM '/tmp/logs.json'");
+    print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+    Array
+    (
+        [0] => Array
+            (
+                [log] => log text
+            )
+        [1] => Array
+            (
+                [log] => log text 2
+            )
+    )
+
+    $statement = $db->exec("
+        COPY (SELECT * FROM '/tmp/logs.json') TO '/tmp/logs_json.parquet' (COMPRESSION zstd)
+    ");
 
 ### Setup
 
