@@ -24,6 +24,13 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT 100_000_000, '0xFF_FF'::INTEGER, 1_2.1_2E0_1, '0b0_1_0_1'::INTEGER");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (i INTEGER, ui UINTEGER, b BIGINT, b2 BIGINT, ub UBIGINT, h HUGEINT, u UHUGEINT)");
+$stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?, ?, ?)");
+$stmt->execute([1, 2, 9_223_372_036_854_775_806, -9_223_372_036_854_775_806, '18446744073709551614', '170141183460469231731687303715884105726', '340282366920938463463374607431768211455']);
+$stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
+while ($row = $stmt->fetch()) { var_dump($row); }
+
 ?>
 --EXPECTF--
 array(1) {
@@ -95,4 +102,20 @@ array(1) {
     ["CAST('0b0_1_0_1' AS INTEGER)"]=>
     int(5)
   }
+}
+array(7) {
+  ["i"]=>
+  int(1)
+  ["ui"]=>
+  int(2)
+  ["b"]=>
+  int(9223372036854775806)
+  ["b2"]=>
+  int(-9223372036854775806)
+  ["ub"]=>
+  string(20) "18446744073709551614"
+  ["h"]=>
+  string(39) "170141183460469231731687303715884105726"
+  ["u"]=>
+  string(39) "340282366920938463463374607431768211455"
 }

@@ -39,6 +39,22 @@ $stmt->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $stmt->fetch()) { print_r($row); }
 
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (i INTEGER, ui UINTEGER, b BIGINT, b2 BIGINT, ub UBIGINT, h HUGEINT, u UHUGEINT)");
+$stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?, ?, ?)");
+$stmt->execute([1, 2, 9_223_372_036_854_775_806, -9_223_372_036_854_775_806, '18446744073709551614', '170141183460469231731687303715884105726', '340282366920938463463374607431768211455']);
+$stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
+while ($row = $stmt->fetch()) { print_r($row); }
+exit;
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
+$stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
+$stmt->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
+$stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
+while ($row = $stmt->fetch()) { print_r($row); }
+
+
 if (file_exists('/tmp/pdo_duckdb_test.db')) {
     unlink('/tmp/pdo_duckdb_test.db');
 }
@@ -522,6 +538,6 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('threads', 'memory_limit')");
 print_r($statement->fetchAll(PDO::FETCH_COLUMN));
 
-// SET errors_as_json = true;
+// TODO SET errors_as_json = true;
 
 unset($db);
