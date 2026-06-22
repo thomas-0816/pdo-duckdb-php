@@ -193,6 +193,14 @@ $statement->execute([json_encode($s)]);
 $statement->execute([json_encode(['foo', 'bar'])]);
 var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (b BIGINT NULL)");
+$statement = $db->prepare('INSERT INTO t VALUES (:bb)');
+$statement->bindValue('bb', 9223372036854775807, PDO::PARAM_INT);
+$statement->execute();
+$statement = $db->query("SELECT * FROM t");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -539,5 +547,12 @@ array(5) {
       [1]=>
       string(3) "bar"
     }
+  }
+}
+array(1) {
+  [0]=>
+  array(1) {
+    ["b"]=>
+    int(9223372036854775807)
   }
 }

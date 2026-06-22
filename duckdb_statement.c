@@ -722,31 +722,6 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 
 /* Convert a PHP string (e.g. "101010") to a duckdb_bit struct for binding.
    The returned duckdb_bit.data must be freed with duckdb_free() when no longer needed. */
-static duckdb_bit php_str_to_duckdb_bit(const char *str, size_t len)
-{
-	duckdb_bit bit;
-	bit.size = len;
-	uint8_t padding = (8 - (len % 8)) % 8;
-	size_t byte_count = (len + 7) / 8;
-	bit.data = duckdb_malloc(1 + byte_count);
-	if (!bit.data) {
-		bit.size = 0;
-		return bit;
-	}
-	bit.data[0] = padding;
-	memset(bit.data + 1, 0, byte_count);
-	for (size_t i = 0; i < len; i++) {
-		if (str[i] == '1') {
-			size_t byte_idx = 1 + i / 8;
-			size_t bit_offset = 7 - (i % 8);
-			bit.data[byte_idx] |= (1 << bit_offset);
-		}
-	}
-	if (padding > 0) {
-		bit.data[byte_count] |= (0xFF << (8 - padding)) & 0xFF;
-	}
-	return bit;
-}
 
 /* Resolve a named parameter to a DuckDB 1-based positional index.
  * Returns 0 on failure. */
@@ -807,20 +782,11 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 				state = duckdb_bind_boolean(S->stmt, idx, zval_is_true(&param->parameter) ? 1 : 0);
 				break;
 			case PDO_PARAM_INT:
-				state = duckdb_bind_int32(S->stmt, idx, (int32_t)zval_get_long(&param->parameter));
+				state = duckdb_bind_int64(S->stmt, idx, (int64_t)zval_get_long(&param->parameter));
 				break;
 			case PDO_PARAM_STR: {
 				zend_string *zstr = zval_get_string(&param->parameter);
 				state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(zstr), ZSTR_LEN(zstr));
-				if (state != DuckDBSuccess) {
-					duckdb_bit bit = php_str_to_duckdb_bit(ZSTR_VAL(zstr), ZSTR_LEN(zstr));
-					if (bit.data) {
-						duckdb_value val = duckdb_create_bit(bit);
-						state = duckdb_bind_value(S->stmt, idx, val);
-						duckdb_destroy_value(&val);
-						duckdb_free(bit.data);
-					}
-				}
 				zend_string_release(zstr);
 				break;
 			}

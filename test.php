@@ -767,9 +767,15 @@ $db->exec("CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy')");
 $statement = $db->prepare("INSERT INTO t1 VALUES (?)");
 $statement->execute([['v' => 'hello']]);
 $db->exec("INSERT INTO t1 VALUES ({'v': MAP {'key1': 10}}), ({'v': {'key1': 'value1'}})");
-
 $statement = $db->query("SELECT * FROM t1");
 var_export($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (b BIGINT NULL)");
+$statement = $db->prepare('INSERT INTO t VALUES (:bb)');
+$statement->bindValue('bb', 9223372036854775807, PDO::PARAM_INT);
+$statement->execute();
+$statement = $db->query("SELECT * FROM t");
+var_export($statement->fetchAll(PDO::FETCH_ASSOC));
 
 unset($db);
