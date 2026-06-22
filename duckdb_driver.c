@@ -159,7 +159,9 @@ static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql,
 	S->chunk_idx = 0;
 	S->chunk_size = 0;
 
-	duckdb_state state = duckdb_prepare(H->conn, zstr_prepare(sql), &S->stmt);
+	char *prepared_sql = zstr_prepare(sql);
+	duckdb_state state = duckdb_prepare(H->conn, prepared_sql, &S->stmt);
+	efree(prepared_sql);
 
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_prepare_error(S->stmt);
@@ -180,7 +182,9 @@ static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	duckdb_result result;
-	duckdb_state state = duckdb_query(H->conn, zstr_prepare((zend_string *)sql), &result);
+	char *prepared_sql = zstr_prepare((zend_string *)sql);
+	duckdb_state state = duckdb_query(H->conn, prepared_sql, &result);
+	efree(prepared_sql);
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&result);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
