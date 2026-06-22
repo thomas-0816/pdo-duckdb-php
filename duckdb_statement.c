@@ -215,52 +215,15 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			}
 			break;
 		}
-		case DUCKDB_TYPE_HUGEINT: {
-			duckdb_hugeint val = ((duckdb_hugeint *)duckdb_vector_get_data(vec))[row_idx];
-			unsigned __int128 v;
-			int neg = 0;
-			if (val.upper < 0) {
-				neg = 1;
-				v = ~((unsigned __int128)(uint64_t)val.upper << 64 | val.lower) + 1;
-			} else {
-				v = (unsigned __int128)(uint64_t)val.upper << 64 | val.lower;
-			}
-			char buf[40];
-			if (v == 0) {
-				snprintf(buf, sizeof(buf), "0");
-			} else {
-				char tmp[40];
-				int i = 0;
-				while (v > 0) {
-					tmp[i++] = '0' + (char)(v % 10);
-					v /= 10;
-				}
-				int pos = 0;
-				if (neg) buf[pos++] = '-';
-				while (i > 0) buf[pos++] = tmp[--i];
-				buf[pos] = '\0';
-			}
-			ZVAL_STRING(result, buf);
-			break;
-		}
+		case DUCKDB_TYPE_HUGEINT:
 		case DUCKDB_TYPE_UHUGEINT: {
-			duckdb_uhugeint val = ((duckdb_uhugeint *)duckdb_vector_get_data(vec))[row_idx];
-			unsigned __int128 v = (unsigned __int128)val.upper << 64 | val.lower;
-			char buf[40];
-			if (v == 0) {
-				snprintf(buf, sizeof(buf), "0");
+			char *str = duckdb_get_string(vec, row_idx);
+			if (str == NULL) {
+				ZVAL_NULL(result);
 			} else {
-				char tmp[40];
-				int i = 0;
-				while (v > 0) {
-					tmp[i++] = '0' + (char)(v % 10);
-					v /= 10;
-				}
-				int pos = 0;
-				while (i > 0) buf[pos++] = tmp[--i];
-				buf[pos] = '\0';
+				ZVAL_STRING(result, str);
+				duckdb_free(str);
 			}
-			ZVAL_STRING(result, buf);
 			break;
 		}
 		case DUCKDB_TYPE_VARCHAR: {
@@ -597,17 +560,13 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			break;
 		}
 		case DUCKDB_TYPE_UUID: {
-			duckdb_hugeint val = ((duckdb_hugeint *)duckdb_vector_get_data(vec))[row_idx];
-			uint64_t upper = (uint64_t)val.upper;
-			uint64_t lower = val.lower;
-			char buf[37];
-			snprintf(buf, sizeof(buf), "%08x-%04x-%04x-%04x-%012lx",
-			         (unsigned)(upper >> 32),
-			         (unsigned)((upper >> 16) & 0xFFFF),
-			         (unsigned)(upper & 0xFFFF),
-			         (unsigned)(lower >> 48),
-			         (unsigned long)(lower & 0xFFFFFFFFFFFFULL));
-			ZVAL_STRING(result, buf);
+			char *str = duckdb_get_string(vec, row_idx);
+			if (str == NULL) {
+				ZVAL_NULL(result);
+			} else {
+				ZVAL_STRING(result, str);
+				duckdb_free(str);
+			}
 			break;
 		}
 		case DUCKDB_TYPE_INTERVAL: {
@@ -644,24 +603,13 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			break;
 		}
 		case DUCKDB_TYPE_BIT: {
-			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
-			const char *str_data = duckdb_string_t_data(&str);
-			size_t str_len = duckdb_string_t_length(str);
-			if (str_len == 0) {
-				ZVAL_STRING(result, "");
-				break;
+			char *str = duckdb_get_string(vec, row_idx);
+			if (str == NULL) {
+				ZVAL_NULL(result);
+			} else {
+				ZVAL_STRING(result, str);
+				duckdb_free(str);
 			}
-			uint8_t padding = (uint8_t)str_data[0];
-			size_t bit_count = (str_len - 1) * 8 - padding;
-			char *buf = emalloc(bit_count + 1);
-			for (size_t i = 0; i < bit_count; i++) {
-				size_t byte_idx = 1 + i / 8;
-				size_t bit_offset = 7 - padding - (i % 8);
-				buf[i] = ((str_data[byte_idx] >> bit_offset) & 1) ? '1' : '0';
-			}
-			buf[bit_count] = '\0';
-			ZVAL_STRING(result, buf);
-			efree(buf);
 			break;
 		}
 		default: {
