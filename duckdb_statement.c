@@ -426,8 +426,24 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			break;
 		}
 		case DUCKDB_TYPE_VARCHAR: {
-			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
-			ZVAL_STRINGL(result, duckdb_string_t_data(&str), duckdb_string_t_length(str));
+			char *alias = duckdb_logical_type_get_alias(logical_type);
+			int is_json = (alias && strcmp(alias, "JSON") == 0);
+			duckdb_free(alias);
+			if (is_json) {
+				duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
+				const char *str_data = duckdb_string_t_data(&str);
+				size_t str_len = duckdb_string_t_length(str);
+				char *json_copy = emalloc(str_len + 1);
+				memcpy(json_copy, str_data, str_len);
+				json_copy[str_len] = '\0';
+				if (php_json_decode(result, json_copy, str_len, 1, 512) != SUCCESS) {
+					ZVAL_STRINGL(result, json_copy, str_len);
+				}
+				efree(json_copy);
+			} else {
+				duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
+				ZVAL_STRINGL(result, duckdb_string_t_data(&str), duckdb_string_t_length(str));
+			}
 			break;
 		}
 		case DUCKDB_TYPE_BLOB: {
