@@ -31,6 +31,8 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     )
 
 
+### Open databases from disk or in-memory
+
     $db = new PDO('duckdb::memory:'); // open in-memory database
 
     $db = new PDO('duckdb:/tmp/test.db'); // open database file from disk
