@@ -545,7 +545,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 		case DUCKDB_TYPE_HUGEINT:
 		case DUCKDB_TYPE_UHUGEINT:
 		case DUCKDB_TYPE_INTERVAL: {
-			char *str = duckdb_get_varchar(vec, row_idx);
+			char *str = duckdb_get_string(vec, row_idx);
 			if (str == NULL) {
 				ZVAL_NULL(result);
 			} else {

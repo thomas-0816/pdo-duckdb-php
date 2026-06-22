@@ -27,7 +27,7 @@ extern "C" char *duckdb_get_json_string(duckdb_vector vec, idx_t row) {
 	return result;
 }
 
-extern "C" char *duckdb_get_varchar(duckdb_vector vec, idx_t row) {
+extern "C" char *duckdb_get_string(duckdb_vector vec, idx_t row) {
 	if (!vec) return NULL;
 
 	auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
