@@ -27,6 +27,25 @@ extern "C" char *duckdb_variant_get_string(duckdb_vector vec, idx_t row) {
 	return result;
 }
 
+extern "C" char *duckdb_interval_get_string(duckdb_vector vec, idx_t row) {
+	if (!vec) return NULL;
+
+	auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
+	auto value = vec_ptr->GetValue(row);
+
+	if (value.IsNull()) return NULL;
+
+	auto str = value.DefaultCastAs(duckdb::LogicalType::VARCHAR).ToString();
+
+	auto *result = (char *)duckdb_malloc(str.size() + 1);
+	if (result) {
+		memcpy(result, str.c_str(), str.size());
+		result[str.size()] = '\0';
+	}
+
+	return result;
+}
+
 extern "C" char *duckdb_geometry_get_string(duckdb_vector vec, idx_t row) {
 	if (!vec) return NULL;
 

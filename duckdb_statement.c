@@ -634,68 +634,29 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			break;
 		}
 		case DUCKDB_TYPE_INTERVAL: {
-			duckdb_interval interval_val = ((duckdb_interval *)duckdb_vector_get_data(vec))[row_idx];
-			char buf[128];
-			int pos = 0;
-			int32_t months = interval_val.months;
-			int32_t days = interval_val.days;
-			int64_t micros = interval_val.micros;
-			int has_prev = 0;
-			if (months != 0) {
-				int32_t years = months / 12;
-				months = months % 12;
-				if (years != 0) {
-					pos += snprintf(buf + pos, sizeof(buf) - pos, "%d year%s", years, years == 1 ? "" : "s");
-					has_prev = 1;
-				}
-				if (months != 0) {
-					if (has_prev) buf[pos++] = ' ';
-					pos += snprintf(buf + pos, sizeof(buf) - pos, "%d month%s", months, months == 1 ? "" : "s");
-					has_prev = 1;
-				}
+			char *str = duckdb_interval_get_string(vec, row_idx);
+			if (str == NULL) {
+				ZVAL_NULL(result);
+			} else {
+				ZVAL_STRING(result, str);
+				duckdb_free(str);
 			}
-			if (days != 0) {
-				if (has_prev) buf[pos++] = ' ';
-				pos += snprintf(buf + pos, sizeof(buf) - pos, "%d day%s", days, days == 1 ? "" : "s");
-				has_prev = 1;
-			}
-			if (micros != 0 || !has_prev) {
-				if (has_prev) buf[pos++] = ' ';
-				int64_t remaining = micros;
-				int neg = remaining < 0;
-				if (neg) remaining = -remaining;
-				int64_t hours = remaining / 3600000000LL;
-				remaining %= 3600000000LL;
-				int64_t mins = remaining / 60000000LL;
-				remaining %= 60000000LL;
-				int64_t secs = remaining / 1000000LL;
-				int64_t usecs = remaining % 1000000LL;
-				if (neg) {
-					pos += snprintf(buf + pos, sizeof(buf) - pos, "-%02lld:%02lld:%02lld", (long long)hours, (long long)mins, (long long)secs);
-				} else {
-					pos += snprintf(buf + pos, sizeof(buf) - pos, "%02lld:%02lld:%02lld", (long long)hours, (long long)mins, (long long)secs);
-				}
-				if (usecs) {
-					pos += snprintf(buf + pos, sizeof(buf) - pos, ".%06lld", (long long)usecs);
-				}
-			}
-			ZVAL_STRINGL(result, buf, pos);
 			break;
 		}
 		case DUCKDB_TYPE_VARIANT: {
 			char *str = duckdb_variant_get_string(vec, row_idx);
 			if (str == NULL) {
 				ZVAL_NULL(result);
-		} else {
-			size_t str_len = strlen(str);
-			if (php_json_decode_ex(result, str, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
-				ZVAL_STRINGL(result, str, str_len);
+			} else {
+				size_t str_len = strlen(str);
+				if (php_json_decode_ex(result, str, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
+					ZVAL_STRINGL(result, str, str_len);
+				}
+				duckdb_free(str);
 			}
-			duckdb_free(str);
+			break;
 		}
-		break;
-	}
-	case DUCKDB_TYPE_GEOMETRY: {
+		case DUCKDB_TYPE_GEOMETRY: {
 			char *str = duckdb_geometry_get_string(vec, row_idx);
 			if (str == NULL) {
 				ZVAL_NULL(result);

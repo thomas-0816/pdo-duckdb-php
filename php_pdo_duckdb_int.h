@@ -55,6 +55,7 @@ typedef struct _pdo_duckdb_stmt {
 
 /* Helpers implemented in duckdb_stubs.cpp */
 char *duckdb_variant_get_string(duckdb_vector vector, idx_t row);
+char *duckdb_interval_get_string(duckdb_vector vec, idx_t row);
 char *duckdb_geometry_get_string(duckdb_vector vec, idx_t row);
 
 #endif /* PHP_PDO_DUCKDB_INT_H */
