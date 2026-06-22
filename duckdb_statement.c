@@ -855,6 +855,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			}
 			duckdb_free(str);
 		}
+		break;
 	}
 	case DUCKDB_TYPE_GEOMETRY: {
 			duckdb_string_t blob = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
