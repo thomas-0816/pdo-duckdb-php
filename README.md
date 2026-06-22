@@ -8,6 +8,7 @@ The build process bundles libduckdb directly into `pdo_duckdb.so`.
 
 This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstrings, Blobs and Boolean.
 
+
 ### Usage examples
 
     $duckDb = new PDO('duckdb::memory:');
@@ -30,7 +31,17 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     )
 
 
-    $db = new PDO('duckdb:/tmp/test.db');
+    $db = new PDO('duckdb::memory:'); // open in-memory database
+
+    $db = new PDO('duckdb:/tmp/test.db'); // open database file from disk
+
+    // open database file as read-only
+    $db = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
+
+
+### Read and write Parquet files
+
+    $db = new PDO('duckdb::memory:');
     $db->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR USING COMPRESSION zstd, data JSON)");
 
     $statement = $db->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
@@ -55,6 +66,8 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
             )
     )
 
+
+### Read CSV files with SQL
 
     $list = [
         ['aaa', 'bbb', 'ccc'],
@@ -88,6 +101,8 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     )
 
 
+### Read JSON files with SQL
+
     file_put_contents('/tmp/logs.json', json_encode(['log' => 'log text']) . PHP_EOL, FILE_APPEND);
     file_put_contents('/tmp/logs.json', json_encode(['log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
 
@@ -112,8 +127,16 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     ");
 
 
-    // open test.db read-only
-    $db = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
+### Use nested columns with a fixed schema
+
+    // s is array{v: string, i: int, a: string[], d: float}
+    $db = new PDO('duckdb::memory:');
+    $db->exec("create table table1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], d DECIMAL(10, 2)))");
+    $statement = $db->prepare("INSERT INTO table1 VALUES (?)");
+    $statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'd' => 42.21]]);
+    $statement = $db->query("SELECT * FROM table1");
+    print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
 
 ### Setup
 

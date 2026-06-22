@@ -747,6 +747,19 @@ $db->exec("create table t1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], j JSON))
 $statement = $db->prepare("INSERT INTO t1 VALUES (?)");
 $statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'j' => [1, 2, null, 'asd']]]);
 $statement = $db->query("SELECT * FROM t1");
-print_r($statement->fetchAll(PDO::FETCH_ASSOC)); // TODO fix j json not decoded to array
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+
+
+    // s is array{v: string, i: int, a: string[], d: float}
+
+    $db = new PDO('duckdb::memory:');
+    $db->exec("create table table1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], d DECIMAL(10, 2)))");
+
+    $statement = $db->prepare("INSERT INTO table1 VALUES (?)");
+    $statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'd' => 42.21]]);
+
+    $statement = $db->query("SELECT * FROM table1");
+    print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 unset($db);
