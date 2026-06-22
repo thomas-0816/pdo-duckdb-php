@@ -53,4 +53,7 @@ typedef struct _pdo_duckdb_stmt {
 	idx_t                     total_rows;       /* total rows consumed from previous chunks */
 } pdo_duckdb_stmt;
 
+/* Helpers implemented in duckdb_stubs.cpp */
+char *duckdb_variant_get_string(duckdb_vector vector, idx_t row);
+
 #endif /* PHP_PDO_DUCKDB_INT_H */
