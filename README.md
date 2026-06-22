@@ -140,7 +140,7 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     $statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'd' => 42.21]]);
 
     $statement = $db->query("SELECT * FROM table1");
-    print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+    print_r($statement->fetch(PDO::FETCH_ASSOC));
 
     Array
     (
