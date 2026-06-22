@@ -130,13 +130,30 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
 ### Use nested columns with a fixed schema
 
     // s is array{v: string, i: int, a: string[], d: float}
+
     $db = new PDO('duckdb::memory:');
     $db->exec("create table table1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], d DECIMAL(10, 2)))");
+
     $statement = $db->prepare("INSERT INTO table1 VALUES (?)");
     $statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'd' => 42.21]]);
+
     $statement = $db->query("SELECT * FROM table1");
     print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
+    Array
+    (
+        [s] => Array
+            (
+                [v] => foo
+                [i] => 21
+                [a] => Array
+                    (
+                        [0] => b
+                        [1] => c
+                    )
+                [d] => 42.21
+            )
+    )
 
 ### Setup
 
