@@ -11,6 +11,7 @@
 #include "php_pdo_duckdb_int.h"
 #include <math.h>
 #include "ext/json/php_json.h"
+#include "Zend/zend_smart_str.h"
 
 /* ---------------- WKB to WKT conversion ---------------- */
 
@@ -1135,6 +1136,14 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 
 		if (Z_ISNULL(param->parameter)) {
 			state = duckdb_bind_null(S->stmt, idx);
+		} else if (Z_TYPE_P(&param->parameter) == IS_ARRAY || Z_TYPE_P(&param->parameter) == IS_OBJECT) {
+			smart_str buf = {0};
+			if (php_json_encode(&buf, &param->parameter, 0) == SUCCESS && buf.s) {
+				state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s));
+			} else {
+				state = DuckDBError;
+			}
+			smart_str_free(&buf);
 		} else switch (PDO_PARAM_TYPE(param->param_type)) {
 			case PDO_PARAM_NULL:
 				state = duckdb_bind_null(S->stmt, idx);

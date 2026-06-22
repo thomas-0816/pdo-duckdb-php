@@ -5,6 +5,8 @@
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
+#include "ext/json/php_json.h"
+#include "Zend/zend_smart_str.h"
 #include "pdo/php_pdo.h"
 #include "pdo/php_pdo_driver.h"
 #include "php_pdo_duckdb_int.h"
@@ -26,6 +28,44 @@ static pdo_driver_t pdo_duckdb_driver = {
 	duckdb_handle_factory
 };
 
+/* Store original PDOStatement::execute handler */
+static void (*original_pdo_stmt_execute)(INTERNAL_FUNCTION_PARAMETERS);
+
+/* Override PDOStatement::execute to convert PHP arrays to JSON strings */
+static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
+{
+	zval *params = NULL;
+
+	if (ZEND_NUM_ARGS() == 0) {
+		original_pdo_stmt_execute(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+		return;
+	}
+
+	if (zend_parse_parameters(1, "z", &params) == FAILURE) {
+		RETURN_THROWS();
+	}
+
+	if (params && Z_TYPE_P(params) == IS_ARRAY) {
+		zval *entry;
+		zend_string *key;
+		zend_ulong num_key;
+
+		ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(params), num_key, key, entry) {
+			if (Z_TYPE_P(entry) == IS_ARRAY || Z_TYPE_P(entry) == IS_OBJECT) {
+				smart_str buf = {0};
+				if (php_json_encode(&buf, entry, 0) == SUCCESS && buf.s) {
+					zval_ptr_dtor(entry);
+					ZVAL_STR(entry, buf.s);
+				} else {
+					smart_str_free(&buf);
+				}
+			}
+		} ZEND_HASH_FOREACH_END();
+	}
+
+	original_pdo_stmt_execute(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+}
+
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(pdo_duckdb)
 {
@@ -41,6 +81,25 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 
 	return SUCCESS;
 }
+
+/* {{{ PHP_RINIT_FUNCTION */
+PHP_RINIT_FUNCTION(pdo_duckdb)
+{
+	static zend_class_entry *pdo_stmt_ce = NULL;
+
+	if (pdo_stmt_ce == NULL) {
+		pdo_stmt_ce = zend_hash_str_find_ptr(CG(class_table), "pdostatement", sizeof("pdostatement") - 1);
+		if (pdo_stmt_ce) {
+			zend_function *func = zend_hash_str_find_ptr(&pdo_stmt_ce->function_table, "execute", sizeof("execute") - 1);
+			if (func && func->internal_function.handler != pdo_duckdb_stmt_execute_override) {
+				original_pdo_stmt_execute = func->internal_function.handler;
+				func->internal_function.handler = pdo_duckdb_stmt_execute_override;
+			}
+		}
+	}
+	return SUCCESS;
+}
+/* }}} */
 /* }}} */
 
 /* {{{ PHP_MSHUTDOWN_FUNCTION */
@@ -68,7 +127,7 @@ zend_module_entry pdo_duckdb_module_entry = {
 	NULL,                           /* functions */
 	PHP_MINIT(pdo_duckdb),
 	PHP_MSHUTDOWN(pdo_duckdb),
-	NULL,                           /* RINIT */
+	PHP_RINIT(pdo_duckdb),          /* RINIT */
 	NULL,                           /* RSHUTDOWN */
 	PHP_MINFO(pdo_duckdb),
 	PHP_PDO_DUCKDB_VERSION,

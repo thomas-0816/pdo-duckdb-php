@@ -689,6 +689,7 @@ foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") a
 }
 echo $count . PHP_EOL;
 
+new PDO('duckdb:/tmp/test.db');
 $db = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('access_mode', 'memory_limit', 'threads')");
 print_r($statement->fetchAll(PDO::FETCH_COLUMN));
@@ -720,5 +721,26 @@ $statement->bindValue('$cc', 300, PDO::PARAM_INT);
 $statement->bindValue('$dd', 42.21, PDO::PARAM_STR);
 $statement->bindValue('$ee', 'test', PDO::PARAM_STR);
 $statement->execute();
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (v VARCHAR[])");
+$statement = $db->prepare("INSERT INTO t VALUES (?)");
+$statement->execute([['hello', 'world']]);
+print_r($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
+
+$s = new stdClass();
+$s->foo = 'bar';
+$s->hello = 'world';
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (j JSON)");
+$statement = $db->prepare("INSERT INTO t VALUES (?)");
+$statement->execute([$s]);
+$statement->bindValue(1, ['foo', 'bar'], PDO::PARAM_LOB);
+$statement->execute();
+$statement->bindValue(1, $s, PDO::PARAM_LOB);
+$statement->execute();
+$statement->execute([json_encode($s)]);
+$statement->execute([json_encode(['foo', 'bar'])]);
+print_r($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC)); // TODO fix should return arrays. not strings
 
 unset($db);

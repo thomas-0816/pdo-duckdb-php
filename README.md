@@ -34,7 +34,7 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
     $db->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR USING COMPRESSION zstd, data JSON)");
 
     $statement = $db->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
-    $statement->execute([1, 'Hello DuckDB 🦆', json_encode(['foo' => 'bar', 'baz' => 42])]);
+    $statement->execute([1, 'Hello DuckDB 🦆', ['foo' => 'bar', 'baz' => 42]]);
 
     $statement = $db->exec("
         COPY (SELECT * FROM table2) TO '/tmp/table2.parquet' (COMPRESSION zstd)
