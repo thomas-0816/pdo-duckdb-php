@@ -31,6 +31,9 @@ $stmt->execute([1, 2, 9_223_372_036_854_775_806, -9_223_372_036_854_775_806, '18
 $stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $stmt->fetch()) { var_dump($row); }
 
+$statement = $db->query("SELECT '3402823669209384634633746074317682114571111'::bignum");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(1) {
@@ -118,4 +121,11 @@ array(7) {
   string(39) "170141183460469231731687303715884105726"
   ["u"]=>
   string(39) "340282366920938463463374607431768211455"
+}
+array(1) {
+  [0]=>
+  array(1) {
+    ["CAST('3402823669209384634633746074317682114571111' AS "BIGNUM")"]=>
+    string(43) "3402823669209384634633746074317682114571111"
+  }
 }

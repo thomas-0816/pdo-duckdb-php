@@ -23,12 +23,12 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
-$db = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
+$db = new PDO('duckdb:/tmp/pdo_duckdb_test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('access_mode', 'memory_limit', 'threads')");
 var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
 
 try {
-  new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['invalid' => 1]]);
+  new PDO('duckdb:/tmp/pdo_duckdb_test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['invalid' => 1]]);
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }

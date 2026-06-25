@@ -538,22 +538,6 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			duckdb_destroy_logical_type(&child_type);
 			break;
 		}
-		case DUCKDB_TYPE_ENUM:
-		case DUCKDB_TYPE_UUID:
-		case DUCKDB_TYPE_GEOMETRY:
-		case DUCKDB_TYPE_BIT:
-		case DUCKDB_TYPE_HUGEINT:
-		case DUCKDB_TYPE_UHUGEINT:
-		case DUCKDB_TYPE_INTERVAL: {
-			char *str = duckdb_get_string(vec, row_idx);
-			if (str == NULL) {
-				ZVAL_NULL(result);
-			} else {
-				ZVAL_STRING(result, str);
-				duckdb_free(str);
-			}
-			break;
-		}
 		case DUCKDB_TYPE_VARIANT: {
 			char *str = duckdb_get_json_string(vec, row_idx);
 			if (str == NULL) {
@@ -568,8 +552,23 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			break;
 		}
 		default: {
-			duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
-			ZVAL_STRINGL(result, duckdb_string_t_data(&str), duckdb_string_t_length(str));
+			/*
+				case DUCKDB_TYPE_ENUM:
+				case DUCKDB_TYPE_UUID:
+				case DUCKDB_TYPE_GEOMETRY:
+				case DUCKDB_TYPE_BIT:
+				case DUCKDB_TYPE_HUGEINT:
+				case DUCKDB_TYPE_UHUGEINT:
+				case DUCKDB_TYPE_INTERVAL:
+				case DUCKDB_TYPE_BIGNUM:
+			*/
+			char *str = duckdb_get_string(vec, row_idx);
+			if (str == NULL) {
+				ZVAL_NULL(result);
+			} else {
+				ZVAL_STRING(result, str);
+				duckdb_free(str);
+			}
 			break;
 		}
 	}
@@ -695,6 +694,7 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_VARIANT: type_str = "json"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_BIT: type_str = "bit"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_GEOMETRY: type_str = "geometry"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_BIGNUM: type_str = "bignum"; pdo_type = PDO_PARAM_STR; break;
 		default: type_str = "unknown"; pdo_type = PDO_PARAM_STR; break;
 	}
 
