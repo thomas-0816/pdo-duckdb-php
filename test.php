@@ -67,7 +67,6 @@ $statement->execute([1, 'hello']);
 $statement = $db->query("SELECT * FROM t");
 while ($row = $statement->fetch()) { print_r($row); }
 foreach ($db->query("SELECT * FROM t") as $row) { print_r($row); }
-unset($db);
 
 file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL);
 file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-02-03 04:05:06', 'log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
