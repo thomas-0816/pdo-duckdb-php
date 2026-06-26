@@ -348,6 +348,5 @@ struct pdo_dbh_methods duckdb_methods = {
 	NULL,                         /* get_driver_methods */
 	NULL,                         /* persistent_shutdown */
 	NULL,                         /* in_transaction */
-	NULL,                         /* get_gc */
-	NULL                          /* scanner */
+	NULL                         /* get_gc */
 };

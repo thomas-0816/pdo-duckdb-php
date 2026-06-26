@@ -1,7 +1,7 @@
-# docker build -f Dockerfile -t pdo_duckdb .
+# docker build --no-cache -f Dockerfile -t pdo_duckdb .
 # docker run --rm -it pdo_duckdb
 
-FROM debian:trixie-slim as base
+FROM debian:trixie-slim AS base
 
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
@@ -24,9 +24,8 @@ EOF
 
 WORKDIR /pdo-duckdb
 
-FROM base
-
 # php 8.2
+FROM base
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
@@ -46,9 +45,8 @@ RUN <<EOF
     make clean
 EOF
 
-FROM base
-
 # php 8.3
+FROM base
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
@@ -62,6 +60,48 @@ RUN <<EOF
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
     make install
     echo "extension=pdo_duckdb.so" > /etc/php/8.3/mods-available/pdo_duckdb.ini
+    phpenmod pdo_duckdb
+    php -m | grep duckdb
+    php test.php
+    make clean
+EOF
+
+# php 8.4
+FROM base
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install php8.4-cli php8.4-dev
+    unzip -o /libduckdb-linux-amd64.zip -d ./
+    phpize
+    ./configure --with-pdo-duckdb
+    make -j$(nproc)
+    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+    NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
+    make install
+    echo "extension=pdo_duckdb.so" > /etc/php/8.4/mods-available/pdo_duckdb.ini
+    phpenmod pdo_duckdb
+    php -m | grep duckdb
+    php test.php
+    make clean
+EOF
+
+# php 8.5
+FROM base
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install php8.5-cli php8.5-dev
+    unzip -o /libduckdb-linux-amd64.zip -d ./
+    phpize
+    ./configure --with-pdo-duckdb
+    make -j$(nproc)
+    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+    NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
+    make install
+    echo "extension=pdo_duckdb.so" > /etc/php/8.5/mods-available/pdo_duckdb.ini
     phpenmod pdo_duckdb
     php -m | grep duckdb
     php test.php
