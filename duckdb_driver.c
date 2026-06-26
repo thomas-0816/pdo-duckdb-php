@@ -9,6 +9,8 @@
 #include "pdo/php_pdo_driver.h"
 #include "Zend/zend_exceptions.h"
 #include "php_pdo_duckdb_int.h"
+#include <pthread.h>
+#include <unistd.h>
 
 /* Forward declaration of statement methods (defined in duckdb_statement.c) */
 extern struct pdo_stmt_methods duckdb_stmt_methods;
@@ -69,6 +71,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 
 	H = ecalloc(1, sizeof(pdo_duckdb_db_handle));
 	H->error_msg[0] = '\0';
+	H->query_timeout_ms = 0;
 	dbh->driver_data = H;
 
 	/* Extract path — PDO passes the part after the first colon */
@@ -177,21 +180,60 @@ static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql,
 	return true;
 }
 
+/* Thread: sleep then interrupt the DuckDB connection */
+static void* pdo_duckdb_timeout_thread(void *arg)
+{
+	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *)arg;
+	int remaining = H->query_timeout_ms;
+	while (remaining > 0) {
+		usleep(250000); /* 250 ms */
+		remaining -= 250;
+		if (!H->timeout_running) {
+			return NULL;
+		}
+	}
+	if (H->timeout_running) {
+		duckdb_interrupt(H->conn);
+	}
+	return NULL;
+}
+
+/* Start the timeout thread if a query timeout is configured */
+static void pdo_duckdb_start_timeout(pdo_duckdb_db_handle *H)
+{
+	if (H->query_timeout_ms > 0) {
+		H->timeout_running = 1;
+		pthread_create(&H->timeout_thread, NULL, pdo_duckdb_timeout_thread, H);
+	}
+}
+
+/* Stop (cancel) the timeout thread */
+static void pdo_duckdb_stop_timeout(pdo_duckdb_db_handle *H)
+{
+	if (H->query_timeout_ms > 0 && H->timeout_running) {
+		H->timeout_running = 0;
+		pthread_join(H->timeout_thread, NULL);
+	}
+}
+
 /* ---------------- exec (direct, non‑prepared) ---------------- */
 static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	duckdb_result result;
 	char *prepared_sql = zstr_prepare((zend_string *)sql);
+	pdo_duckdb_start_timeout(H);
 	duckdb_state state = duckdb_query(H->conn, prepared_sql, &result);
 	efree(prepared_sql);
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&result);
+		pdo_duckdb_stop_timeout(H);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
 			"SQLSTATE[HY000]: %s", err ? err : "query error");
 		duckdb_destroy_result(&result);
 		return -1;
 	}
+	pdo_duckdb_stop_timeout(H);
 	idx_t rows = duckdb_rows_changed(&result);
 	duckdb_destroy_result(&result);
 	return (zend_long) rows;
@@ -291,6 +333,11 @@ static bool duckdb_set_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 		case PDO_DUCKDB_ATTR_UNBUFFERED:
 			H->unbuffered = zval_is_true(val) ? 1 : 0;
 			return true;
+		case PDO_ATTR_TIMEOUT: {
+			zend_long seconds = zval_get_long(val);
+			H->query_timeout_ms = (seconds > 0) ? (int)(seconds * 1000) : 0;
+			return true;
+		}
 		default:
 			return false;
 	}
@@ -302,11 +349,16 @@ static int duckdb_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 
 	switch (attr) {
 		case PDO_ATTR_CLIENT_VERSION:
+		case PDO_ATTR_SERVER_VERSION:
 			ZVAL_STRING(val, duckdb_library_version());
 			return 1;
 		case PDO_ATTR_AUTOCOMMIT:
 			ZVAL_LONG(val, H->auto_commit);
 			return 1;
+		case PDO_ATTR_DRIVER_NAME:
+			ZVAL_STRINGL(val, "duckdb", sizeof("duckdb") - 1);
+			break;
+
 		case PDO_DUCKDB_ATTR_UNBUFFERED:
 			ZVAL_BOOL(val, H->unbuffered);
 			return 1;
