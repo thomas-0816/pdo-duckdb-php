@@ -211,9 +211,9 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
     var_export($statement->fetch(PDO::FETCH_NUM));
 
     array (
-        0 => NAN, // MySQL,MariaDB: null
-        1 => INF, // MySQL,MariaDB: null
-        2 => -INF, // MySQL,MariaDB: null
+        0 => NAN, // MySQL,MariaDB: NULL
+        1 => INF, // MySQL,MariaDB: NULL
+        2 => -INF, // MySQL,MariaDB: NULL
         3 => NULL,
         4 => NULL,
         5 => NULL,
