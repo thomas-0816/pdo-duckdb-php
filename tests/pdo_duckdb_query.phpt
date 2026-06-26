@@ -132,6 +132,7 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $count = 0;
 $db = new PDO('duckdb::memory:');
 $db->setAttribute(PDO::DUCKDB_ATTR_UNBUFFERED, false);
+var_dump($db->getAttribute(PDO::DUCKDB_ATTR_UNBUFFERED));
 foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") as $row) {
     $count++;
 }
@@ -201,6 +202,14 @@ $statement->bindValue('bb', 9223372036854775807, PDO::PARAM_INT);
 $statement->execute();
 $statement = $db->query("SELECT * FROM t");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db = new PDO('duckdb::memory:');
+$db->setAttribute(PDO::ATTR_TIMEOUT, 1);
+try {
+  $db->exec("select sleep_ms(1100)");
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
 
 ?>
 --EXPECTF--
@@ -445,6 +454,7 @@ array(1) {
     int(42)
   }
 }
+bool(false)
 bool(true)
 20000
 array(1) {
@@ -558,3 +568,4 @@ array(1) {
     int(9223372036854775807)
   }
 }
+Caught: SQLSTATE[HY000]: INTERRUPT Error: Interrupted!
