@@ -64,6 +64,7 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 	}
 
 	duckdb_state state;
+	pdo_duckdb_start_timeout(H);
 	if (H->unbuffered) {
 		state = duckdb_execute_prepared_streaming(S->stmt, &S->result);
 	} else {
@@ -71,11 +72,13 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 	}
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&S->result);
+		pdo_duckdb_stop_timeout(H);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
 			"SQLSTATE[HY000]: %s", err ? err : "execute error");
 		duckdb_destroy_result(&S->result);
 		return 0;
 	}
+	pdo_duckdb_stop_timeout(H);
 
 	S->result_set = 1;
 	S->done = 0;
