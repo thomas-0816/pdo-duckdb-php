@@ -783,4 +783,9 @@ $db = new PDO('duckdb::memory:');
 $statement = $db->query("SELECT now(), version()");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, true);
+$statement = $db->query("SELECT null as n, 42 as i, 42.21 as d, ['a', 'b']::varchar[] as v, '{\"a\": \"b\"}'::json as j");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
 unset($db);

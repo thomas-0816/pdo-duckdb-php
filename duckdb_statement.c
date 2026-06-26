@@ -596,6 +596,21 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 	duckdb_val_from_vector(vec, logical_type, row_idx, result);
 
 	duckdb_destroy_logical_type(&logical_type);
+
+	if (stmt->dbh->stringify && Z_TYPE_P(result) != IS_NULL) {
+		if (Z_TYPE_P(result) == IS_ARRAY || Z_TYPE_P(result) == IS_OBJECT) {
+			smart_str buf = {0};
+			if (php_json_encode(&buf, result, 0) == SUCCESS && buf.s) {
+				zval_ptr_dtor(result);
+				ZVAL_STR(result, buf.s);
+			} else {
+				smart_str_free(&buf);
+			}
+		} else {
+			convert_to_string(result);
+		}
+	}
+
 	return 1;
 }
 

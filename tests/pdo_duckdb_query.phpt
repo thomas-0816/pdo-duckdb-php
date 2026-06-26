@@ -211,6 +211,11 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+$db = new PDO('duckdb::memory:');
+$db->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, true);
+$statement = $db->query("SELECT null as n, 42 as i, 42.21 as d, ['a', 'b']::varchar[] as v, '{\"a\": \"b\"}'::json as j");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -569,3 +574,18 @@ array(1) {
   }
 }
 Caught: SQLSTATE[HY000]: INTERRUPT Error: Interrupted!
+array(1) {
+  [0]=>
+  array(5) {
+    ["n"]=>
+    NULL
+    ["i"]=>
+    string(2) "42"
+    ["d"]=>
+    string(5) "42.21"
+    ["v"]=>
+    string(9) "["a","b"]"
+    ["j"]=>
+    string(9) "{"a":"b"}"
+  }
+}
