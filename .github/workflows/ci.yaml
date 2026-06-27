@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  composer-validate:
+    name: "Validate using Composer"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer
+      - name: Validate
+        run: composer validate --strict
+
+  linux:
+    name: "Linux Tests"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - 8.2
+          - 8.3
+          - 8.4
+          - 8.5
+        thread-safety:
+          - zts
+          - nts
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+        env:
+          phpts: ${{ matrix.thread-safety }}
+          fail-fast: true
+      - name: Build & Test
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y --no-install-recommends install unzip
+          curl -fsSL -o "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-linux-amd64.zip"
+          unzip -o libduckdb-linux-amd64.zip -d
+          phpize
+          ./configure --with-pdo-duckdb
+          make
+          NO_INTERACTION=1 make test
