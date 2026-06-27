@@ -47,7 +47,7 @@ jobs:
           sudo apt-get -y update
           sudo apt-get -y --no-install-recommends install unzip wget
           wget -q https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-linux-amd64.zip
-          unzip -o libduckdb-linux-amd64.zip -d
+          unzip -o libduckdb-linux-amd64.zip -d ./
           phpize
           ./configure --with-pdo-duckdb
           make
