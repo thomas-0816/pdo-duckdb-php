@@ -19,8 +19,8 @@ jobs:
       - name: Validate
         run: composer validate --strict
 
-  linux_macos:
-    name: "Tests"
+  linux:
+    name: "Tests Linux"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -28,7 +28,6 @@ jobs:
         os:
           - ubuntu-24.04
           - ubuntu-24.04-arm
-          - macos-14
         php-version:
           - 8.2
           - 8.3
@@ -48,17 +47,49 @@ jobs:
           fail-fast: true
       - name: Build & Test
         run: |
-          sudo timedatectl set-timezone "Europe/Berlin" || sudo systemsetup -settimezone "Europe/Berlin"
+          sudo timedatectl set-timezone "Europe/Berlin"
           sudo apt-get -y update
           sudo apt-get -y --no-install-recommends install unzip wget
 
           case "${{ matrix.os }}" in
             ubuntu-24.04)     libduckdb=libduckdb-linux-amd64.zip ;;
             ubuntu-24.04-arm) libduckdb=libduckdb-linux-arm64.zip ;;
-            macos-14)         libduckdb=libduckdb-osx-universal.zip ;;
             *) echo "error ${{ matrix.os }}"; exit 1 ;;
           esac
           wget "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}"
+          unzip -o libduckdb-*.zip -d ./
+          phpize
+          ./configure --with-pdo-duckdb
+          make -j$(nproc)
+          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+
+  macos:
+    name: "Tests MacOS"
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - 8.2
+          - 8.3
+          - 8.4
+          - 8.5
+        thread-safety:
+          - zts
+          - nts
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+        env:
+          phpts: ${{ matrix.thread-safety }}
+          fail-fast: true
+      - name: Build & Test
+        run: |
+          sudo systemsetup -settimezone "Europe/Berlin"
+          wget "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-osx-universal.zip"
           unzip -o libduckdb-*.zip -d ./
           phpize
           ./configure --with-pdo-duckdb
