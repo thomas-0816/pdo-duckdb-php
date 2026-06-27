@@ -51,7 +51,6 @@ jobs:
           unzip -o libduckdb-linux-amd64.zip -d ./
           phpize
           ./configure --with-pdo-duckdb
-          make
-          pwd
-          ls -lisa
+          make -j$(nproc)
+          php -v
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
