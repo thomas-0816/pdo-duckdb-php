@@ -8,7 +8,7 @@
 #include "pdo/php_pdo.h"
 #include "pdo/php_pdo_driver.h"
 #include "Zend/zend_exceptions.h"
-#include "php_pdo_duckdb_int.h"
+#include "php_pdo_duckdb.h"
 #include <math.h>
 #include "ext/json/php_json.h"
 #include "Zend/zend_smart_str.h"
