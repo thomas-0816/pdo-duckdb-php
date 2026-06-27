@@ -44,8 +44,6 @@ jobs:
           fail-fast: true
       - name: Build & Test
         run: |
-          pwd
-          ls -lisa
           sudo apt-get -y update
           sudo apt-get -y --no-install-recommends install unzip wget
           wget -q https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-linux-amd64.zip
@@ -53,4 +51,6 @@ jobs:
           phpize
           ./configure --with-pdo-duckdb
           make
-          NO_INTERACTION=1 make test
+          pwd
+          ls -lisa
+          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
