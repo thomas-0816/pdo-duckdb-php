@@ -14,6 +14,8 @@ $statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $statement->fetch()) { var_dump($row); }
 
+$db->exec("INSTAll parquet; INSTAll json; INSTALL icu;");
+
 $statement = $db->query('SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE installed = 1 OR loaded = 1');
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
