@@ -22,7 +22,7 @@ dnl Link duckdb with appropriate linker flags based on platform
 case $host_os in
   darwin*)
     dnl macOS: link against libduckdb.dylib (shared library)
-    PDO_DUCKDB_SHARED_LIBADD="$ext_srcdir/libduckdb.dylib -Wl,-undefined,dynamic_lookup -Wl,-lstdc++"
+    PDO_DUCKDB_SHARED_LIBADD="$ext_srcdir/libduckdb.dylib -Wl,-undefined,dynamic_lookup -lc++"
     ;;
   *)
     dnl Linux/other: use --whole-archive to force all symbols into the .so
