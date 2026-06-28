@@ -5,7 +5,7 @@ on:
     types: [published]
 
 jobs:
-  build:
+  linux_macos:
     name: Release
     runs-on: ${{ matrix.os }}
     permissions:
@@ -55,3 +55,45 @@ jobs:
           release-tag: ${{ github.event.release.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           configure-flags: '--with-pdo-duckdb'
+
+  windows:
+    name: Windows
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - 8.2
+          - 8.3
+          - 8.4
+          - 8.5
+        ts:
+          - nts
+          - ts
+    steps:
+      - uses: actions/checkout@v6
+      - name: Download libduckdb (amd64 dynamic — duckdb.h, duckdb.lib, duckdb.dll)
+        shell: pwsh
+        run: |
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-windows-amd64.zip"
+          Invoke-WebRequest -Uri $url -OutFile duckdb.zip
+          Expand-Archive duckdb.zip -DestinationPath . -Force
+          Get-ChildItem -Path .
+      - name: Build extension DLL
+        uses: php/php-windows-builder/extension@v1
+        with:
+          php-version: ${{ matrix.php-version }}
+          arch: x64
+          ts: ${{ matrix.ts }}
+          args: --with-pdo-duckdb
+          run-tests: false
+      - name: Build and upload prebuilt binary
+          runs-on: ubuntu-latest
+          steps:
+            - name: Upload artifact to the release
+              uses: php/php-windows-builder/release@v1
+              with:
+                release: ${{ github.event.release.tag_name }}
+                token: ${{ secrets.GITHUB_TOKEN }}

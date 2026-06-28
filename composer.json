@@ -13,7 +13,7 @@
         "configure-options": [
             {
                 "name": "with-pdo-duckdb",
-                "needs-value": true,
+                "needs-value": false,
                 "description": "whether to enable pdo_duckdb support"
             }
         ]
