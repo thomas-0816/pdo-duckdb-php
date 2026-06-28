@@ -26,8 +26,15 @@ case $host_os in
     ;;
   *)
     dnl Linux/other: use --whole-archive to force all symbols into the .so
-    dnl -latomic needed on arm64 for __aarch64_ldadd* LSE atomic ifunc resolvers
-    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive -Wl,$ext_srcdir/libduckdb_static.a -Wl,--no-whole-archive -Wl,-lstdc++ -latomic"
+    dnl Prefer static link of libatomic for arm64 outline atomic ifunc resolvers
+    dnl (e.g. __aarch64_ldadd4_rel) to avoid runtime libatomic.so.1 dependency.
+    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive -Wl,$ext_srcdir/libduckdb_static.a -Wl,--no-whole-archive -Wl,-lstdc++"
+    LIBATOMIC_A=`$CXX -print-file-name=libatomic.a 2>/dev/null`
+    AS_IF([test -f "$LIBATOMIC_A"], [
+      PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_SHARED_LIBADD -l:libatomic.a"
+    ], [
+      PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_SHARED_LIBADD -latomic"
+    ])
     ;;
 esac
 PHP_SUBST(PDO_DUCKDB_SHARED_LIBADD)
