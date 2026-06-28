@@ -32,7 +32,7 @@ static pdo_driver_t pdo_duckdb_driver = {
 };
 
 /* Store original PDOStatement::execute handler */
-static void (*original_pdo_stmt_execute)(INTERNAL_FUNCTION_PARAMETERS);
+static zif_handler original_pdo_stmt_execute;
 
 /* Override PDOStatement::execute to convert PHP arrays to JSON strings */
 static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
@@ -92,9 +92,9 @@ PHP_RINIT_FUNCTION(pdo_duckdb)
 		pdo_stmt_ce = zend_hash_str_find_ptr(CG(class_table), "pdostatement", sizeof("pdostatement") - 1);
 		if (pdo_stmt_ce) {
 			zend_function *func = zend_hash_str_find_ptr(&pdo_stmt_ce->function_table, "execute", sizeof("execute") - 1);
-			if (func && func->internal_function.handler != pdo_duckdb_stmt_execute_override) {
+			if (func && func->internal_function.handler != (zif_handler)pdo_duckdb_stmt_execute_override) {
 				original_pdo_stmt_execute = func->internal_function.handler;
-				func->internal_function.handler = pdo_duckdb_stmt_execute_override;
+				func->internal_function.handler = (zif_handler)pdo_duckdb_stmt_execute_override;
 			}
 		}
 	}
