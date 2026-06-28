@@ -108,7 +108,10 @@ jobs:
             $p->query("CREATE TABLE t (x INTEGER)");
             $p->query("INSERT INTO t VALUES (42)");
             foreach ($p->query("SELECT * FROM t") as $r) echo "ROW: " . json_encode($r) . "\n";
-            var_dump($db->query("SELECT TIMESTAMPTZ '1992-09-20 11:30:00.123456789'")->fetchColumn());
+            $p->query("SET timezone = '\''UTC'\''");
+            var_dump($p->query("SELECT TIMESTAMPTZ '\''1992-09-20 11:30:00.123456789'\''")->fetchColumn());
+            $p->query("SET timezone = '\''Europe/Berlin'\''");
+            var_dump($p->query("SELECT TIMESTAMPTZ '\''1992-09-20 11:30:00.123456789'\''")->fetchColumn());
           '
           # php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
           php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
