@@ -25,6 +25,9 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT TIMESTAMPTZ '1992-09-20 11:30:00.123456789', TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00', timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40')");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$statement = $db->query("SELECT TIMESTAMPTZ '1992-03-20 11:30:00.123456789', TIMESTAMPTZ '1992-03-20 12:30:00.123456789+01:00', timezone('America/Denver', TIMESTAMP '2001-08-16 20:38:40')");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 $statement = $db->query("SELECT '-infinity'::TIMESTAMP, 'epoch'::TIMESTAMP, 'infinity'::TIMESTAMP");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
@@ -103,6 +106,17 @@ array(1) {
     string(32) "1992-09-20 13:30:00.123456+02:00"
     ["timezone('America/Denver', CAST('2001-02-16 20:38:40' AS TIMESTAMP))"]=>
     string(25) "2001-02-17 04:38:40+01:00"
+  }
+}
+array(1) {
+  [0]=>
+  array(3) {
+    ["CAST('1992-03-20 11:30:00.123456789' AS "TIMESTAMP WITH TIME ZONE")"]=>
+    string(32) "1992-03-20 11:30:00.123456+01:00"
+    ["CAST('1992-03-20 12:30:00.123456789+01:00' AS "TIMESTAMP WITH TIME ZONE")"]=>
+    string(32) "1992-03-20 12:30:00.123456+01:00"
+    ["timezone('America/Denver', CAST('2001-08-16 20:38:40' AS TIMESTAMP))"]=>
+    string(25) "2001-08-17 04:38:40+02:00"
   }
 }
 array(1) {
