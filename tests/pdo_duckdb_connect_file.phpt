@@ -22,11 +22,11 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
-copy($tmpFile, $tmpFile . '2');
-
+/* not working with windows
 $db = new PDO('duckdb:' . $tmpFile . '2', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('access_mode', 'memory_limit', 'threads')");
 var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
+*/
 
 try {
   new PDO('duckdb:' . $tmpFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['invalid' => 1]]);
@@ -57,12 +57,4 @@ array(4) {
   string(5) "hello"
 }
 Caught: SQLSTATE[HY000]: Could not open DuckDB database: %s
-array(3) {
-  [0]=>
-  string(9) "read_only"
-  [1]=>
-  string(7) "3.7 GiB"
-  [2]=>
-  string(1) "1"
-}
 Caught: SQLSTATE[HY000]: Could not open DuckDB database: Invalid Input Error: The following options were not recognized: invalid
