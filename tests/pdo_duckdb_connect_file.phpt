@@ -5,12 +5,8 @@ pdo_duckdb
 --FILE--
 <?php
 
-$tmpFile = sys_get_temp_dir() . '/pdo_duckdb_test.db';
+$tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '.db';
 $invalidFile = sys_get_temp_dir() . '/invalid/test.db';
-
-if (file_exists($tmpFile)) {
-    unlink($tmpFile);
-}
 
 $db = new PDO('duckdb:' . $tmpFile);
 $db->exec("CREATE TABLE t (i INTEGER, v VARCHAR)");
