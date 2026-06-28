@@ -9,8 +9,13 @@
 #include "pdo/php_pdo_driver.h"
 #include "Zend/zend_exceptions.h"
 #include "php_pdo_duckdb.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <pthread.h>
 #include <unistd.h>
+#endif
 
 /* Forward declaration of statement methods (defined in duckdb_statement.c) */
 extern struct pdo_stmt_methods duckdb_stmt_methods;
@@ -181,21 +186,37 @@ static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql,
 }
 
 /* Thread: sleep then interrupt the DuckDB connection */
+#ifdef _WIN32
+static DWORD WINAPI pdo_duckdb_timeout_thread(LPVOID arg)
+#else
 static void* pdo_duckdb_timeout_thread(void *arg)
+#endif
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *)arg;
 	int remaining = H->query_timeout_ms;
 	while (remaining > 0) {
+#ifdef _WIN32
+		Sleep(250);
+#else
 		usleep(250000); /* 250 ms */
+#endif
 		remaining -= 250;
 		if (!H->timeout_running) {
+#ifdef _WIN32
+			return 0;
+#else
 			return NULL;
+#endif
 		}
 	}
 	if (H->timeout_running) {
 		duckdb_interrupt(H->conn);
 	}
+#ifdef _WIN32
+	return 0;
+#else
 	return NULL;
+#endif
 }
 
 /* Start the timeout thread if a query timeout is configured */
@@ -203,7 +224,11 @@ void pdo_duckdb_start_timeout(pdo_duckdb_db_handle *H)
 {
 	if (H->query_timeout_ms > 0) {
 		H->timeout_running = 1;
+#ifdef _WIN32
+		H->timeout_thread = CreateThread(NULL, 0, pdo_duckdb_timeout_thread, H, 0, NULL);
+#else
 		pthread_create(&H->timeout_thread, NULL, pdo_duckdb_timeout_thread, H);
+#endif
 	}
 }
 
@@ -212,7 +237,12 @@ void pdo_duckdb_stop_timeout(pdo_duckdb_db_handle *H)
 {
 	if (H->query_timeout_ms > 0 && H->timeout_running) {
 		H->timeout_running = 0;
+#ifdef _WIN32
+		WaitForSingleObject(H->timeout_thread, INFINITE);
+		CloseHandle(H->timeout_thread);
+#else
 		pthread_join(H->timeout_thread, NULL);
+#endif
 	}
 }
 

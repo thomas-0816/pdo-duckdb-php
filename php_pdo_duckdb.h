@@ -17,7 +17,7 @@
 
 /* Module globals – required by ZEND_DECLARE_MODULE_GLOBALS */
 ZEND_BEGIN_MODULE_GLOBALS(pdo_duckdb)
-	/* no global variables needed currently – leave empty */
+	int dummy;
 ZEND_END_MODULE_GLOBALS(pdo_duckdb)
 
 /* Forward declarations of the driver and statement method tables.
@@ -31,6 +31,14 @@ enum {
 	PDO_DUCKDB_ATTR_CONFIG
 };
 
+/* Platform thread handle type */
+#ifdef _WIN32
+typedef HANDLE pdo_duckdb_thread_t;
+#else
+#include <pthread.h>
+typedef pthread_t pdo_duckdb_thread_t;
+#endif
+
 /* Connection data – one per PDO handle */
 typedef struct _pdo_duckdb_db_handle {
 	duckdb_database    db;                /* main database object */
@@ -40,7 +48,7 @@ typedef struct _pdo_duckdb_db_handle {
 	int                auto_commit;       /* PDO::ATTR_AUTOCOMMIT */
 	int                unbuffered;        /* PDO::DUCKDB_ATTR_UNBUFFERED */
 	int                query_timeout_ms;  /* PDO::ATTR_TIMEOUT in ms (0 = no timeout) */
-	pthread_t          timeout_thread;    /* thread to interrupt query on timeout */
+	pdo_duckdb_thread_t timeout_thread;   /* thread handle (HANDLE on Win32, pthread_t on POSIX) */
 	volatile int       timeout_running;   /* flag to signal timeout thread to stop */
 } pdo_duckdb_db_handle;
 
