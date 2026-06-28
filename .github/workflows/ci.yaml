@@ -49,7 +49,7 @@ jobs:
       - name: Build & Test
         run: |
           sudo timedatectl set-timezone "Europe/Berlin"
-          apt-get update && apt-get install -y --no-install-recommends libatomic1
+          apt-get update && apt-get install -y --no-install-recommends libatomic1 libatomic-ops-dev libboost-atomic-dev
           case "${{ matrix.os }}" in
             ubuntu-24.04)     libduckdb=libduckdb-linux-amd64.zip ;;
             ubuntu-24.04-arm) libduckdb=libduckdb-linux-arm64.zip ;;
