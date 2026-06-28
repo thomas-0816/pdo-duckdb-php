@@ -6,6 +6,12 @@ pdo_duckdb
 <?php
 
 $tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '.db';
+
+$db = new PDO('duckdb:' . $tmpFile);
+$db = new PDO('duckdb:' . $tmpFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
+$db = new PDO('duckdb:' . $tmpFile);
+
+$tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '.db';
 $invalidFile = sys_get_temp_dir() . '/invalid/test.db';
 
 $db = new PDO('duckdb:' . $tmpFile);
