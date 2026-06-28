@@ -106,7 +106,7 @@ jobs:
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
   windows-build:
-    name: Windows ${{ matrix.php-version }} ${{ matrix.arch }} ${{ matrix.ts }}
+    name: Windows
     runs-on: windows-2022
     strategy:
       fail-fast: false
@@ -119,8 +119,6 @@ jobs:
         ts:
           - nts
           - ts
-        arch:
-          - x64
     steps:
       - uses: actions/checkout@v6
       - name: Download and stage libduckdb (x64)
@@ -136,6 +134,6 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           ts: ${{ matrix.ts }}
-          arch: ${{ matrix.arch }}
+          arch: x64
           args: --with-pdo-duckdb
           test-workers: 1
