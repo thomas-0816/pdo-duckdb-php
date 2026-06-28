@@ -5,6 +5,9 @@ pdo_duckdb
 --FILE--
 <?php
 
+$db = new PDO('duckdb::memory:');
+$db->query("INSTALL icu;");
+
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'Europe/Berlin']]);
 
 $statement = $db->query("SELECT '-infinity'::DATE AS negative, 'epoch'::DATE AS epoch, 'infinity'::DATE AS positive");
