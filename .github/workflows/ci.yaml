@@ -63,7 +63,8 @@ jobs:
           phpize
           ./configure --with-pdo-duckdb
           make
-          PHP_EXECUTABLE=$(which php) NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
   macos:
@@ -93,9 +94,6 @@ jobs:
       - name: Build & Test
         run: |
           sudo systemsetup -settimezone "Europe/Berlin"
-          sudo systemsetup -gettimezone
-          php -v
-          date
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-osx-arm64.zip" -o static-libs-osx-arm64.zip
@@ -103,23 +101,9 @@ jobs:
           phpize
           ./configure --with-pdo-duckdb
           make
-          ls -lisa modules/
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -r '
-            echo "PHP OK\n";
-            $p = new PDO("duckdb::memory:");
-            echo "PDO OK\n";
-            $p->query("CREATE TABLE t (x INTEGER)");
-            $p->query("INSERT INTO t VALUES (42)");
-            foreach ($p->query("SELECT * FROM t") as $r) echo "ROW: " . json_encode($r) . "\n";
-            $p->query("SET timezone = '\''UTC'\''");
-            var_dump($p->query("SELECT TIMESTAMPTZ '\''1992-09-20 11:30:00.123456789'\''")->fetchColumn());
-            $p->query("SET timezone = '\''Europe/Berlin'\''");
-            var_dump($p->query("SELECT TIMESTAMPTZ '\''1992-09-20 11:30:00.123456789'\''")->fetchColumn());
-          '
-          # php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-          php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
-          PHP_EXECUTABLE=$(which php) NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
 #  windows-matrix:
 #    runs-on: ubuntu-latest
