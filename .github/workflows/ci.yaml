@@ -96,8 +96,10 @@ jobs:
           sudo systemsetup -gettimezone
           php -v
           date
-          wget -q "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-osx-arm64.zip"
-          unzip -o static-libs-osx-arm64.zip -d ./
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
+          unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-osx-arm64.zip" -o static-libs-osx-arm64.zip
+          unzip -o static-libs-osx-arm64.zip libduckdb_static.a -d ./
           phpize
           ./configure --with-pdo-duckdb
           make
