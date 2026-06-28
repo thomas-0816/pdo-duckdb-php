@@ -103,6 +103,7 @@ jobs:
     outputs:
       matrix: ${{ steps.extension-matrix.outputs.matrix }}
     steps:
+      - name: Get the extension matrix
         id: extension-matrix
         uses: php/php-windows-builder/extension-matrix@v1
         with:
