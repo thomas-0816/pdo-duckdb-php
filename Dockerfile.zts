@@ -27,6 +27,75 @@ RUN <<EOF
     unzip -o /libduckdb-linux-amd64.zip -d ./
 EOF
 
+# php 8.2
+FROM base
+RUN <<EOF
+    set -euxo pipefail
+    curl -s https://pkg.henderkes.com/api/packages/82/debian/repository.key -o /etc/apt/keyrings/php.asc
+    echo "deb [signed-by=/etc/apt/keyrings/php.asc] https://pkg.henderkes.com/api/packages/82/debian php-zts main" | tee /etc/apt/sources.list.d/php.list
+    apt-get -y update
+    apt-get -y --no-install-recommends install php-zts-cli php-zts-pdo php-zts-devel
+    phpize-zts
+    ./configure --with-pdo-duckdb --with-php-config=php-config-zts
+    make
+    cp /usr/lib/php-zts/modules/pdo-zts-82.so /usr/lib/php-zts/modules/pdo.so
+    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+    NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
+    make install
+    sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
+    phpenmod-zts pdo_duckdb
+    php-zts -m | grep duckdb
+    php-zts test.php
+    make clean
+EOF
+
+# php 8.3
+FROM base
+RUN <<EOF
+    set -euxo pipefail
+    curl -s https://pkg.henderkes.com/api/packages/83/debian/repository.key -o /etc/apt/keyrings/php.asc
+    echo "deb [signed-by=/etc/apt/keyrings/php.asc] https://pkg.henderkes.com/api/packages/83/debian php-zts main" | tee /etc/apt/sources.list.d/php.list
+    apt-get -y update
+    apt-get -y --no-install-recommends install php-zts-cli php-zts-pdo php-zts-devel
+    phpize-zts
+    ./configure --with-pdo-duckdb --with-php-config=php-config-zts
+    make
+    cp /usr/lib/php-zts/modules/pdo-zts-83.so /usr/lib/php-zts/modules/pdo.so
+    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+    NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
+    make install
+    sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
+    phpenmod-zts pdo_duckdb
+    php-zts -m | grep duckdb
+    php-zts test.php
+    make clean
+EOF
+
+# php 8.4
+FROM base
+RUN <<EOF
+    set -euxo pipefail
+    curl -s https://pkg.henderkes.com/api/packages/84/debian/repository.key -o /etc/apt/keyrings/php.asc
+    echo "deb [signed-by=/etc/apt/keyrings/php.asc] https://pkg.henderkes.com/api/packages/84/debian php-zts main" | tee /etc/apt/sources.list.d/php.list
+    apt-get -y update
+    apt-get -y --no-install-recommends install php-zts-cli php-zts-pdo php-zts-devel
+    phpize-zts
+    ./configure --with-pdo-duckdb --with-php-config=php-config-zts
+    make
+    cp /usr/lib/php-zts/modules/pdo-zts-84.so /usr/lib/php-zts/modules/pdo.so
+    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+    NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
+    make install
+    sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
+    phpenmod-zts pdo_duckdb
+    php-zts -m | grep duckdb
+    php-zts test.php
+    make clean
+EOF
+
 # php 8.5
 FROM base
 RUN <<EOF
@@ -43,9 +112,9 @@ RUN <<EOF
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
     make install
-    echo "extension=pdo_duckdb.so" > /etc/php/8.5/mods-available/pdo_duckdb.ini
-    phpenmod pdo_duckdb
-    php -m | grep duckdb
-    php test.php
+    sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
+    phpenmod-zts pdo_duckdb
+    php-zts -m | grep duckdb
+    php-zts test.php
     make clean
 EOF
