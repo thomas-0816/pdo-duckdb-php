@@ -21,11 +21,11 @@ PHP_ADD_MAKEFILE_FRAGMENT
 dnl Link duckdb with appropriate linker flags based on platform
 case $host_os in
   darwin*)
-    dnl MacOS: use --whole-archive to force all symbols into the .so.
+    dnl macOS: use -force_load to force all symbols into the .so (equivalent to --whole-archive).
     dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic
     dnl IFUNC resolvers. The GCC driver adds -lgcc_s but not -lgcc for -shared
     dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
-    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive -Wl,$ext_srcdir/libduckdb_static.a -Wl,--no-whole-archive -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,--as-needed"
+    PDO_DUCKDB_SHARED_LIBADD="-Wl,-force_load,$ext_srcdir/libduckdb_static.a -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
     ;;
   *)
     dnl Linux/other: use --whole-archive to force all symbols into the .so.
