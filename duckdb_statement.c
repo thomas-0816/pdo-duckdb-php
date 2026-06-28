@@ -381,6 +381,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 				struct tm tm_utc;
 				localtime_s(&tm, &secs);
 				gmtime_s(&tm_utc, &secs);
+				tm_utc.tm_isdst = -1;
 				int offs = (int)(secs - mktime(&tm_utc));
 #else
 				localtime_r(&secs, &tm);
