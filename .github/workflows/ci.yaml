@@ -121,9 +121,6 @@ jobs:
           - ts
         arch:
           - x64
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.windows-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v6
       - name: Download and stage libduckdb (x64)
