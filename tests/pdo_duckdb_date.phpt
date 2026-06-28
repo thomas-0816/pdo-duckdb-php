@@ -1,11 +1,12 @@
 --TEST--
-PDO_duckdb: Test uuid
+PDO_duckdb: Test date
 --EXTENSIONS--
 pdo_duckdb
 --FILE--
 <?php
 
-$db = new PDO('duckdb::memory:');
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'Europe/Berlin']]);
+
 $statement = $db->query("SELECT '-infinity'::DATE AS negative, 'epoch'::DATE AS epoch, 'infinity'::DATE AS positive");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
@@ -97,7 +98,7 @@ array(1) {
   [0]=>
   array(3) {
     ["CAST('1992-09-20 11:30:00.123456789' AS "TIMESTAMP WITH TIME ZONE")"]=>
-    string(32) "1992-09-20 13:30:00.123456+02:00"
+    string(32) "1992-09-20 11:30:00.123456+02:00"
     ["CAST('1992-09-20 12:30:00.123456789+01:00' AS "TIMESTAMP WITH TIME ZONE")"]=>
     string(32) "1992-09-20 13:30:00.123456+02:00"
     ["timezone('America/Denver', CAST('2001-02-16 20:38:40' AS TIMESTAMP))"]=>
