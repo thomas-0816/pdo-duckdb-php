@@ -105,24 +105,22 @@ jobs:
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
-  windows-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.extension-matrix.outputs.matrix }}
-    steps:
-      - name: Get the extension matrix
-        id: extension-matrix
-        uses: php/php-windows-builder/extension-matrix@v1
-        with:
-          extension-url: ${{ github.event.repository.html_url }}
-          php-version-list: '8.2, 8.3, 8.4, 8.5'
-          arch-list: 'x64'
-          ts-list: 'nts, ts'
-
   windows-build:
     name: Windows ${{ matrix.php-version }} ${{ matrix.arch }} ${{ matrix.ts }}
-    needs: windows-matrix
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - 8.2
+          - 8.3
+          - 8.4
+          - 8.5
+        ts:
+          - nts
+          - ts
+        arch:
+          - x64
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.windows-matrix.outputs.matrix) }}
