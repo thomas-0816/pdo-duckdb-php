@@ -224,8 +224,8 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
     cd pdo_duckdb
 
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-linux-amd64.zip
-    unzip -o libduckdb-linux-amd64.zip -d ./
+    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip
+    unzip -o static-libs-linux-amd64.zip -d ./
 
     phpize
     ./configure --with-pdo-duckdb
@@ -244,8 +244,8 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
     cd pdo_duckdb
 
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-linux-amd64.zip
-    unzip -o libduckdb-linux-amd64.zip -d ./
+    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip
+    unzip -o static-libs-linux-amd64.zip -d ./
 
     phpize-zts
     ./configure --with-pdo-duckdb --with-php-config=php-config-zts

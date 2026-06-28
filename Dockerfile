@@ -10,11 +10,10 @@ ENV TZ="Europe/Berlin"
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    apt-get -y --no-install-recommends install apt-transport-https curl ca-certificates wget unzip build-essential autoconf libtool pkg-config tzdata
+    apt-get -y --no-install-recommends install apt-transport-https curl ca-certificates unzip build-essential autoconf libtool pkg-config tzdata
     echo "deb https://packages.sury.org/php/ trixie main" >/etc/apt/sources.list.d/ondrej-php.list
     curl -s https://packages.sury.org/php/apt.gpg >/etc/apt/trusted.gpg.d/php.gpg
     apt-get -y update
-    wget -q https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-linux-amd64.zip
     echo ${TZ} > /etc/timezone
     ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime
     apt-get upgrade -y && apt-get clean
@@ -27,7 +26,7 @@ WORKDIR /pdo-duckdb
 
 RUN <<EOF
     make clean
-    unzip -o /libduckdb-linux-amd64.zip -d ./
+    unzip -o static-libs-linux-amd64.zip -d ./
 EOF
 
 # php 8.2

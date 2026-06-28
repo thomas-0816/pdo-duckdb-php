@@ -26,13 +26,13 @@ $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'UTC']]);
-$db->exec("create table t1 (v VARIANT)");
+$db->exec("create table t1 (v2 VARIANT)");
 $db->exec("INSERT INTO t1 VALUES (TIMESTAMPTZ '1992-09-20 11:30:00.123456789'), (TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00'), (timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40'))");
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:');
-$db->exec("create table t1 (v VARIANT)");
+$db->exec("create table t1 (v3 VARIANT)");
 $db->exec("INSERT INTO t1 VALUES (TIMESTAMPTZ '1992-09-20 11:30:00.123456789'), (TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00'), (timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40'))");
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
@@ -282,34 +282,34 @@ array(28) {
 array(3) {
   [0]=>
   array(1) {
-    ["v"]=>
+    ["v2"]=>
     string(29) "1992-09-20 11:30:00.123456+00"
   }
   [1]=>
   array(1) {
-    ["v"]=>
+    ["v2"]=>
     string(29) "1992-09-20 11:30:00.123456+00"
   }
   [2]=>
   array(1) {
-    ["v"]=>
+    ["v2"]=>
     string(22) "2001-02-17 03:38:40+00"
   }
 }
 array(3) {
   [0]=>
   array(1) {
-    ["v"]=>
+    ["v3"]=>
     string(29) "1992-09-20 11:30:00.123456+00"
   }
   [1]=>
   array(1) {
-    ["v"]=>
+    ["v3"]=>
     string(29) "1992-09-20 11:30:00.123456+00"
   }
   [2]=>
   array(1) {
-    ["v"]=>
+    ["v3"]=>
     string(22) "2001-02-17 03:38:40+00"
   }
 }

@@ -21,13 +21,11 @@ PHP_ADD_MAKEFILE_FRAGMENT
 dnl Link duckdb with appropriate linker flags based on platform
 case $host_os in
   darwin*)
-    dnl macOS: link against libduckdb.dylib (shared library).
-    dnl -L must precede -l on the command line so the linker finds the
-    dnl dylib.  PHP_ADD_LIBPATH / PHP_ADD_LIBRARY_WITH_PATH would emit
-    dnl -l before -L on darwin, so craft the flags inline.
-    dnl Add rpath so dyld can find the dylib at runtime via @loader_path
-    dnl (when the dylib sits next to the .so) or via the build directory.
-    PDO_DUCKDB_SHARED_LIBADD="-L$ext_srcdir -lduckdb -Wl,-undefined,dynamic_lookup -Wl,-rpath,$ext_srcdir -Wl,-rpath,@loader_path/ -lc++"
+    dnl MacOS: use --whole-archive to force all symbols into the .so.
+    dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic
+    dnl IFUNC resolvers. The GCC driver adds -lgcc_s but not -lgcc for -shared
+    dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
+    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive -Wl,$ext_srcdir/libduckdb_static.a -Wl,--no-whole-archive -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,--as-needed"
     ;;
   *)
     dnl Linux/other: use --whole-archive to force all symbols into the .so.

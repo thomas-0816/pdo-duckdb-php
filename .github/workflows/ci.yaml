@@ -52,8 +52,8 @@ jobs:
           sudo timedatectl set-timezone "Europe/Berlin"
           apt-get update && apt-get install -y --no-install-recommends libgcc-13-dev
           case "${{ matrix.os }}" in
-            ubuntu-24.04)     libduckdb=libduckdb-linux-amd64.zip ;;
-            ubuntu-24.04-arm) libduckdb=libduckdb-linux-arm64.zip ;;
+            ubuntu-24.04)     libduckdb=static-libs-linux-amd64.zip ;;
+            ubuntu-24.04-arm) libduckdb=static-libs-linux-arm64.zip ;;
             *) echo "error ${{ matrix.os }}"; exit 1 ;;
           esac
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}" -o libduckdb.zip
@@ -94,8 +94,8 @@ jobs:
           sudo systemsetup -gettimezone
           php -v
           date
-          wget -q "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-osx-universal.zip"
-          unzip -o libduckdb-*.zip -d ./
+          wget -q "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-osx-arm64.zip"
+          unzip -o static-libs-osx-arm64.zip -d ./
           phpize
           ./configure --with-pdo-duckdb
           make

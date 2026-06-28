@@ -29,8 +29,8 @@ jobs:
         run: |
           apt-get update && apt-get install -y --no-install-recommends libgcc-13-dev
           case "${{ matrix.os }}" in
-            ubuntu-24.04)     libduckdb=libduckdb-linux-amd64.zip ;;
-            ubuntu-24.04-arm) libduckdb=libduckdb-linux-arm64.zip ;;
+            ubuntu-24.04)     libduckdb=static-libs-linux-amd64.zip ;;
+            ubuntu-24.04-arm) libduckdb=static-libs-linux-arm64.zip ;;
             *) echo "unmapped runner ${{ matrix.os }}"; exit 1 ;;
           esac
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}" -o libduckdb.zip
