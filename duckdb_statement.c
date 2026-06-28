@@ -372,7 +372,11 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 					usec += 1000000;
 				}
 				struct tm tm;
+#ifdef _WIN32
+				localtime_s(&tm, &secs);
+#else
 				localtime_r(&secs, &tm);
+#endif
 #ifdef _WIN32
 				int offs = (int)(_mkgmtime(&tm) - secs);
 #else
