@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.os }} php ${{ matrix.php }}
+    name: Release
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
@@ -17,14 +17,26 @@ jobs:
           - ubuntu-24.04
           - ubuntu-24.04-arm
           - macos-14
-        php: ['8.2', '8.3', '8.4', '8.5']
+        php-version:
+          - 8.2
+          - 8.3
+          - 8.4
+          - 8.5
+        thread-safety:
+          - zts
+          - nts
+        thread-safety:
+          - zts
+          - nts
     steps:
       - uses: actions/checkout@v6
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: ${{ matrix.php-version }}
           coverage: none
+        env:
+          phpts: ${{ matrix.thread-safety }}
       - name: Download DuckDB static libs for this os/arch
         shell: bash
         run: |
