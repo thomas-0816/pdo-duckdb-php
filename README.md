@@ -219,7 +219,7 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
         5 => NULL,
     )
 
-### Setup
+### Setup NTS
 
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
     cd pdo_duckdb
@@ -238,6 +238,26 @@ Supported PHP versions: 8.2 8.3 8.4 8.5
 
     php -m | grep duckdb
     php test.php
+
+### Setup ZTS
+
+    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
+    cd pdo_duckdb
+
+    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-linux-amd64.zip
+    unzip -o libduckdb-linux-amd64.zip -d ./
+
+    phpize-zts
+    ./configure --with-pdo-duckdb --with-php-config=php-config-zts
+    make
+    NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+
+    sudo make install
+    sudo sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
+    sudo phpenmod-zts pdo_duckdb
+
+    php-zts -m | grep duckdb
+    php-zts test.php
 
 ### Security
 
@@ -297,6 +317,8 @@ Direct File Querying: You can query large datasets in open formats like Parquet 
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
     php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+
+    php-zts run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
 
     # test PHP 8.2-8.5
     docker build --no-cache -f Dockerfile -t pdo_duckdb .
