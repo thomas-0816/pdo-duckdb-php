@@ -126,7 +126,8 @@ jobs:
         run: |
           $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-windows-amd64.zip"
           Invoke-WebRequest -Uri $url -OutFile duckdb.zip
-          Expand-Archive duckdb.zip -DestinationPath ./ -Force
+          Expand-Archive duckdb.zip -DestinationPath . -Force
+          Get-ChildItem -Path .
       - name: Build extension
         uses: php/php-windows-builder/extension@v1
         with:
