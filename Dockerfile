@@ -10,19 +10,25 @@ ENV TZ="Europe/Berlin"
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    apt-get -y --no-install-recommends install apt-transport-https curl ca-certificates wget unzip git build-essential autoconf libtool pkg-config tzdata
+    apt-get -y --no-install-recommends install apt-transport-https curl ca-certificates wget unzip build-essential autoconf libtool pkg-config tzdata
     echo "deb https://packages.sury.org/php/ trixie main" >/etc/apt/sources.list.d/ondrej-php.list
     curl -s https://packages.sury.org/php/apt.gpg >/etc/apt/trusted.gpg.d/php.gpg
     apt-get -y update
     wget -q https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-linux-amd64.zip
-    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
     echo ${TZ} > /etc/timezone
     ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime
     apt-get upgrade -y && apt-get clean
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
 EOF
 
+COPY ./ /pdo-duckdb
+
 WORKDIR /pdo-duckdb
+
+RUN <<EOF
+    make clean
+    unzip -o /libduckdb-linux-amd64.zip -d ./
+EOF
 
 # php 8.2
 FROM base
@@ -30,7 +36,6 @@ RUN <<EOF
     set -euxo pipefail
     apt-get -y update
     apt-get -y --no-install-recommends install php8.2-cli php8.2-dev
-    unzip -o /libduckdb-linux-amd64.zip -d ./
     phpize
     ./configure --with-pdo-duckdb
     make
@@ -51,7 +56,6 @@ RUN <<EOF
     set -euxo pipefail
     apt-get -y update
     apt-get -y --no-install-recommends install php8.3-cli php8.3-dev
-    unzip -o /libduckdb-linux-amd64.zip -d ./
     phpize
     ./configure --with-pdo-duckdb
     make
@@ -72,7 +76,6 @@ RUN <<EOF
     set -euxo pipefail
     apt-get -y update
     apt-get -y --no-install-recommends install php8.4-cli php8.4-dev
-    unzip -o /libduckdb-linux-amd64.zip -d ./
     phpize
     ./configure --with-pdo-duckdb
     make
@@ -93,7 +96,6 @@ RUN <<EOF
     set -euxo pipefail
     apt-get -y update
     apt-get -y --no-install-recommends install php8.5-cli php8.5-dev
-    unzip -o /libduckdb-linux-amd64.zip -d ./
     phpize
     ./configure --with-pdo-duckdb
     make
