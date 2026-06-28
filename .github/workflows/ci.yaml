@@ -90,17 +90,15 @@ jobs:
           fail-fast: true
       - name: Build & Test
         run: |
-          sudo systemsetup -settimezone "Europe/Berlin" 2>/dev/null || true
+          sudo systemsetup -settimezone "Europe/Berlin"
+          sudo systemsetup -gettimezone
+          date
           wget -q "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-osx-universal.zip"
           unzip -o libduckdb-*.zip -d ./
           phpize
           ./configure --with-pdo-duckdb
           make
-          echo "=== Verify libduckdb.dylib is linked ==="
-          otool -L modules/pdo_duckdb.so
-          echo "=== Verify rpath entries ==="
-          otool -l modules/pdo_duckdb.so 2>/dev/null | grep -A2 LC_RPATH || echo "NO RPATH"
-          cp libduckdb.dylib modules/
+          ls -lisa modules/
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m
           php -d extension=$(pwd)/modules/pdo_duckdb.so -r '
             echo "PHP OK\n";
