@@ -25,9 +25,6 @@ jobs:
         thread-safety:
           - zts
           - nts
-        thread-safety:
-          - zts
-          - nts
     steps:
       - uses: actions/checkout@v6
       - name: Setup PHP
