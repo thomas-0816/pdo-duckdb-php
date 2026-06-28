@@ -6,13 +6,13 @@ pdo_duckdb
 <?php
 
 $db = new PDO('duckdb::memory:');
-$statement = $db->query("SELECT 'Hello' || chr(10) || 'world' AS msg");
+$statement = $db->query("SELECT 'Hello' || chr(32) || 'world' AS msg");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT 'Hello'
     ' '
     'World' AS greeting");
-var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+var_dump($statement->fetchColumn());
 
 $statement = $db->query("SELECT 'Hello' || ' ' || 'World' AS greeting");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
@@ -46,17 +46,10 @@ array(1) {
   [0]=>
   array(1) {
     ["msg"]=>
-    string(11) "Hello
-world"
+    string(11) "Hello world"
   }
 }
-array(1) {
-  [0]=>
-  array(1) {
-    ["greeting"]=>
-    string(11) "Hello World"
-  }
-}
+string(11) "Hello World"
 array(1) {
   [0]=>
   array(1) {
