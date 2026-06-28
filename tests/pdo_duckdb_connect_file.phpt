@@ -31,7 +31,7 @@ var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
 try {
   new PDO('duckdb:' . $tmpFile . '3', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['invalid' => 1]]);
 } catch (Exception $e) {
-    echo "Caught: " . $e->getMessage() . "\n";
+    echo "Caught: " . trim($e->getMessage()) . "\n";
 }
 
 ?>
