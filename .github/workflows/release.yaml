@@ -90,10 +90,10 @@ jobs:
           args: --with-pdo-duckdb
           run-tests: false
       - name: Build and upload prebuilt binary
-          runs-on: ubuntu-latest
-          steps:
-            - name: Upload artifact to the release
-              uses: php/php-windows-builder/release@v1
-              with:
-                release: ${{ github.event.release.tag_name }}
-                token: ${{ secrets.GITHUB_TOKEN }}
+        runs-on: ubuntu-latest
+        steps:
+          - name: Upload artifact to the release
+            uses: php/php-windows-builder/release@v1
+            with:
+              release: ${{ github.event.release.tag_name }}
+              token: ${{ secrets.GITHUB_TOKEN }}
