@@ -61,7 +61,7 @@ jobs:
           phpize
           ./configure --with-pdo-duckdb
           make
-          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+          PHP_EXECUTABLE=$(which php) NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
   macos:
@@ -110,7 +110,7 @@ jobs:
             foreach ($p->query("SELECT * FROM t") as $r) echo "ROW: " . json_encode($r) . "\n";
           '
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+          PHP_EXECUTABLE=$(which php) NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
 #  windows-matrix:
 #    runs-on: ubuntu-latest
