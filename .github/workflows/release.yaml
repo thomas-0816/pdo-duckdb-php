@@ -26,9 +26,11 @@ jobs:
           - zts
           - nts
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
@@ -49,7 +51,7 @@ jobs:
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}" -o libduckdb.zip
           unzip -o libduckdb.zip -d ./
       - name: Build and upload prebuilt binary
-        uses: php/pie-ext-binary-builder@0.0.3
+        uses: php/pie-ext-binary-builder@5298761950f63c7e9565ed7004e922b346e4386c
         with:
           release-tag: ${{ github.event.release.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -72,7 +74,9 @@ jobs:
           - nts
           - ts
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
       - name: Download libduckdb
         shell: pwsh
         run: |
@@ -82,7 +86,7 @@ jobs:
           Get-ChildItem -Path .
           tzutil /s "W. Europe Standard Time"
       - name: Build extension
-        uses: php/php-windows-builder/extension@v1
+        uses: php/php-windows-builder/extension@e03e5d39879adaeb61ed2225f0f4eae7db8c1df8
         with:
           php-version: ${{ matrix.php-version }}
           ts: ${{ matrix.ts }}
@@ -97,7 +101,7 @@ jobs:
       contents: write
     steps:
       - name: Upload artifact to the release
-        uses: php/php-windows-builder/release@v1
+        uses: php/php-windows-builder/release@e03e5d39879adaeb61ed2225f0f4eae7db8c1df8
         with:
           release: ${{ github.event.release.tag_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
