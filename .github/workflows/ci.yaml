@@ -8,6 +8,10 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   composer-validate:
     name: "Validate using Composer"
