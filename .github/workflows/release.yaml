@@ -44,13 +44,15 @@ jobs:
           phpts: ${{ matrix.thread-safety }}
       - name: Download DuckDB static libs for this os/arch
         shell: bash
+        env:
+          os: ${{ matrix.os }}
         run: |
           apt-get update && apt-get install -y --no-install-recommends libgcc-13-dev
-          case "${{ matrix.os }}" in
+          case "$os" in
             ubuntu-24.04)     libduckdb=static-libs-linux-amd64.zip ;;
             ubuntu-24.04-arm) libduckdb=static-libs-linux-arm64.zip ;;
             macos-14)         libduckdb=static-libs-osx-arm64.zip ;;
-            *) echo "unmapped runner ${{ matrix.os }}"; exit 1 ;;
+            *) echo "unmapped runner os"; exit 1 ;;
           esac
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
@@ -100,6 +102,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
+    name: Release
     needs: windows
     permissions:
       contents: write # publish release

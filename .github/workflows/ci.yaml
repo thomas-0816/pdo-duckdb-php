@@ -57,10 +57,12 @@ jobs:
           phpts: ${{ matrix.thread-safety }}
           fail-fast: true
       - name: Build & Test
+        env:
+          os: ${{ matrix.os }}
         run: |
           sudo timedatectl set-timezone "Europe/Berlin"
           apt-get update && apt-get install -y --no-install-recommends libgcc-13-dev
-          case ${matrix.os} in
+          case "$os" in
             ubuntu-24.04)     libduckdb=static-libs-linux-amd64.zip ;;
             ubuntu-24.04-arm) libduckdb=static-libs-linux-arm64.zip ;;
             *) echo "error os"; exit 1 ;;
