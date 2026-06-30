@@ -27,6 +27,32 @@ case $host_os in
     dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
     PDO_DUCKDB_SHARED_LIBADD="-Wl,-force_load,$ext_srcdir/libduckdb_static.a -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
     ;;
+  mingw*)
+    dnl Windows/MinGW: statically link DuckDB and its extension libs.
+    dnl Extract static-libs-windows-mingw.zip into $ext_srcdir to provide these.
+    DUCKDB_WIN32_LIBS="$ext_srcdir/libduckdb_static.a \
+      $ext_srcdir/libjson_extension.a \
+      $ext_srcdir/libicu_extension.a \
+      $ext_srcdir/libparquet_extension.a \
+      $ext_srcdir/libautocomplete_extension.a \
+      $ext_srcdir/libcore_functions_extension.a \
+      $ext_srcdir/libtpch_extension.a \
+      $ext_srcdir/libtpcds_extension.a \
+      $ext_srcdir/libduckdb_zstd.a \
+      $ext_srcdir/libduckdb_fmt.a \
+      $ext_srcdir/libduckdb_mbedtls.a \
+      $ext_srcdir/libduckdb_re2.a \
+      $ext_srcdir/libduckdb_miniz.a \
+      $ext_srcdir/libduckdb_pg_query.a \
+      $ext_srcdir/libduckdb_utf8proc.a \
+      $ext_srcdir/libduckdb_yyjson.a \
+      $ext_srcdir/libduckdb_fastpforlib.a \
+      $ext_srcdir/libduckdb_fsst.a \
+      $ext_srcdir/libduckdb_hyperloglog.a \
+      $ext_srcdir/libduckdb_skiplistlib.a \
+      $ext_srcdir/libduckdb_generated_extension_loader.a"
+    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive $DUCKDB_WIN32_LIBS -Wl,--no-whole-archive -lstdc++ -lc"
+    ;;
   *)
     dnl Linux/other: use --whole-archive to force all symbols into the .so.
     dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic

@@ -139,7 +139,10 @@ jobs:
       - name: Download libduckdb
         shell: pwsh
         run: |
-          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-windows-amd64.zip"
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip"
+          Invoke-WebRequest -Uri $url -OutFile duckdb-src.zip
+          Expand-Archive duckdb-src.zip -DestinationPath . -Force
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-windows-mingw.zip"
           Invoke-WebRequest -Uri $url -OutFile duckdb.zip
           Expand-Archive duckdb.zip -DestinationPath . -Force
           Get-ChildItem -Path .

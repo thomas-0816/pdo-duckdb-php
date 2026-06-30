@@ -1,5 +1,8 @@
 // config.w32 for PDO_DuckDB extension
 // Usage: configure --with-pdo-duckdb
+// NOTE: Extract static-libs-windows-mingw.zip into DUCKDB_PATH to provide
+// libduckdb_static.a and supporting .a files for static linking.
+// On GitHub Actions, use the MinGW toolchain with config.m4 instead.
 
 ARG_WITH("pdo-duckdb", "DuckDB support for PDO", "no");
 
@@ -11,14 +14,44 @@ if (PHP_PDO_DUCKDB != "no") {
 	}
 
 	if (DUCKDB_PATH) {
+		// Statically link DuckDB using pre-built libduckdb_static.a.
+		// Requires extracting static-libs-windows-mingw.zip into DUCKDB_PATH.
+		// NOTE: The .a files are MinGW-compiled; for MSVC you must either
+		// compile the C++ stubs with MinGW or rewrite them to use only the C API.
 		EXTENSION("pdo_duckdb",
 			"pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp duckdb_extension_stub.cpp",
 			null,
-			"/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 /EHsc");
+			"/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 /DUCKDB_STATIC_BUILD /EHsc");
 
 		ADD_FLAG("CFLAGS_PDO_DUCKDB", "/I " + DUCKDB_PATH + " /I " + DUCKDB_PATH + "\\include");
-		ADD_FLAG("LDFLAGS_PDO_DUCKDB", "/libpath:" + DUCKDB_PATH + " /libpath:" + DUCKDB_PATH + "\\lib");
-		ADD_FLAG("LIBS_PDO_DUCKDB", "duckdb.lib");
+		ADD_FLAG("LDFLAGS_PDO_DUCKDB",
+			"/LIBPATH:" + DUCKDB_PATH +
+			" /WHOLEARCHIVE:libduckdb_static.a" +
+			" /WHOLEARCHIVE:libjson_extension.a" +
+			" /WHOLEARCHIVE:libicu_extension.a" +
+			" /WHOLEARCHIVE:libparquet_extension.a");
+		ADD_FLAG("LIBS_PDO_DUCKDB",
+			"libduckdb_static.a" +
+			" libjson_extension.a" +
+			" libicu_extension.a" +
+			" libparquet_extension.a" +
+			" libduckdb_zstd.a" +
+			" libduckdb_fmt.a" +
+			" libduckdb_mbedtls.a" +
+			" libduckdb_re2.a" +
+			" libduckdb_miniz.a" +
+			" libduckdb_pg_query.a" +
+			" libduckdb_utf8proc.a" +
+			" libduckdb_yyjson.a" +
+			" libduckdb_fastpforlib.a" +
+			" libduckdb_fsst.a" +
+			" libduckdb_hyperloglog.a" +
+			" libduckdb_skiplistlib.a" +
+			" libduckdb_generated_extension_loader.a" +
+			" libautocomplete_extension.a" +
+			" libcore_functions_extension.a" +
+			" libtpch_extension.a" +
+			" libtpcds_extension.a");
 
 		ADD_EXTENSION_DEP("pdo_duckdb", "pdo");
 		AC_DEFINE("HAVE_DUCKDB", 1, "Have DuckDB library");
