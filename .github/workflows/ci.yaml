@@ -61,7 +61,6 @@ jobs:
           os: ${{ matrix.os }}
         run: |
           sudo timedatectl set-timezone "Europe/Berlin"
-          apt-get update && apt-get install -y --no-install-recommends libgcc-13-dev
           case "$os" in
             ubuntu-24.04)     libduckdb=static-libs-linux-amd64.zip ;;
             ubuntu-24.04-arm) libduckdb=static-libs-linux-arm64.zip ;;
@@ -198,11 +197,10 @@ jobs:
         run: |
           export PATH="/tmp/php-asan/bin:$PATH"
           sudo timedatectl set-timezone "Europe/Berlin"
-          apt-get update && apt-get install -y --no-install-recommends libgcc-13-dev
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
-          unzip -o ${libduckdb} libduckdb_static.a -d ./
+          unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
           phpize
           CC=clang CXX=clang++ \
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
