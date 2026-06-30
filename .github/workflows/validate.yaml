@@ -99,7 +99,7 @@ jobs:
         run: |
           uname -a
           php -v
-          pie install -vvv thomas-0816/pdo-duckdb-php; exit 0
+          pie install -vvv thomas-0816/pdo-duckdb-php; dir
           php -m | grep duckdb
           php <<'EOF'
               <?php
