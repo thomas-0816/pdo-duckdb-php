@@ -18,8 +18,13 @@ jobs:
       matrix:
         os:
           - ubuntu-24.04
+          - ubuntu-26.04
           - ubuntu-24.04-arm
+          - ubuntu-26.04-arm
           - macos-14
+          - macos-26
+          - windows-2022
+          - windows-2025
         php-version:
           - 8.2
           - 8.3
@@ -58,3 +63,4 @@ jobs:
               $t = $db->query("SELECT * FROM t ORDER BY i")->fetchAll(PDO::FETCH_KEY_PAIR);
               if ($t !== ['1' => 'foo', '2' => 'bar']) throw new Exception('Error select');
           EOF
+          echo 'OK'
