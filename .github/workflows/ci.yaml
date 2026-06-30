@@ -160,7 +160,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ASAN_OPTIONS: exitcode=139:verify_asan_link_order=0:detect_odr_violation=0:detect_leaks=1
-#      LSAN_OPTIONS: suppressions=${{ github.workspace }}/.github/lsan-suppressions.txt:print_suppressions=0
       UBSAN_OPTIONS: print_stacktrace=1
       USE_ZEND_ALLOC: 0
       USE_TRACKED_ALLOC: 1
@@ -241,10 +240,12 @@ jobs:
           ./configure --with-pdo-duckdb
           make
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m" make test
+          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
 
   zizmor:
     name: Run zizmor
+    permissions:
+      security-events: read # read security events
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
