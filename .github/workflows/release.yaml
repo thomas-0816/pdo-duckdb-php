@@ -86,7 +86,7 @@ jobs:
       - name: Download libduckdb
         shell: pwsh
         run: |
-          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-windows-mingw.zip"
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-windows-amd64.zip"
           Invoke-WebRequest -Uri $url -OutFile duckdb.zip
           Expand-Archive duckdb.zip -DestinationPath . -Force
           $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip"
@@ -102,17 +102,24 @@ jobs:
           arch: x64
           args: --with-pdo-duckdb
           test-workers: 1
-
-  release:
-    runs-on: ubuntu-latest
-    name: Release
-    needs: windows
-    permissions:
-      contents: write # publish release
-
-    steps:
-      - name: Upload artifact to the release
-        uses: php/php-windows-builder/release@e03e5d39879adaeb61ed2225f0f4eae7db8c1df8
-        with:
-          release: ${{ github.event.release.tag_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Bundle duckdb.dll, name to the release tag, upload as a release asset
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = "${{ github.event.release.tag_name }}"
+          $zip = Get-ChildItem artifacts -Filter "php_pdo_duckdb-*.zip" |
+                 Where-Object { $_.Name -notlike '*-logs*' } | Select-Object -First 1
+          if (-not $zip) { throw "no extension artifact zip produced" }
+          if ($zip.BaseName -notmatch '(\d+\.\d+-(?:nts|ts)-vs\d+-\w+)$') {
+            throw "unexpected artifact name: $($zip.Name)"
+          }
+          $newbase = "php_pdo_duckdb-$tag-$($matches[1])"
+          Expand-Archive $zip.FullName -DestinationPath stage -Force
+          Copy-Item duckdb.dll -Destination stage\ -Force
+          $out = "$newbase.zip"
+          if (Test-Path $out) { Remove-Item $out -Force }
+          Compress-Archive -Path stage\* -DestinationPath $out
+          Write-Host "uploading $out"
+          gh release upload "$tag" "$out" --clobber

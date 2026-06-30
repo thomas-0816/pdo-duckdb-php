@@ -26,15 +26,13 @@ if (PHP_PDO_DUCKDB != "no") {
 			"/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 /EHsc");
 
 		ADD_FLAG("CFLAGS_PDO_DUCKDB", "/I " + DUCKDB_PATH + " /I " + DUCKDB_PATH + "\\include");
-		ADD_FLAG("LDFLAGS_PDO_DUCKDB",
-			"/LIBPATH:" + DUCKDB_PATH);
-		ADD_FLAG("LIBS_PDO_DUCKDB",
-			"duckdb.lib");
+		ADD_FLAG("LDFLAGS_PDO_DUCKDB", "/LIBPATH:" + DUCKDB_PATH);
+		ADD_FLAG("LIBS_PDO_DUCKDB", "duckdb.lib");
 
 		ADD_EXTENSION_DEP("pdo_duckdb", "pdo");
 		AC_DEFINE("HAVE_DUCKDB", 1, "Have DuckDB library");
 		ADD_MAKEFILE_FRAGMENT();
 	} else {
-		WARNING("DuckDB not found; specify --with-pdo-duckdb=DIR");
+		WARNING("DuckDB not found; specify --with-pdo-duckdb");
 	}
 }
