@@ -22,6 +22,7 @@ jobs:
           - ubuntu-24.04-arm
           - ubuntu-26.04-arm
           - macos-14
+          - macos-15
           - macos-26
         php-version:
           - 8.2
@@ -99,7 +100,7 @@ jobs:
         run: |
           uname -a
           php -v
-          pie install thomas-0816/pdo-duckdb-php; dir
+          pie install thomas-0816/pdo-duckdb-php
           php -m | grep duckdb
           php <<'EOF'
               <?php
