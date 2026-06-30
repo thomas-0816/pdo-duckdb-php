@@ -108,9 +108,9 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.event.release.tag_name }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $tag = "${{ github.event.release.tag_name }}"
           $zip = Get-ChildItem artifacts -Filter "php_pdo_duckdb-*.zip" |
                  Where-Object { $_.Name -notlike '*-logs*' } | Select-Object -First 1
           if (-not $zip) { throw "no extension artifact zip produced" }
