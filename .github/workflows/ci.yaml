@@ -168,8 +168,6 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y llvm clang re2c bison autoconf unzip
       - name: Put the clang ASan runtime on the loader path
         # -shared-libasan binaries (the configure C-compiler probe, the built
         # php, the extension) need libclang_rt.asan_*.so at runtime; it lives in
@@ -178,6 +176,7 @@ jobs:
         run: echo "LD_LIBRARY_PATH=$(clang -print-resource-dir)/lib/linux" >> "$GITHUB_ENV"
       - name: Build PHP with ASAN and PDO
         run: |
+          sudo apt-get update && sudo apt-get install -y llvm clang re2c bison autoconf unzip
           git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git /tmp/php-src
           cd /tmp/php-src
           ./buildconf --force
@@ -213,4 +212,4 @@ jobs:
           export TEST_PHP_EXECUTABLE=/tmp/php-asan/bin/php
           export TEST_PHP_ARGS="-d extension=$(pwd)/modules/pdo_duckdb.so"
           export NO_INTERACTION=1
-          /tmp/php-asan/bin/php run-tests.php --show-diff --asan --show-clean -q
+          /tmp/php-asan/bin/php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
