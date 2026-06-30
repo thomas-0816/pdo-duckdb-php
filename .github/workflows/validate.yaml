@@ -18,18 +18,18 @@ jobs:
       matrix:
         os:
           - ubuntu-24.04
-#          - ubuntu-26.04
-#          - ubuntu-24.04-arm
-#          - ubuntu-26.04-arm
-#          - macos-14
-#          - macos-26
+          - ubuntu-26.04
+          - ubuntu-24.04-arm
+          - ubuntu-26.04-arm
+          - macos-14
+          - macos-26
         php-version:
- #         - 8.2
- #         - 8.3
- #         - 8.4
+          - 8.2
+          - 8.3
+          - 8.4
           - 8.5
         thread-safety:
-#          - zts
+          - zts
           - nts
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -71,14 +71,14 @@ jobs:
       matrix:
         os:
           - windows-2022
-#          - windows-2025
+          - windows-2025
         php-version:
-#          - 8.2
-#          - 8.3
-#          - 8.4
+          - 8.2
+          - 8.3
+          - 8.4
           - 8.5
         thread-safety:
-#          - zts
+          - zts
           - nts
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -99,7 +99,7 @@ jobs:
         run: |
           uname -a
           php -v
-          pie install -vvv thomas-0816/pdo-duckdb-php; dir
+          pie install thomas-0816/pdo-duckdb-php; dir
           php -m | grep duckdb
           php <<'EOF'
               <?php
