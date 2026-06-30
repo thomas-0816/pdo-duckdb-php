@@ -10,6 +10,8 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
 
 Supported PHP versions: 8.2 8.3 8.4 8.5
 
+Supported operating systems: Ubuntu 24.04/26.04 (amd64, arm64), Windows Server 2022/2025 (x64), macOS 14/15/26 (arm64)
+
 ### Usage examples
 
     $duckDb = new PDO('duckdb::memory:');
