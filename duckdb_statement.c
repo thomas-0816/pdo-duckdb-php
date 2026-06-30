@@ -614,6 +614,7 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 		if (Z_TYPE_P(result) == IS_ARRAY || Z_TYPE_P(result) == IS_OBJECT) {
 			smart_str buf = {0};
 			if (php_json_encode(&buf, result, 0) == SUCCESS && buf.s) {
+				smart_str_0(&buf);
 				zval_ptr_dtor(result);
 				ZVAL_STR(result, buf.s);
 			} else {
@@ -805,6 +806,7 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 		} else if (Z_TYPE_P(&param->parameter) == IS_ARRAY || Z_TYPE_P(&param->parameter) == IS_OBJECT) {
 			smart_str buf = {0};
 			if (php_json_encode(&buf, &param->parameter, 0) == SUCCESS && buf.s) {
+				smart_str_0(&buf);
 				state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s));
 			} else {
 				state = DuckDBError;

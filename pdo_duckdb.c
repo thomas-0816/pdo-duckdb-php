@@ -60,6 +60,7 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 			if (Z_TYPE_P(entry) == IS_ARRAY || Z_TYPE_P(entry) == IS_OBJECT) {
 				smart_str buf = {0};
 				if (php_json_encode(&buf, entry, 0) == SUCCESS && buf.s) {
+					smart_str_0(&buf);
 					zval_ptr_dtor(entry);
 					ZVAL_STR(entry, buf.s);
 				} else {
