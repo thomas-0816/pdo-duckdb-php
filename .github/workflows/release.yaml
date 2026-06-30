@@ -123,5 +123,5 @@ jobs:
           $out = "$newbase.zip"
           if (Test-Path $out) { Remove-Item $out -Force }
           Compress-Archive -Path stage\* -DestinationPath $out
-          Write-Host "uploading $out"
+          Write-Host "uploading $out $tag"
           gh release upload "$tag" "$out" --clobber
