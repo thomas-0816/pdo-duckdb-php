@@ -50,7 +50,6 @@ jobs:
         run: |
           uname -a
           php -v
-          pie -V
           sudo pie install thomas-0816/pdo-duckdb-php
           php -m | grep duckdb
           php <<'EOF'
@@ -100,9 +99,7 @@ jobs:
         run: |
           uname -a
           php -v
-          pie -V
-          pie install asgrim/example-pie-extension
-          pie install thomas-0816/pdo-duckdb-php
+          pie install -vvv thomas-0816/pdo-duckdb-php
           php -m | grep duckdb
           php <<'EOF'
               <?php
