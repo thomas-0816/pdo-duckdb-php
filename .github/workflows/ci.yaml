@@ -147,7 +147,7 @@ jobs:
           Get-ChildItem -Path .
           tzutil /s "W. Europe Standard Time"
       - name: Build extension
-        uses: php/php-windows-builder/extension@e03e5d39879adaeb61ed2225f0f4eae7db8c1df8 # v1.8.1
+        uses: php/php-windows-builder/extension@e03e5d39879adaeb61ed2225f0f4eae7db8c1df8 # 1.8.1
         with:
           php-version: ${{ matrix.php-version }}
           ts: ${{ matrix.ts }}

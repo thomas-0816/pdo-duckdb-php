@@ -59,7 +59,7 @@ jobs:
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}" -o libduckdb.zip
           unzip -o libduckdb.zip -d ./
       - name: Build and upload prebuilt binary
-        uses: php/pie-ext-binary-builder@5298761950f63c7e9565ed7004e922b346e4386c # v0.0.3
+        uses: php/pie-ext-binary-builder@5298761950f63c7e9565ed7004e922b346e4386c # 0.0.3
         with:
           release-tag: ${{ github.event.release.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -97,7 +97,7 @@ jobs:
           Get-ChildItem -Path .
           tzutil /s "W. Europe Standard Time"
       - name: Build extension
-        uses: php/php-windows-builder/extension@e03e5d39879adaeb61ed2225f0f4eae7db8c1df8 # v1.8.1
+        uses: php/php-windows-builder/extension@e03e5d39879adaeb61ed2225f0f4eae7db8c1df8 # 1.8.1
         with:
           php-version: ${{ matrix.php-version }}
           ts: ${{ matrix.ts }}
