@@ -336,7 +336,7 @@ static int duckdb_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 }
 
 /* ---------------- check liveness ---------------- */
-static int duckdb_check_liveness(pdo_dbh_t *dbh)
+static zend_result duckdb_check_liveness(pdo_dbh_t *dbh)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	/* A simple query to test connection */
@@ -352,21 +352,23 @@ static int duckdb_check_liveness(pdo_dbh_t *dbh)
 
 /* ---------------- driver method table ---------------- */
 struct pdo_dbh_methods duckdb_methods = {
-	duckdb_handle_closer,        /* closer */
-	duckdb_handle_preparer,      /* preparer */
-	duckdb_handle_doer,          /* doer */
-	duckdb_handle_quoter,        /* quoter */
-	duckdb_handle_begin,         /* begin */
-	duckdb_handle_commit,        /* commit */
-	duckdb_handle_rollback,      /* rollback */
-	duckdb_set_attribute,        /* set_attribute */
-	duckdb_handle_last_id,       /* last_id */
-	duckdb_fetch_error,          /* fetch_err */
-	duckdb_get_attribute,        /* get_attribute */
-	duckdb_check_liveness,       /* check_liveness */
-	NULL,                         /* get_driver_methods */
-	NULL,                           /* persistent_shutdown */
-	NULL,                           /* in_transaction */
-	NULL,                           /* get_gc */
-	NULL                            /* scanner */
+	duckdb_handle_closer,
+	duckdb_handle_preparer,
+	duckdb_handle_doer,
+	duckdb_handle_quoter,
+	duckdb_handle_begin,
+	duckdb_handle_commit,
+	duckdb_handle_rollback,
+	duckdb_set_attribute,
+	duckdb_handle_last_id,
+	duckdb_fetch_error,
+	duckdb_get_attribute,
+	duckdb_check_liveness,
+	NULL,
+	NULL,
+	NULL,
+	NULL, /* get_gc */
+#if PHP_VERSION_ID >= 80400
+	NULL  /* scanner */
+#endif
 };
