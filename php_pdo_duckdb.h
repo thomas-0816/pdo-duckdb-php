@@ -4,6 +4,9 @@
 /* Version information */
 #define PHP_PDO_DUCKDB_VERSION "1.0.0"
 
+PHPAPI extern zend_module_entry pdo_duckdb_module_entry;
+#define phpext_pdo_duckdb_ptr &pdo_duckdb_module_entry
+
 #ifdef ZTS
 #include "TSRM.h"
 #endif
@@ -12,8 +15,8 @@
 #include <duckdb.h>
 
 /* Include PDO headers (this brings in pdo_dbh_methods, pdo_stmt_methods, etc.) */
-#include "pdo/php_pdo.h"
-#include "pdo/php_pdo_driver.h"
+#include "ext/pdo/php_pdo.h"
+#include "ext/pdo/php_pdo_driver.h"
 
 /* Module globals – required by ZEND_DECLARE_MODULE_GLOBALS */
 ZEND_BEGIN_MODULE_GLOBALS(pdo_duckdb)
