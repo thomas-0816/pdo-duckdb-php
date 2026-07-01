@@ -79,6 +79,8 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(pdo_duckdb)
 {
+	(void)type; (void)module_number;
+
 	if (FAILURE == php_pdo_register_driver(&pdo_duckdb_driver)) {
 		return FAILURE;
 	}
@@ -93,6 +95,8 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 /* {{{ PHP_RINIT_FUNCTION */
 PHP_RINIT_FUNCTION(pdo_duckdb)
 {
+	(void)type; (void)module_number;
+
 	ZEND_TSRMLS_CACHE_UPDATE();
 
 	static zend_class_entry *pdo_stmt_ce = NULL;
@@ -115,6 +119,8 @@ PHP_RINIT_FUNCTION(pdo_duckdb)
 /* {{{ PHP_MSHUTDOWN_FUNCTION */
 PHP_MSHUTDOWN_FUNCTION(pdo_duckdb)
 {
+	(void)type; (void)module_number;
+
 	php_pdo_unregister_driver(&pdo_duckdb_driver);
 	return SUCCESS;
 }
