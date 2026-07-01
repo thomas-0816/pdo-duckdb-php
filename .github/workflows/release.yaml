@@ -68,6 +68,8 @@ jobs:
   windows:
     name: Windows
     runs-on: windows-2022
+    permissions:
+      contents: write # publish release
     strategy:
       fail-fast: false
       matrix:
@@ -103,8 +105,6 @@ jobs:
           args: --with-pdo-duckdb
           test-workers: 1
       - name: Bundle duckdb.dll, name to the release tag, upload as a release asset
-        permissions:
-          contents: write # publish release
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
