@@ -1,0 +1,41 @@
+# docker build --no-cache -f Dockerfile.intree -t pdo_duckdb_intree .
+# docker run --rm -it pdo_duckdb_intree
+
+FROM debian:trixie-slim AS base
+
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+ENV TZ="Europe/Berlin"
+
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get update && apt-get install -y build-essential autoconf libtool bison re2c pkg-config unzip git wget tzdata
+    echo ${TZ} > /etc/timezone
+    ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime
+    git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git
+    cd php-src/ext
+    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git
+    cd pdo-duckdb-php
+    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip
+    unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
+    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip
+    unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
+    cd ../../
+    ./buildconf --force
+    ./configure --disable-zts --disable-all --enable-cli --enable-pcntl --enable-pdo --with-pdo-duckdb
+    make -j$(nproc)
+    make install
+    php -m | grep duckdb
+    php <<'EOP'
+        <?php
+        if (!extension_loaded("pdo_duckdb")) throw new Exception('Error loading');
+        $db = new PDO("duckdb::memory:");
+        $db->exec("CREATE TABLE t(i INTEGER, s VARCHAR)");
+        $db->exec("INSERT INTO t VALUES (1, 'foo'), (2, 'bar')");
+        $t = $db->query("SELECT * FROM t ORDER BY i")->fetchAll(PDO::FETCH_KEY_PAIR);
+        if ($t !== ['1' => 'foo', '2' => 'bar']) throw new Exception('Error select');
+EOP
+    apt-get upgrade -y && apt-get clean
+    rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
+EOF
