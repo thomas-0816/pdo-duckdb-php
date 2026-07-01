@@ -254,3 +254,37 @@ jobs:
         with:
           advanced-security: false
           persona: pedantic
+
+  intree:
+    name: InTree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Build PHP with pdo-duckdb-php in-tree
+        run: |
+          sudo apt-get update && sudo apt-get install -y build-essential autoconf libtool bison re2c pkg-config unzip
+          git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git
+          cd php-src/ext
+          git clone --depth=1 --branch=main git@github.com:thomas-0816/pdo-duckdb-php.git
+          cd pdo-duckdb-php
+          wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip
+          unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
+          wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip
+          unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
+          cd ../../
+          ./buildconf --force
+          ./configure --disable-zts --disable-all --enable-cli --enable-pdo --with-pdo-duckdb
+          make -j$(nproc)
+          sapi/cli/php -m | grep duckdb
+          sapi/cli/php <<'EOF'
+              <?php
+              if (!extension_loaded("pdo_duckdb")) throw new Exception('Error loading');
+              $db = new PDO("duckdb::memory:");
+              $db->exec("CREATE TABLE t(i INTEGER, s VARCHAR)");
+              $db->exec("INSERT INTO t VALUES (1, 'foo'), (2, 'bar')");
+              $t = $db->query("SELECT * FROM t ORDER BY i")->fetchAll(PDO::FETCH_KEY_PAIR);
+              if ($t !== ['1' => 'foo', '2' => 'bar']) throw new Exception('Error select');
+          EOF
+          echo 'OK'
