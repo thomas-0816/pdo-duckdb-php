@@ -119,6 +119,8 @@ jobs:
           }
           $newbase = "php_pdo_duckdb-$Env:tag-$($matches[1])"
           Expand-Archive $zip.FullName -DestinationPath stage -Force
+          Get-ChildItem stage -Filter "php_pdo_duckdb-*.dll" | ForEach-Object { Rename-Item $_.FullName "$newbase.dll" }
+          Get-ChildItem stage -Filter "php_pdo_duckdb-*.pdb" | ForEach-Object { Rename-Item $_.FullName "$newbase.pdb" }
           Copy-Item duckdb.dll -Destination stage\ -Force
           $out = "$newbase.zip"
           if (Test-Path $out) { Remove-Item $out -Force }
