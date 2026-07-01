@@ -117,7 +117,7 @@ jobs:
           if ($zip.BaseName -notmatch '(\d+\.\d+-(?:nts|ts)-vs\d+-\w+)$') {
             throw "unexpected artifact name: $($zip.Name)"
           }
-          $newbase = "php_pdo_duckdb-$tag-$($matches[1])"
+          $newbase = "php_pdo_duckdb-$Env:tag-$($matches[1])"
           Expand-Archive $zip.FullName -DestinationPath stage -Force
           Copy-Item duckdb.dll -Destination stage\ -Force
           $out = "$newbase.zip"
