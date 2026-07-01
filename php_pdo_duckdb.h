@@ -12,7 +12,7 @@ PHPAPI extern zend_module_entry pdo_duckdb_module_entry;
 #endif
 
 /* Include the DuckDB C API header */
-#include <duckdb.h>
+#include "duckdb.h"
 
 /* Include PDO headers (this brings in pdo_dbh_methods, pdo_stmt_methods, etc.) */
 #include "ext/pdo/php_pdo.h"
