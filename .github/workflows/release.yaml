@@ -123,6 +123,5 @@ jobs:
           $out = "$newbase.zip"
           if (Test-Path $out) { Remove-Item $out -Force }
           Compress-Archive -Path stage\* -DestinationPath $out
-          Write-Host "uploading $out $tag"
-          Write-Host "${{ github.event.release.tag_name }}"
-          gh release upload "$tag" "$out" --clobber
+          Write-Host "uploading $out $Env:tag"
+          gh release upload "$Env:tag" "$out" --clobber
