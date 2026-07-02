@@ -8,10 +8,6 @@ ENV LC_ALL="C.UTF-8"
 
 RUN <<EOF
     set -euxo pipefail
-    dnf -y install https://rpms.remirepo.net/fedora/remi-release-$(rpm -E %fedora).rpm
-    dnf config-manager setopt remi.enabled=1
-    dnf module reset php
-    dnf -y module enable php:remi-8.5
     dnf -y install unzip php-cli php-pdo pie
     pie install --no-build-tools-check thomas-0816/pdo-duckdb-php
     php -m | grep duckdb
