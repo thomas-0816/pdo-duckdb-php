@@ -221,9 +221,29 @@ Supported operating systems: Ubuntu 24.04/26.04 (amd64, arm64), Windows Server 2
         5 => NULL,
     )
 
+
 ### Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
     pie install thomas-0816/pdo-duckdb-php
+
+
+### Install with FrankenPHP (Linux)
+
+    sudo curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
+    echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
+        sudo tee -a /etc/apt/sources.list.d/static-php85.list
+    sudo apt-get update
+    sudo apt-get install frankenphp pie-zts
+    sudo pie-zts install thomas-0816/pdo-duckdb-php
+
+    # test
+    frankenphp php-cli -r 'print_r(new PDO("duckdb::memory:")->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+
+    Array
+    (
+        [n] => 42
+    )
+
 
 ### Security
 
