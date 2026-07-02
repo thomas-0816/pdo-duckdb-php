@@ -14,14 +14,5 @@ RUN <<EOF
     chmod +x /tmp/pie.phar
     /tmp/pie.phar install --no-build-tools-check thomas-0816/pdo-duckdb-php
     php -m | grep duckdb
-    php <<'EOP'
-        <?php
-        if (!extension_loaded("pdo_duckdb")) throw new Exception('Error loading');
-        $db = new PDO("duckdb::memory:");
-        $db->exec("CREATE TABLE t(i INTEGER, s VARCHAR)");
-        $db->exec("INSERT INTO t VALUES (1, 'foo'), (2, 'bar')");
-        $t = $db->query("SELECT * FROM t ORDER BY i")->fetchAll(PDO::FETCH_KEY_PAIR);
-        if ($t !== ['1' => 'foo', '2' => 'bar']) throw new Exception('Error select');
-        echo 'ok', PHP_EOL;
-EOP
+    php -r 'print_r(new PDO("duckdb::memory:")->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 EOF

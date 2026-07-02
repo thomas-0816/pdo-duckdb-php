@@ -1,0 +1,18 @@
+# docker build --no-cache -f Dockerfile.amazon -t pdo_duckdb_amazon .
+# docker run --rm -it pdo_duckdb_amazon
+
+FROM amazonlinux:latest
+
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+
+RUN <<EOF
+    set -euxo pipefail
+    dnf -y install unzip php-cli php-pdo
+    curl -fsSL --output /tmp/pie.phar https://github.com/php/pie/releases/latest/download/pie.phar
+    mv /tmp/pie.phar /usr/local/bin/pie
+    chmod +x /usr/local/bin/pie
+    pie install --no-build-tools-check thomas-0816/pdo-duckdb-php
+    php -m | grep duckdb
+    php -r 'print_r(new PDO("duckdb::memory:")->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+EOF
