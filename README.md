@@ -227,7 +227,7 @@ Supported operating systems: Ubuntu 24.04/26.04 (amd64, arm64), Windows Server 2
     pie install thomas-0816/pdo-duckdb-php
 
 
-### Install and setup with 🧟 [FrankenPHP](https://frankenphp.dev/) (Linux)
+### Install and setup with 🧟 [FrankenPHP](https://frankenphp.dev/) (Debian/Ubuntu)
 
     sudo curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
     echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
