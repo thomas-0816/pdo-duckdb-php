@@ -233,7 +233,7 @@ Supported operating systems: Ubuntu 24.04/26.04 (amd64, arm64), Windows Server 2
     echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
         sudo tee -a /etc/apt/sources.list.d/static-php85.list
     sudo apt-get update
-    sudo apt-get install frankenphp pie-zts
+    sudo apt-get install php-zts-cli php-zts-pdo frankenphp pie-zts
     sudo pie-zts install thomas-0816/pdo-duckdb-php
 
     # test
