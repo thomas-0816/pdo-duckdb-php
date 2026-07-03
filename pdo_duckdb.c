@@ -59,7 +59,7 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 			uint32_t provided = zend_hash_num_elements(Z_ARRVAL_P(params));
 			if (expected > 0 && provided != expected) {
 				zend_throw_exception_ex(php_pdo_get_exception(), 0,
-					"SQLSTATE[HY000]: Expected exactly %u parameters, %u provided",
+					"SQLSTATE[HY000]: Expected exactly %lu parameters, %u provided",
 					expected, provided);
 				RETURN_THROWS();
 			}
