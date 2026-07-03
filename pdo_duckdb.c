@@ -35,60 +35,58 @@ static pdo_driver_t pdo_duckdb_driver = {
 /* Store original PDOStatement::execute handler */
 static zif_handler original_pdo_stmt_execute;
 
-/* Override PDOStatement::execute to convert PHP arrays to JSON strings
-   and validate that the number of input parameters matches the prepared statement. */
+/* Override PDOStatement::execute to convert PHP arrays to JSON strings,
+   validate that the number of input parameters matches the prepared statement,
+   and always clear DuckDB bindings after execution so stale bindings don't
+   leak across re-execute() calls. */
 static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 {
 	zval *params = NULL;
 
-	if (ZEND_NUM_ARGS() == 0) {
-		original_pdo_stmt_execute(INTERNAL_FUNCTION_PARAM_PASSTHRU);
-		return;
-	}
-
-	if (zend_parse_parameters(1, "z", &params) == FAILURE) {
-		RETURN_THROWS();
-	}
-
-	if (Z_TYPE_P(params) == IS_ARRAY) {
-		/* Validate parameter count against the prepared statement */
-		pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(getThis());
-		if (pdo_stmt && pdo_stmt->driver_data) {
-			pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) pdo_stmt->driver_data;
-			idx_t expected = duckdb_nparams(S->stmt);
-			uint32_t provided = zend_hash_num_elements(Z_ARRVAL_P(params));
-			if (expected > 0 && provided != expected) {
-				zend_throw_exception_ex(php_pdo_get_exception(), 0,
-					"SQLSTATE[HY000]: Expected exactly %lu parameters, %u provided",
-					expected, provided);
-				RETURN_THROWS();
-			}
+	if (ZEND_NUM_ARGS() > 0) {
+		if (zend_parse_parameters(1, "z", &params) == FAILURE) {
+			RETURN_THROWS();
 		}
 
-		zval new_params;
-		ZVAL_ARR(&new_params, zend_array_dup(Z_ARRVAL_P(params)));
+		if (Z_TYPE_P(params) == IS_ARRAY) {
+			zval new_params;
+			ZVAL_ARR(&new_params, zend_array_dup(Z_ARRVAL_P(params)));
 
-		zval *entry;
+			zval *entry;
 
-		ZEND_HASH_FOREACH_VAL(Z_ARRVAL(new_params), entry) {
-			if (Z_TYPE_P(entry) == IS_ARRAY || Z_TYPE_P(entry) == IS_OBJECT) {
-				smart_str buf = {0};
-				if (php_json_encode(&buf, entry, 0) == SUCCESS && buf.s) {
-					smart_str_0(&buf);
-					zval_ptr_dtor(entry);
-					ZVAL_STR(entry, buf.s);
-				} else {
-					smart_str_free(&buf);
+			ZEND_HASH_FOREACH_VAL(Z_ARRVAL(new_params), entry) {
+				if (Z_TYPE_P(entry) == IS_ARRAY || Z_TYPE_P(entry) == IS_OBJECT) {
+					smart_str buf = {0};
+					if (php_json_encode(&buf, entry, 0) == SUCCESS && buf.s) {
+						smart_str_0(&buf);
+						zval_ptr_dtor(entry);
+						ZVAL_STR(entry, buf.s);
+					} else {
+						smart_str_free(&buf);
+					}
 				}
-			}
-		} ZEND_HASH_FOREACH_END();
+			} ZEND_HASH_FOREACH_END();
 
-		zval *arg = ZEND_CALL_ARG(execute_data, 1);
-		zval_ptr_dtor(arg);
-		ZVAL_COPY_VALUE(arg, &new_params);
+			zval *arg = ZEND_CALL_ARG(execute_data, 1);
+			zval_ptr_dtor(arg);
+			ZVAL_COPY_VALUE(arg, &new_params);
+		}
 	}
 
 	original_pdo_stmt_execute(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+
+	pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(getThis());
+	if (pdo_stmt && pdo_stmt->driver_data) {
+		duckdb_clear_bindings(((pdo_duckdb_stmt *)pdo_stmt->driver_data)->stmt);
+	}
+
+	/* Clear PDO's internal bound parameter cache so that stale bindings
+	   from a previous execute() are not silently re-bound on the next
+	   call.  The caller must explicitly bind all parameters before each
+	   execute(). */
+	if (pdo_stmt && pdo_stmt->bound_params) {
+		zend_hash_clean(pdo_stmt->bound_params);
+	}
 }
 
 /* {{{ PHP_MINIT_FUNCTION */
