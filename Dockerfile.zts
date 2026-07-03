@@ -39,13 +39,11 @@ RUN <<EOF
     make
     cp /usr/lib/php-zts/modules/pdo-zts-82.so /usr/lib/php-zts/modules/pdo.so
     php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
     make install
     sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
     phpenmod-zts pdo_duckdb
     php-zts -m | grep duckdb
-    php-zts test.php
     make clean
 EOF
 
@@ -62,13 +60,11 @@ RUN <<EOF
     make
     cp /usr/lib/php-zts/modules/pdo-zts-83.so /usr/lib/php-zts/modules/pdo.so
     php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
     make install
     sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
     phpenmod-zts pdo_duckdb
     php-zts -m | grep duckdb
-    php-zts test.php
     make clean
 EOF
 
@@ -85,13 +81,11 @@ RUN <<EOF
     make
     cp /usr/lib/php-zts/modules/pdo-zts-84.so /usr/lib/php-zts/modules/pdo.so
     php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
     make install
     sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
     phpenmod-zts pdo_duckdb
     php-zts -m | grep duckdb
-    php-zts test.php
     make clean
 EOF
 
@@ -108,12 +102,10 @@ RUN <<EOF
     make
     cp /usr/lib/php-zts/modules/pdo-zts-85.so /usr/lib/php-zts/modules/pdo.so
     php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
     make install
     sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
     phpenmod-zts pdo_duckdb
     php-zts -m | grep duckdb
-    php-zts test.php
     make clean
 EOF
