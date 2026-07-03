@@ -7,6 +7,8 @@ ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 ENV TZ="Europe/Berlin"
 
+SHELL ["/bin/bash", "-c"]
+
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
