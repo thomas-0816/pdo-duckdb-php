@@ -6,6 +6,7 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "ext/json/php_json.h"
+#include "Zend/zend_exceptions.h"
 #include "Zend/zend_smart_str.h"
 #include "ext/pdo/php_pdo.h"
 #include "ext/pdo/php_pdo_driver.h"
@@ -49,7 +50,7 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 		RETURN_THROWS();
 	}
 
-	if (params && Z_TYPE_P(params) == IS_ARRAY) {
+	if (Z_TYPE_P(params) == IS_ARRAY) {
 		/* Validate parameter count against the prepared statement */
 		pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(getThis());
 		if (pdo_stmt && pdo_stmt->driver_data) {
@@ -84,8 +85,7 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 
 		zval *arg = ZEND_CALL_ARG(execute_data, 1);
 		zval_ptr_dtor(arg);
-		ZVAL_COPY(arg, &new_params);
-		zval_dtor(&new_params);
+		ZVAL_COPY_VALUE(arg, &new_params);
 	}
 
 	original_pdo_stmt_execute(INTERNAL_FUNCTION_PARAM_PASSTHRU);
