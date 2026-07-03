@@ -10,7 +10,7 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
 
 Supported PHP versions: 8.2 8.3 8.4 8.5
 
-Supported operating systems: Ubuntu 24.04/26.04, Debian 12/13, Fedora 42/43, Wolfi OS, AmazonLinux, Windows Server 2022/2025 (x64), macOS 14-26 (arm64)
+Supported operating systems: Ubuntu 24.04/26.04, Debian 12/13, Fedora 42/43, AmazonLinux, Wolfi OS, Windows Server 2022/2025 (x64), macOS 14-26 (arm64)
 
 ### Usage examples
 
@@ -360,7 +360,7 @@ Direct File Querying: You can query large datasets in open formats like Parquet 
     php-zts run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
 
     # test PHP 8.2-8.5
-    docker build --no-cache -f Dockerfile.debian -t pdo_duckdb .
+    docker build --no-cache -f Dockerfile -t pdo_duckdb .
     docker run --rm -it pdo_duckdb
 
     make EXTRA_CFLAGS="-Wall -Wextra -Wno-unused-parameter" EXTRA_CXXFLAGS="-Wall -Wextra -Wno-unused-parameter"
