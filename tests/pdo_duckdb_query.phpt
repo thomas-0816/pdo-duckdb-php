@@ -382,7 +382,7 @@ array(1) {
     string(5) "hello"
   }
 }
-Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: cc, dd, ee
+Caught: SQLSTATE[HY000]: Expected exactly 5 parameters, 2 provided
 array(5) {
   [0]=>
   array(5) {
