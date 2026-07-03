@@ -9,10 +9,10 @@ ENV LC_ALL="C.UTF-8"
 RUN <<EOF
     set -euxo pipefail
     apk update
-    apk add --no-cache wget curl unzip php-8.5 php-8.5-pdo php-8.5-phar php-8.5-iconv php-8.5-openssl php-8.5-mbstring libstdc++
+    apk add --no-cache curl unzip php-8.5 php-8.5-pdo php-8.5-phar php-8.5-iconv php-8.5-openssl php-8.5-mbstring libstdc++
     curl -fsSL -o /tmp/pie.phar https://github.com/php/pie/releases/latest/download/pie.phar
     chmod +x /tmp/pie.phar
     /tmp/pie.phar install --no-build-tools-check thomas-0816/pdo-duckdb-php
     php -m | grep duckdb
-    php -r 'print_r(new PDO("duckdb::memory:")->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 EOF

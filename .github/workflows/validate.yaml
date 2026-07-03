@@ -122,7 +122,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - name: Build container
+      - name: Setup
         run: |
           sudo curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
           echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
@@ -130,10 +130,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install php-zts-cli php-zts-pdo frankenphp pie-zts
           sudo pie-zts install thomas-0816/pdo-duckdb-php
-          frankenphp php-cli -r 'print_r(new PDO("duckdb::memory:")->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+          frankenphp php-cli -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 
   wolfi:
-    name: "Wolfi OS"
+    name: "Docker: Wolfi OS"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -144,7 +144,7 @@ jobs:
         run: docker build --no-cache -f Dockerfile.wolfi -t pdo_duckdb_wolfi .
 
   fedora:
-    name: Fedora
+    name: "Docker: Fedora"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -155,7 +155,7 @@ jobs:
         run: docker build --no-cache -f Dockerfile.fedora -t pdo_duckdb_fedora .
 
   amazon:
-    name: "Amazon Linux"
+    name: "Docker: Amazon Linux"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -164,3 +164,14 @@ jobs:
       - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
       - name: Build container
         run: docker build --no-cache -f Dockerfile.amazon -t pdo_duckdb_amazon .
+
+  phpofficial:
+    name: "Docker: php official"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - name: Build container
+        run: docker build --pull --no-cache -f Dockerfile.php -t pdo_duckdb_php .

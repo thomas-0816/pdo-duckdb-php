@@ -11,5 +11,5 @@ RUN <<EOF
     dnf -y install unzip php-cli php-pdo pie
     pie install --no-build-tools-check thomas-0816/pdo-duckdb-php
     php -m | grep duckdb
-    php -r 'print_r(new PDO("duckdb::memory:")->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 EOF

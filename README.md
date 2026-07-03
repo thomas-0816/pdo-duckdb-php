@@ -237,12 +237,18 @@ Supported operating systems: Ubuntu 24.04/26.04 (amd64, arm64), Windows Server 2
     sudo pie-zts install thomas-0816/pdo-duckdb-php
 
     # test
-    frankenphp php-cli -r 'print_r(new PDO("duckdb::memory:")->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    frankenphp php-cli -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 
-    Array
-    (
-        [n] => 42
-    )
+
+### Install and setup with Docker
+
+    FROM php:8.5-cli
+    RUN <<EOF
+        apt-get -y update && apt-get -y --no-install-recommends install unzip
+        curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
+        php /tmp/pie install --no-build-tools-check thomas-0816/pdo-duckdb-php
+        php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    EOF
 
 
 ### Security
