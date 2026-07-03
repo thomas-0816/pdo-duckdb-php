@@ -346,6 +346,7 @@ Direct File Querying: You can query large datasets in open formats like Parquet 
 
 ### Development
 
+    # sanity check to detect crashes
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
     php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
@@ -356,7 +357,7 @@ Direct File Querying: You can query large datasets in open formats like Parquet 
     docker build --no-cache -f Dockerfile -t pdo_duckdb .
     docker run --rm -it pdo_duckdb
 
-    make EXTRA_CFLAGS="-Wall -Wextra" EXTRA_CXXFLAGS="-Wall -Wextra"
+    make EXTRA_CFLAGS="-Wall -Wextra -Wno-unused-parameter" EXTRA_CXXFLAGS="-Wall -Wextra -Wno-unused-parameter"
 
 ### AI Disclosure
 
