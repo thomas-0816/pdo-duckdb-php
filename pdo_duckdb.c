@@ -34,7 +34,8 @@ static pdo_driver_t pdo_duckdb_driver = {
 /* Store original PDOStatement::execute handler */
 static zif_handler original_pdo_stmt_execute;
 
-/* Override PDOStatement::execute to convert PHP arrays to JSON strings */
+/* Override PDOStatement::execute to convert PHP arrays to JSON strings
+   and validate that the number of input parameters matches the prepared statement. */
 static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 {
 	zval *params = NULL;
@@ -48,7 +49,21 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 		RETURN_THROWS();
 	}
 
-	if (params && Z_TYPE_P(params) == IS_ARRAY) {
+	if (params && Z_TYPE_P(params) == IS_ARRAY) { // TODO simplyfy?
+		/* Validate parameter count against the prepared statement */
+		pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(getThis());
+		if (pdo_stmt && pdo_stmt->driver_data) {
+			pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) pdo_stmt->driver_data;
+			idx_t expected = duckdb_nparams(S->stmt);
+			uint32_t provided = zend_hash_num_elements(Z_ARRVAL_P(params));
+			if (expected > 0 && provided != expected) {
+				zend_throw_exception_ex(php_pdo_get_exception(), 0,
+					"SQLSTATE[HY000]: Expected exactly %u parameters, %u provided",
+					expected, provided);
+				RETURN_THROWS();
+			}
+		}
+
 		zval new_params;
 		ZVAL_ARR(&new_params, zend_array_dup(Z_ARRVAL_P(params)));
 

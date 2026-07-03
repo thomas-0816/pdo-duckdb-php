@@ -793,7 +793,29 @@ $db->exec('CREATE SEQUENCE t1_seq');
 $db->exec("CREATE TABLE t1 (i INTEGER PRIMARY KEY DEFAULT nextval('t1_seq'), v VARCHAR)");
 print_r($db->query("INSERT INTO t1 (v) VALUES ('a') RETURNING *")->fetchAll(PDO::FETCH_ASSOC));
 print_r($db->query("INSERT INTO t1 (v) VALUES ('b') RETURNING *")->fetchAll(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT * FROM t1");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$duckDb = new PDO('duckdb::memory:');
+$duckDb->exec("CREATE TABLE table1 (v VARCHAR, v2 VARCHAR)");
+$statement = $duckDb->prepare("INSERT INTO table1 VALUES (?, ?)");
+$statement->execute(['foo', 'bar']);
+try {
+    $statement->execute(['foo']);
+} catch (PDOException $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+$statement = $duckDb->query("SELECT * FROM table1");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t1 (v1 varchar, v2 varchar)");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?, ?)");
+$statement->bindValue(1, 'foo1' . chr(0) . '2', PDO::PARAM_STR);
+$statement->bindValue(2, 'foo1' . chr(0) . '2', PDO::PARAM_STR);
+$statement->execute();
+$statement->bindValue(1, 'foo1' . chr(0) . '2', PDO::PARAM_STR);
+$statement->execute(); // ok, same behavior as in sqlite
 $statement = $db->query("SELECT * FROM t1");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
