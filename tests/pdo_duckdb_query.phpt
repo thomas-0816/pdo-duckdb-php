@@ -216,6 +216,14 @@ var_dump($db->query("INSERT INTO t1 (v) VALUES ('b') RETURNING *")->fetchAll(PDO
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$duckDb = new PDO('duckdb::memory:');
+$duckDb->exec("CREATE TABLE table1 (v VARCHAR)");
+$statement = $duckDb->prepare("INSERT INTO table1 VALUES (?)");
+$statement->execute(['foo']);
+$statement->execute(['bar']);
+$statement = $duckDb->query("UPDATE table1 SET v = 'asd' WHERE v = 'foo'");
+var_dump($statement->rowCount());
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -622,3 +630,4 @@ array(2) {
     string(1) "b"
   }
 }
+int(1)
