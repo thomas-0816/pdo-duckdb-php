@@ -224,6 +224,33 @@ $statement->execute(['bar']);
 $statement = $duckDb->query("UPDATE table1 SET v = 'asd' WHERE v = 'foo'");
 var_dump($statement->rowCount());
 
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t1 (v1 varchar, v2 varchar)");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?, ?)");
+$statement->bindValue(1, 'foo1' . chr(0) . '2', PDO::PARAM_STR);
+$statement->bindValue(2, 'foo2' . chr(0) . '2', PDO::PARAM_STR);
+$statement->execute();
+try {
+  $statement->execute();
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+$statement->bindValue(1, 'foo1' . chr(0) . '2', PDO::PARAM_STR);
+try {
+  $statement->execute();
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+try {
+  $statement->execute(['a']);
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+$statement->execute(['b', 'c']);
+$statement = $db->query("SELECT * FROM t1");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -390,7 +417,7 @@ array(1) {
     string(5) "hello"
   }
 }
-Caught: SQLSTATE[HY000]: Expected exactly 5 parameters, 2 provided
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: cc, dd, ee
 array(5) {
   [0]=>
   array(5) {
@@ -631,3 +658,22 @@ array(2) {
   }
 }
 int(1)
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 1, 2
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 2
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 2
+array(2) {
+  [0]=>
+  array(2) {
+    ["v1"]=>
+    string(6) "foo1%s2"
+    ["v2"]=>
+    string(6) "foo2%s2"
+  }
+  [1]=>
+  array(2) {
+    ["v1"]=>
+    string(1) "b"
+    ["v2"]=>
+    string(1) "c"
+  }
+}

@@ -815,7 +815,11 @@ $statement->bindValue(1, 'foo1' . chr(0) . '2', PDO::PARAM_STR);
 $statement->bindValue(2, 'foo1' . chr(0) . '2', PDO::PARAM_STR);
 $statement->execute();
 $statement->bindValue(1, 'foo1' . chr(0) . '2', PDO::PARAM_STR);
-$statement->execute(); // ok, same behavior as in sqlite
+try {
+    $statement->execute();
+} catch (PDOException $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
 $statement = $db->query("SELECT * FROM t1");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
