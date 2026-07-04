@@ -312,15 +312,5 @@ jobs:
           ./configure --with-pdo-duckdb
           make
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -m <<'EOF'
-              <?php
-              if (!extension_loaded("pdo_duckdb")) throw new Exception('Error loading');
-              $db = new PDO("duckdb::memory:");
-              $db->exec("CREATE TABLE t(i INTEGER, s VARCHAR)");
-              $db->exec("INSERT INTO t VALUES (1, 'foo'), (2, 'bar')");
-              $t = $db->query("SELECT * FROM t ORDER BY i")->fetchAll(PDO::FETCH_KEY_PAIR);
-              if ($t !== ['1' => 'foo', '2' => 'bar']) throw new Exception('Error select');
-              echo 'ok', PHP_EOL;
-          EOF
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -m test_parallel.php
+          php -d extension=$(pwd)/modules/pdo_duckdb.so test_parallel.php
           echo 'OK'
