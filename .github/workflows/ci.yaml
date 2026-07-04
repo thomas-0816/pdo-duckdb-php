@@ -312,6 +312,8 @@ jobs:
           ./configure --with-pdo-duckdb
           make
           sudo make install
+          php -v
+          php -m
           php -m | grep duckdb
           php <<'EOF'
               <?php
