@@ -14,22 +14,19 @@ $statement->execute([1, 42.21, 'Hello DuckDB! 🐘 💓 🦆']);
 $statement = $duckDb->query("SELECT * FROM table1");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-if (file_exists('/tmp/pdo_duckdb_test.db')) {
-    unlink('/tmp/pdo_duckdb_test.db');
-}
-
-$duckDb = new PDO('duckdb:/tmp/pdo_duckdb_test.db');
+$parquet = tempnam('/tmp', 'pdo_duckdb_test') . '.parquet';
+$duckDb = new PDO('duckdb:' . tempnam('/tmp', 'pdo_duckdb_test') . '.db');
 $duckDb->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR, data JSON)");
 
 $statement = $duckDb->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
 $statement->execute([1, 'Hello DuckDB 🦆', json_encode(['foo' => 'bar', 'baz' => 42])]);
 $statement = $duckDb->exec("
     COPY (SELECT * FROM table2)
-    TO '/tmp/pdo_duckdb_test_table1.parquet'
+    TO '{$parquet}'
     (FORMAT parquet, COMPRESSION zstd, ROW_GROUP_SIZE 100_000)
 ");
 
-foreach ($duckDb->query("SELECT * FROM '/tmp/pdo_duckdb_test_table1.parquet'", PDO::FETCH_ASSOC) as $row) {
+foreach ($duckDb->query("SELECT * FROM '{$parquet}'", PDO::FETCH_ASSOC) as $row) {
     print_r($row);
 }
 
@@ -55,12 +52,8 @@ $statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $statement->fetch()) { print_r($row); }
 
-
-if (file_exists('/tmp/pdo_duckdb_test.db')) {
-    unlink('/tmp/pdo_duckdb_test.db');
-}
-
-$db = new PDO('duckdb:/tmp/pdo_duckdb_test.db');
+$json = tempnam('/tmp', 'pdo_duckdb_test') . '.json';
+$db = new PDO('duckdb:' . tempnam('/tmp', 'pdo_duckdb_test') . '.db');
 $db->exec("CREATE TABLE t (i INTEGER, v VARCHAR)");
 $statement = $db->prepare("INSERT INTO t VALUES (?, ?)");
 $statement->execute([1, 'hello']);
@@ -68,30 +61,27 @@ $statement = $db->query("SELECT * FROM t");
 while ($row = $statement->fetch()) { print_r($row); }
 foreach ($db->query("SELECT * FROM t") as $row) { print_r($row); }
 
-file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL);
-file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-02-03 04:05:06', 'log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
+file_put_contents($json, json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL);
+file_put_contents($json, json_encode(['date' => '2026-02-03 04:05:06', 'log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
 
 $db = new PDO('duckdb::memory:');
-$statement = $db->query("SELECT * FROM '/tmp/test_logs.json'");
+$statement = $db->query("SELECT * FROM '{$json}'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
-
-if (file_exists('/tmp/test.csv')) {
-    unlink('/tmp/test.csv');
-}
 
 $list = [
     ['aaa', 'bbb', 'ccc'],
     ['123', '456', '789'],
     ['aaa', 'bbb', 'ccc']
 ];
-$fp = fopen('/tmp/test.csv', 'w');
+$csv = tempnam('/tmp', 'pdo_duckdb_test') . '.csv';
+$fp = fopen($csv, 'w');
 foreach ($list as $fields) {
     fputcsv($fp, $fields, ',', '"', "");
 }
 fclose($fp);
 
 $db = new PDO('duckdb::memory:');
-$statement = $db->query("SELECT * FROM '/tmp/test.csv'");
+$statement = $db->query("SELECT * FROM '{$csv}'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:');
@@ -504,8 +494,12 @@ $db->exec("INSERT INTO geometries VALUES
 $statement = $db->query("SELECT geom FROM geometries");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL);
-file_put_contents('/tmp/test_logs.json', json_encode(['date' => '2026-02-03 04:05:06', 'log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
+$json = tempnam('/tmp', 'pdo_duckdb_test') . '.json';
+file_put_contents($json, json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL);
+file_put_contents($json, json_encode(['date' => '2026-02-03 04:05:06', 'log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
+
+$parquet = tempnam('/tmp', 'pdo_duckdb_test') . '.parquet';
+$parquet2 = tempnam('/tmp', 'pdo_duckdb_test') . '.parquet';
 
 // limit threads and memory usage for converting big files, see https://github.com/duckdb/duckdb/issues/16078
 // 100k rows per group
@@ -513,28 +507,28 @@ $db->exec("
     set memory_limit='4GB';
     set threads = 1;
     SET preserve_insertion_order=false;
-    copy (select * from read_ndjson('/tmp/test_logs.json', ignore_errors=true))
-    to '/tmp/test_logs.parquet' (FORMAT 'parquet', COMPRESSION 'zstd', ROW_GROUP_SIZE 100_000)
+    copy (select * from read_ndjson('{$json}', ignore_errors=true))
+    to '{$parquet}' (FORMAT 'parquet', COMPRESSION 'zstd', ROW_GROUP_SIZE 100_000)
 ");
 // 100M bytes per group
 $db->exec("
     set memory_limit='4GB';
     set threads = 1;
     SET preserve_insertion_order=false;
-    copy (select * from read_ndjson('/tmp/test_logs.json', ignore_errors=true))
-    to '/tmp/test_logs2.parquet' (FORMAT 'parquet', COMPRESSION 'zstd', ROW_GROUP_SIZE_BYTES 100_000_000)
+    copy (select * from read_ndjson('{$json}', ignore_errors=true))
+    to '{$parquet2}' (FORMAT 'parquet', COMPRESSION 'zstd', ROW_GROUP_SIZE_BYTES 100_000_000)
 ");
 
-$statement = $db->query("SELECT * FROM '/tmp/test_logs.parquet'");
+$statement = $db->query("SELECT * FROM '{$parquet}'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
-$statement = $db->query("SELECT * FROM '/tmp/test_logs2.parquet'");
+$statement = $db->query("SELECT * FROM '{$parquet2}'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT * FROM parquet_schema('/tmp/test_logs2.parquet')");
+$statement = $db->query("SELECT * FROM parquet_schema('{$parquet2}')");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
-$statement = $db->query("SELECT * FROM parquet_metadata('/tmp/test_logs2.parquet')");
+$statement = $db->query("SELECT * FROM parquet_metadata('{$parquet2}')");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
-$statement = $db->query("SELECT * FROM parquet_file_metadata('/tmp/test_logs2.parquet')");
+$statement = $db->query("SELECT * FROM parquet_file_metadata('{$parquet2}')");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('threads', 'memory_limit')");
@@ -690,8 +684,9 @@ foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") a
 }
 echo $count . PHP_EOL;
 
-new PDO('duckdb:/tmp/test11.db');
-$db = new PDO('duckdb:/tmp/test11.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
+$dbFile = tempnam('/tmp', 'pdo_duckdb_test') . '.db';
+new PDO('duckdb:' . $dbFile);
+$db = new PDO('duckdb:' . $dbFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('access_mode', 'memory_limit', 'threads')");
 print_r($statement->fetchAll(PDO::FETCH_COLUMN));
 
@@ -822,5 +817,7 @@ try {
 }
 $statement = $db->query("SELECT * FROM t1");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+echo "DONE", PHP_EOL;
 
 unset($db);
