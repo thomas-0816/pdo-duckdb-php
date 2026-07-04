@@ -1,7 +1,7 @@
 <?php
 
 $start = microtime(true);
-for ($i = 0; $i < 64; $i++) {
+for ($i = 0; $i < 8; $i++) {
     ob_start();
     require 'test.php';
     ob_end_clean();
@@ -11,11 +11,11 @@ echo 'DONE ', microtime(true) - $start, PHP_EOL;
 
 $start = microtime(true);
 $runtimes = [];
-for ($i = 0; $i < 64; $i++) {
+for ($i = 0; $i < 8; $i++) {
     $runtimes[] = new parallel\Runtime();
 }
 $futures = [];
-for ($i = 0; $i < 64; $i++) {
+for ($i = 0; $i < 8; $i++) {
     $futures[] = $runtimes[$i]->run(function() use ($i) {
         $start = (new DateTime())->format('H:i:s.u');
         ob_start();
