@@ -38,7 +38,7 @@ RUN <<EOF
     ./configure --with-pdo-duckdb --with-php-config=php-config-zts
     make
     cp /usr/lib/php-zts/modules/pdo-zts-82.so /usr/lib/php-zts/modules/pdo.so
-    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php-zts -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
     make install
     sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
@@ -59,7 +59,7 @@ RUN <<EOF
     ./configure --with-pdo-duckdb --with-php-config=php-config-zts
     make
     cp /usr/lib/php-zts/modules/pdo-zts-83.so /usr/lib/php-zts/modules/pdo.so
-    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php-zts -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
     make install
     sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
@@ -80,7 +80,7 @@ RUN <<EOF
     ./configure --with-pdo-duckdb --with-php-config=php-config-zts
     make
     cp /usr/lib/php-zts/modules/pdo-zts-84.so /usr/lib/php-zts/modules/pdo.so
-    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php-zts -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
     make install
     sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
@@ -101,7 +101,7 @@ RUN <<EOF
     ./configure --with-pdo-duckdb --with-php-config=php-config-zts
     make
     cp /usr/lib/php-zts/modules/pdo-zts-85.so /usr/lib/php-zts/modules/pdo.so
-    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php-zts -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
     make install
     sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
