@@ -311,11 +311,8 @@ jobs:
           phpize
           ./configure --with-pdo-duckdb
           make
-          sudo make install
-          php -v
-          php -m
-          php -m | grep duckdb
-          php <<'EOF'
+          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+          php -d extension=$(pwd)/modules/pdo_duckdb.so -m <<'EOF'
               <?php
               if (!extension_loaded("pdo_duckdb")) throw new Exception('Error loading');
               $db = new PDO("duckdb::memory:");
@@ -325,5 +322,5 @@ jobs:
               if ($t !== ['1' => 'foo', '2' => 'bar']) throw new Exception('Error select');
               echo 'ok', PHP_EOL;
           EOF
-          php test_parallel.php
+          php -d extension=$(pwd)/modules/pdo_duckdb.so -m test_parallel.php
           echo 'OK'
