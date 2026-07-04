@@ -310,7 +310,7 @@ jobs:
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
-          unzip -o ${libduckdb} libduckdb_static.a -d ./
+          unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
           php -v
           phpize
           ./configure --with-pdo-duckdb
