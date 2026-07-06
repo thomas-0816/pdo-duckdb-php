@@ -22,8 +22,12 @@ $statement = $db->query("SELECT * FROM unicode_test ORDER BY id");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:');
-$string = 'Nice O\'Brian $dollar "quote" \'single quote\' 🐘🐋🦀🌍 öäüß';
-var_dump($db->quote($string));
+$db->exec("CREATE TABLE unicode_test (c VARCHAR)");
+$quoted = $db->quote('Nice O\'Brian $dollar "quote" \'single quote\' 🐘🐋🦀🌍 öäüß');
+var_dump($quoted);
+$db->exec("INSERT INTO unicode_test VALUES ({$quoted})");
+$statement = $db->query("SELECT * FROM unicode_test");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 ?>
 --EXPECTF--
@@ -72,3 +76,10 @@ array(2) {
   }
 }
 string(74) "'Nice O''Brian $dollar "quote" ''single quote'' 🐘🐋🦀🌍 öäüß'"
+array(1) {
+  [0]=>
+  array(1) {
+    ["c"]=>
+    string(69) "Nice O'Brian $dollar "quote" 'single quote' 🐘🐋🦀🌍 öäüß"
+  }
+}
