@@ -187,7 +187,7 @@ jobs:
       - name: Build container
         run: docker build --pull --no-cache -f Dockerfile.debian13 -t pdo_duckdb_debian .
 
-  debian:
+  opensuse:
     name: "Docker: openSUSE"
     runs-on: ubuntu-latest
     steps:
