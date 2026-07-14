@@ -1,0 +1,18 @@
+# docker build --no-cache -f Dockerfile.opensuse -t pdo_duckdb_opensuse .
+# docker run --rm -it pdo_duckdb_opensuse
+
+FROM opensuse/leap:16
+
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+
+RUN <<EOF
+    set -euxo pipefail
+    zypper addrepo https://download.opensuse.org/repositories/devel:languages:php/16.0/devel:languages:php.repo
+    zypper --gpg-auto-import-keys refresh
+    zypper install -y php8 php8-phar php8-iconv php8-openssl php8-pdo unzip
+    curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
+    php /tmp/pie install --no-build-tools-check thomas-0816/pdo-duckdb-php
+    php -m | grep duckdb
+    php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+EOF
