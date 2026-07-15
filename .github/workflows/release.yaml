@@ -153,8 +153,8 @@ jobs:
           TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
         run: |
           curl -X POST -H 'content-type:application/json' 'https://packagist.org/api/update-package?username=thomas-0816&apiToken=${TOKEN}' -d'{"repository":{"url":"https://packagist.org/packages/thomas-0816/pdo-duckdb-php"}}'
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-      - name: Validate release
-        uses: ./.github/workflows/validate.yaml
+
+  validate:
+    name: Validate release
+    needs: [publish]
+    uses: ./.github/workflows/validate.yaml
