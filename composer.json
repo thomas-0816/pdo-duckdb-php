@@ -4,7 +4,8 @@
     "license": "MIT",
     "description": "PHP PDO DuckDB",
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.2",
+        "ext-pdo": "*"
     },
     "php-ext": {
         "extension-name": "pdo_duckdb",
