@@ -27,11 +27,7 @@ case $host_os in
     dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic
     dnl IFUNC resolvers. The GCC driver adds -lgcc_s but not -lgcc for -shared
     dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
-    PDO_DUCKDB_SHARED_LIBADD=""
-    for lib in $duckdb_libs; do
-      PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_SHARED_LIBADD -Wl,-force_load,$lib"
-    done
-    PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_SHARED_LIBADD -lc++ -Wl,-undefined,dynamic_lookup"
+    PDO_DUCKDB_SHARED_LIBADD="-Wl,-force_load,$ext_srcdir/libduckdb_static.a -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
     ;;
   *)
     dnl Linux/other: use --whole-archive to force all symbols into the .so.
@@ -51,10 +47,7 @@ dnl For static builds, add DuckDB libraries directly to LIBS
 if test "$ext_shared" = "no"; then
   case $host_os in
     darwin*)
-      for lib in $duckdb_libs; do
-        LIBS="$LIBS -Wl,-force_load,$lib"
-      done
-      LIBS="$LIBS -lc++ -Wl,-undefined,dynamic_lookup"
+      LIBS="$LIBS -Wl,-force_load,$ext_srcdir/libduckdb_static.a -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
       ;;
     *)
       LIBS="$LIBS -Wl,--whole-archive -Wl,-z,muldefs"
