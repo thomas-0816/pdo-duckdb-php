@@ -104,9 +104,9 @@ bool(true)
 bool(true)
 Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "http://127.0.0.1/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration
 Caught: SQLSTATE[HY000]: Permission Error: Cannot access file "/tmp/pdo_duckdb_test_table1.parquet" - file system operations are disabled by configuration
-object(PDO)#4 (0) {
+object(PDO)#%d (0) {
 }
-object(PDO)#5 (0) {
+object(PDO)#%d (0) {
 }
 array(1) {
   ["'foo'"]=>
