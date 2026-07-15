@@ -113,7 +113,7 @@ jobs:
           ./configure --with-pdo-duckdb
           make
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+          strace php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
   windows-build:
