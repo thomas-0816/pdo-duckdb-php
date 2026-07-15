@@ -152,7 +152,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
         run: |
-          curl -X POST -H 'content-type:application/json' 'https://packagist.org/api/update-package?username=thomas-0816&apiToken=${TOKEN}' -d'{"repository":{"url":"https://packagist.org/packages/thomas-0816/pdo-duckdb-php"}}'
+          curl -fsSL -X POST -H 'content-type:application/json' "https://packagist.org/api/update-package?username=thomas-0816&apiToken=${TOKEN}" -d'{"repository":{"url":"https://packagist.org/packages/thomas-0816/pdo-duckdb-php"}}'
 
   validate:
     name: Validate release
