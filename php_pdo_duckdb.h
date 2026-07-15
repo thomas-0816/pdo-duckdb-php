@@ -60,7 +60,7 @@ typedef struct _pdo_duckdb_stmt {
 } pdo_duckdb_stmt;
 
 /* Helpers implemented in duckdb_stubs.cpp */
-char *duckdb_get_json_string(duckdb_vector vector, idx_t row);
-char *duckdb_get_string(duckdb_vector vec, idx_t row);
+char *duckdb_get_json_string(duckdb_connection conn, duckdb_vector vector, idx_t row);
+char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, idx_t row);
 
 #endif /* PHP_PDO_DUCKDB_INT_H */

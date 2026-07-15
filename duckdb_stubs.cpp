@@ -1,22 +1,25 @@
 #include "duckdb.hpp"
 #include <cstring>
 
-extern "C" char *duckdb_get_json_string(duckdb_vector vec, idx_t row) {
+extern "C" char *duckdb_get_json_string(duckdb_connection conn, duckdb_vector vec, idx_t row) {
 	if (!vec) return NULL;
 
 	try {
+		auto *conn_ptr = reinterpret_cast<duckdb::Connection *>(conn);
+		auto &context = *conn_ptr->context;
+
 		auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
 		auto value = vec_ptr->GetValue(row);
 
 		if (value.IsNull()) return NULL;
 
-		auto json_str = value.DefaultCastAs(duckdb::LogicalType::JSON()).ToString();
+		auto json_str = value.CastAs(context, duckdb::LogicalType::JSON()).ToString();
 
 		// If the JSON result starts with '"', the variant contained a VARCHAR value
 		// (DuckDB wraps VARCHAR content in a JSON string). Fall back to VARCHAR cast
 		// to preserve the raw content for php_json_decode_ex in the caller.
 		if (!json_str.empty() && json_str[0] == '"') {
-			json_str = value.DefaultCastAs(duckdb::LogicalType::VARCHAR).ToString();
+			json_str = value.CastAs(context, duckdb::LogicalType::VARCHAR).ToString();
 		}
 
 		auto *result = (char *)duckdb_malloc(json_str.size() + 1);
@@ -31,7 +34,7 @@ extern "C" char *duckdb_get_json_string(duckdb_vector vec, idx_t row) {
 	}
 }
 
-extern "C" char *duckdb_get_string(duckdb_vector vec, idx_t row) {
+extern "C" char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, idx_t row) {
 	if (!vec) return NULL;
 
 	try {
@@ -40,7 +43,8 @@ extern "C" char *duckdb_get_string(duckdb_vector vec, idx_t row) {
 
 		if (value.IsNull()) return NULL;
 
-		auto str = value.DefaultCastAs(duckdb::LogicalType::VARCHAR).ToString();
+		auto *conn_ptr = reinterpret_cast<duckdb::Connection *>(conn);
+		auto str = value.CastAs(*conn_ptr->context, duckdb::LogicalType::VARCHAR).ToString();
 
 		auto *result = (char *)duckdb_malloc(str.size() + 1);
 		if (result) {

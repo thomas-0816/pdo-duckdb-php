@@ -46,6 +46,14 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT '15:30:00.123456789'::TIME_NS");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db->exec("SET TimeZone='UTC'");
+$row = $db->query("SELECT TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30', TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30'::varchar")->fetch(PDO::FETCH_NUM);
+var_dump($row);
+
+$db->exec("SET TimeZone='Europe/Berlin'");
+$row = $db->query("SELECT TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30', TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30'::varchar")->fetch(PDO::FETCH_NUM);
+var_dump($row);
+
 ?>
 --EXPECTF--
 array(1) {
@@ -101,22 +109,22 @@ array(1) {
   [0]=>
   array(3) {
     ["CAST('1992-09-20 11:30:00.123456789' AS "TIMESTAMP WITH TIME ZONE")"]=>
-    string(32) "1992-09-20 11:30:00.123456+02:00"
+    string(29) "1992-09-20 11:30:00.123456+02"
     ["CAST('1992-09-20 12:30:00.123456789+01:00' AS "TIMESTAMP WITH TIME ZONE")"]=>
-    string(32) "1992-09-20 13:30:00.123456+02:00"
+    string(29) "1992-09-20 13:30:00.123456+02"
     ["timezone('America/Denver', CAST('2001-02-16 20:38:40' AS TIMESTAMP))"]=>
-    string(25) "2001-02-17 04:38:40+01:00"
+    string(22) "2001-02-17 04:38:40+01"
   }
 }
 array(1) {
   [0]=>
   array(3) {
     ["CAST('1992-03-20 11:30:00.123456789' AS "TIMESTAMP WITH TIME ZONE")"]=>
-    string(32) "1992-03-20 11:30:00.123456+01:00"
+    string(29) "1992-03-20 11:30:00.123456+01"
     ["CAST('1992-03-20 12:30:00.123456789+01:00' AS "TIMESTAMP WITH TIME ZONE")"]=>
-    string(32) "1992-03-20 12:30:00.123456+01:00"
+    string(29) "1992-03-20 12:30:00.123456+01"
     ["timezone('America/Denver', CAST('2001-08-16 20:38:40' AS TIMESTAMP))"]=>
-    string(25) "2001-08-17 04:38:40+02:00"
+    string(22) "2001-08-17 04:38:40+02"
   }
 }
 array(1) {
@@ -166,4 +174,16 @@ array(1) {
     ["CAST('15:30:00.123456789' AS "TIME_NS")"]=>
     string(18) "15:30:00.123456789"
   }
+}
+array(2) {
+  [0]=>
+  string(29) "2026-01-23 10:04:56.789123+00"
+  [1]=>
+  string(29) "2026-01-23 10:04:56.789123+00"
+}
+array(2) {
+  [0]=>
+  string(29) "2026-01-23 11:04:56.789123+01"
+  [1]=>
+  string(29) "2026-01-23 11:04:56.789123+01"
 }

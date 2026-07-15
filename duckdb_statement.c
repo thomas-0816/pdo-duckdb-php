@@ -137,7 +137,7 @@ static zend_string *zval_to_map_key(zval *zv)
 /* Recursively convert a value from a DuckDB vector to a PHP zval.
    The logical_type is used to determine the type and to access child types
    for nested/complex types (struct, list, map). */
-static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logical_type, idx_t row_idx, zval *result)
+static void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_logical_type logical_type, idx_t row_idx, zval *result)
 {
 	duckdb_type col_type = duckdb_get_type_id(logical_type);
 	uint64_t *validity = duckdb_vector_get_validity(vec);
@@ -370,36 +370,13 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			if (!duckdb_is_finite_timestamp(ts)) {
 				ZVAL_STRING(result, ts.micros < 0 ? "-infinity" : "infinity");
 			} else {
-				time_t secs = (time_t)(ts.micros / 1000000);
-				int64_t usec = ts.micros % 1000000;
-				if (usec < 0) {
-					secs--;
-					usec += 1000000;
+				char *str = duckdb_get_string(conn, vec, row_idx);
+				if (str == NULL) {
+					ZVAL_NULL(result);
+				} else {
+					ZVAL_STRING(result, str);
+					duckdb_free(str);
 				}
-				struct tm tm;
-#ifdef _WIN32
-				struct tm tm_utc;
-				localtime_s(&tm, &secs);
-				gmtime_s(&tm_utc, &secs);
-				tm_utc.tm_isdst = -1;
-				int offs = (int)(secs - mktime(&tm_utc));
-#else
-				localtime_r(&secs, &tm);
-				int offs = (int)tm.tm_gmtoff;
-#endif
-				char sign = offs >= 0 ? '+' : '-';
-				if (offs < 0) offs = -offs;
-				int offs_hours = offs / 3600;
-				int offs_mins = (offs % 3600) / 60;
-				char buf[64];
-				int len = snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-				                   tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-				                   tm.tm_hour, tm.tm_min, tm.tm_sec);
-				if (usec) {
-					len += snprintf(buf + len, sizeof(buf) - len, ".%06d", (int)usec);
-				}
-				len += snprintf(buf + len, sizeof(buf) - len, "%c%02d:%02d", sign, offs_hours, offs_mins);
-				ZVAL_STRING(result, buf);
 			}
 			break;
 		}
@@ -472,7 +449,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			array_init(result);
 			for (idx_t i = entry.offset; i < entry.offset + entry.length; i++) {
 				zval child_val;
-				duckdb_val_from_vector(child_vec, child_type, i, &child_val);
+				duckdb_val_from_vector(conn, child_vec, child_type, i, &child_val);
 				add_next_index_zval(result, &child_val);
 			}
 
@@ -489,7 +466,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 				duckdb_vector child_vec = duckdb_struct_vector_get_child(vec, i);
 
 				zval child_val;
-				duckdb_val_from_vector(child_vec, child_type, row_idx, &child_val);
+				duckdb_val_from_vector(conn, child_vec, child_type, row_idx, &child_val);
 				if (name && name[0]) {
 					add_assoc_zval(result, name, &child_val);
 				} else {
@@ -513,8 +490,8 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			array_init(result);
 			for (idx_t i = entry.offset; i < entry.offset + entry.length; i++) {
 				zval key_val, val_val;
-				duckdb_val_from_vector(key_vec, key_type, i, &key_val);
-				duckdb_val_from_vector(val_vec, val_type, i, &val_val);
+				duckdb_val_from_vector(conn, key_vec, key_type, i, &key_val);
+				duckdb_val_from_vector(conn, val_vec, val_type, i, &val_val);
 
 				zend_string *key_str = zval_to_map_key(&key_val);
 				add_assoc_zval(result, ZSTR_VAL(key_str), &val_val);
@@ -535,7 +512,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			duckdb_vector member_vec = duckdb_struct_vector_get_child(vec, tag + 1);
 
 			zval member_val;
-			duckdb_val_from_vector(member_vec, member_type, row_idx, &member_val);
+			duckdb_val_from_vector(conn, member_vec, member_type, row_idx, &member_val);
 
 			array_init(result);
 			add_assoc_zval(result, member_name, &member_val);
@@ -552,7 +529,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			array_init(result);
 			for (idx_t i = 0; i < array_size; i++) {
 				zval child_val;
-				duckdb_val_from_vector(child_vec, child_type, row_idx * array_size + i, &child_val);
+				duckdb_val_from_vector(conn, child_vec, child_type, row_idx * array_size + i, &child_val);
 				add_next_index_zval(result, &child_val);
 			}
 
@@ -560,7 +537,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 			break;
 		}
 		case DUCKDB_TYPE_VARIANT: {
-			char *str = duckdb_get_json_string(vec, row_idx);
+			char *str = duckdb_get_json_string(conn, vec, row_idx);
 			if (str == NULL) {
 				ZVAL_NULL(result);
 			} else {
@@ -583,7 +560,7 @@ static void duckdb_val_from_vector(duckdb_vector vec, duckdb_logical_type logica
 				case DUCKDB_TYPE_INTERVAL:
 				case DUCKDB_TYPE_BIGNUM:
 			*/
-			char *str = duckdb_get_string(vec, row_idx);
+			char *str = duckdb_get_string(conn, vec, row_idx);
 			if (str == NULL) {
 				ZVAL_NULL(result);
 			} else {
@@ -600,13 +577,14 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 {
 	(void)type;
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
+	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) stmt->dbh->driver_data;
 	duckdb_result *res = &S->result;
 	idx_t row_idx = S->chunk_idx;
 
 	duckdb_vector vec = duckdb_data_chunk_get_vector(S->chunk, colno);
 	duckdb_logical_type logical_type = duckdb_column_logical_type(res, colno);
 
-	duckdb_val_from_vector(vec, logical_type, row_idx, result);
+	duckdb_val_from_vector(H->conn, vec, logical_type, row_idx, result);
 
 	duckdb_destroy_logical_type(&logical_type);
 
