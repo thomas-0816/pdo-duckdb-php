@@ -388,24 +388,10 @@ static void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 			duckdb_destroy_logical_type(&child_type);
 			break;
 		}
-		case DUCKDB_TYPE_VARIANT: {
-			char *str = duckdb_get_json_string(conn, vec, row_idx);
-			if (str == NULL) {
-				ZVAL_NULL(result);
-			} else {
-				size_t str_len = strlen(str);
-				if (php_json_decode_ex(result, str, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
-					ZVAL_STRINGL(result, str, str_len);
-				}
-				duckdb_free(str);
-			}
-			break;
-		}
 		default: {
 			/*
 				case DUCKDB_TYPE_ENUM:
 				case DUCKDB_TYPE_UUID:
-				case DUCKDB_TYPE_GEOMETRY:
 				case DUCKDB_TYPE_BIT:
 				case DUCKDB_TYPE_HUGEINT:
 				case DUCKDB_TYPE_UHUGEINT:
@@ -567,9 +553,7 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_UNION: type_str = "union"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_UUID: type_str = "uuid"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_INTERVAL: type_str = "interval"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_VARIANT: type_str = "json"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_BIT: type_str = "bit"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_GEOMETRY: type_str = "geometry"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_BIGNUM: type_str = "bignum"; pdo_type = PDO_PARAM_STR; break;
 		default: type_str = "unknown"; pdo_type = PDO_PARAM_STR; break;
 	}

@@ -54,9 +54,9 @@ jobs:
             macos-14)         libduckdb=static-libs-osx-arm64.zip ;;
             *) echo "unmapped runner os"; exit 1 ;;
           esac
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.4.5/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}" -o libduckdb.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.4.5/${libduckdb}" -o libduckdb.zip
           unzip -o libduckdb.zip -d ./
       - name: Build and upload prebuilt binary
         uses: php/pie-ext-binary-builder@5298761950f63c7e9565ed7004e922b346e4386c # 0.0.3
@@ -88,10 +88,10 @@ jobs:
       - name: Download libduckdb
         shell: pwsh
         run: |
-          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-windows-amd64.zip"
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.4.5/libduckdb-windows-amd64.zip"
           Invoke-WebRequest -Uri $url -OutFile duckdb.zip
           Expand-Archive duckdb.zip -DestinationPath . -Force
-          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip"
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.4.5/libduckdb-src.zip"
           Invoke-WebRequest -Uri $url -OutFile duckdb-src.zip
           Expand-Archive duckdb-src.zip -DestinationPath . -Force
           Get-ChildItem -Path .

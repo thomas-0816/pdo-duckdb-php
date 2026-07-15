@@ -15,12 +15,12 @@ RUN <<EOF
     ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime
     git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git
     cd php-src/ext
-    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git
+    git clone --depth=1 --branch=duckdb_lts https://github.com/thomas-0816/pdo-duckdb-php.git
     cd pdo-duckdb-php
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip
+    wget https://github.com/duckdb/duckdb/releases/download/v1.4.5/libduckdb-src.zip
     unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip
-    unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
+    wget https://github.com/duckdb/duckdb/releases/download/v1.4.5/static-libs-linux-amd64.zip
+    unzip -o static-libs-linux-amd64.zip '*.a' -d ./
     cd ../../
     ./buildconf --force
     ./configure --disable-zts --disable-all --enable-cli --enable-pcntl --enable-pdo --with-pdo-duckdb

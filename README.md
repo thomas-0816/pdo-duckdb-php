@@ -271,14 +271,14 @@ Supported operating systems: Ubuntu 24.04/26.04, Debian 12/13, Fedora 42/43, Ama
 
 ### Compile NTS
 
-    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
+    git clone --depth=1 --branch=duckdb_lts https://github.com/thomas-0816/pdo-duckdb.git
     cd pdo_duckdb
 
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip
+    wget https://github.com/duckdb/duckdb/releases/download/v1.4.5/libduckdb-src.zip
     unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
 
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip
-    unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
+    wget https://github.com/duckdb/duckdb/releases/download/v1.4.5/static-libs-linux-amd64.zip
+    unzip -o static-libs-linux-amd64.zip '*.a' -d ./
 
     phpize
     ./configure --with-pdo-duckdb
@@ -294,14 +294,14 @@ Supported operating systems: Ubuntu 24.04/26.04, Debian 12/13, Fedora 42/43, Ama
 
 ### Compile ZTS
 
-    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
+    git clone --depth=1 --branch=duckdb_lts https://github.com/thomas-0816/pdo-duckdb.git
     cd pdo_duckdb
 
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip
+    wget https://github.com/duckdb/duckdb/releases/download/v1.4.5/libduckdb-src.zip
     unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
 
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip
-    unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
+    wget https://github.com/duckdb/duckdb/releases/download/v1.4.5/static-libs-linux-amd64.zip
+    unzip -o static-libs-linux-amd64.zip '*.a' ./
 
     phpize-zts
     ./configure --with-pdo-duckdb --with-php-config=php-config-zts

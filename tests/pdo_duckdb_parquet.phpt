@@ -272,7 +272,7 @@ array(1) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["created_by"]=>
-    string(40) "DuckDB version v1.5.4 (build 08e34c447b)"
+    string(40) "DuckDB version v1.4.5 (build 08e34c447b)"
     ["num_rows"]=>
     int(2)
     ["num_row_groups"]=>
