@@ -9,6 +9,7 @@ PHPAPI extern zend_module_entry pdo_duckdb_module_entry;
 
 #ifdef ZTS
 #include "TSRM.h"
+ZEND_TSRMLS_CACHE_EXTERN()
 #endif
 
 /* Include the DuckDB C API header */
