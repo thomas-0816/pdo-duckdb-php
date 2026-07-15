@@ -1,4 +1,4 @@
-name: Release binaries
+name: Release
 
 on:
   release:
@@ -142,3 +142,8 @@ jobs:
           gh release download -p "*" -D . -R thomas-0816/pdo-duckdb-php
           ls -lisah
           docker run --rm --entrypoint sh -v $(pwd):/app clamav/clamav:latest /app/clamdscan.sh
+      - name: Publish release on Packagist
+        env: # Or as an environment variable
+          TOKEN: ${{ secrets.PACKAGIST_TOKEN }}
+        run: |
+          curl -X POST -H 'content-type:application/json' 'https://packagist.org/api/update-package?username=thomas-0816&apiToken=${TOKEN}' -d'{"repository":{"url":"https://packagist.org/packages/thomas-0816/pdo-duckdb-php"}}'
