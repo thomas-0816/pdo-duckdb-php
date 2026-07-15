@@ -12,7 +12,7 @@ PHP_CHECK_PDO_INCLUDES
 
 PHP_ADD_INCLUDE($ext_srcdir)
 
-PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp,
+PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp duckdb_extension_stub.cpp,
     $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1, 1)
 
 PHP_ADD_EXTENSION_DEP(pdo_duckdb, pdo)
@@ -51,10 +51,17 @@ dnl For static builds, add DuckDB libraries directly to LIBS
 if test "$ext_shared" = "no"; then
   case $host_os in
     darwin*)
-      LIBS="$LIBS -Wl,-force_load,$ext_srcdir/libduckdb_static.a -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
+      for lib in $duckdb_libs; do
+        LIBS="$LIBS -Wl,-force_load,$lib"
+      done
+      LIBS="$LIBS -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
       ;;
     *)
-      LIBS="$LIBS -Wl,--whole-archive -Wl,$ext_srcdir/libduckdb_static.a -Wl,--no-whole-archive -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,--as-needed"
+      LIBS="$LIBS -Wl,--whole-archive -Wl,-z,muldefs"
+      for lib in $duckdb_libs; do
+        LIBS="$LIBS -Wl,$lib"
+      done
+      LIBS="$LIBS -Wl,--no-whole-archive -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,--as-needed"
       ;;
   esac
 fi
