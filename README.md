@@ -278,7 +278,7 @@ Supported operating systems: Ubuntu 24.04/26.04, Debian 12/13, Fedora 42/43, Ama
     unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
 
     wget https://github.com/duckdb/duckdb/releases/download/v1.4.5/static-libs-linux-amd64.zip
-    unzip -o static-libs-linux-amd64.zip '*.a' -d ./
+    unzip -o static-libs-linux-amd64.zip 'libduckdb*.a' -d ./
 
     phpize
     ./configure --with-pdo-duckdb
