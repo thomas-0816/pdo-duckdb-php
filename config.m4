@@ -12,7 +12,7 @@ PHP_CHECK_PDO_INCLUDES
 
 PHP_ADD_INCLUDE($ext_srcdir)
 
-PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp duckdb_extension_stub.cpp,
+PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp,
     $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1, 1)
 
 PHP_ADD_EXTENSION_DEP(pdo_duckdb, pdo)
