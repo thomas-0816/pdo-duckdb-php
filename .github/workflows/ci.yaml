@@ -55,8 +55,8 @@ jobs:
           coverage: none
         env:
           phpts: ${{ matrix.thread-safety }}
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
       - name: Build & Test
-        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
         env:
           os: ${{ matrix.os }}
         run: |
@@ -103,8 +103,9 @@ jobs:
           coverage: none
         env:
           phpts: ${{ matrix.thread-safety }}
+
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
       - name: Build & Test
-        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
         run: |
           sudo systemsetup -settimezone "Europe/Berlin"
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
