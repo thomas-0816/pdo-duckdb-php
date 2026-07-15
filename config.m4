@@ -31,7 +31,7 @@ case $host_os in
     for lib in $duckdb_libs; do
       PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_SHARED_LIBADD -Wl,-force_load,$lib"
     done
-    PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_SHARED_LIBADD -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
+    PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_SHARED_LIBADD -lc++ -Wl,-undefined,dynamic_lookup"
     ;;
   *)
     dnl Linux/other: use --whole-archive to force all symbols into the .so.
@@ -54,7 +54,7 @@ if test "$ext_shared" = "no"; then
       for lib in $duckdb_libs; do
         LIBS="$LIBS -Wl,-force_load,$lib"
       done
-      LIBS="$LIBS -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
+      LIBS="$LIBS -lc++ -Wl,-undefined,dynamic_lookup"
       ;;
     *)
       LIBS="$LIBS -Wl,--whole-archive -Wl,-z,muldefs"
