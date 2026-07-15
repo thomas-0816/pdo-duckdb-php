@@ -24,15 +24,15 @@ $statement->execute([1, 42.21, 'Hello DuckDB! 🐘 💓 🦆']);
 $statement = $duckDb->query("SELECT * FROM table1");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-Array
-(
-    [0] => Array
-        (
-            [id] => 1
-            [amount] => 42.21
-            [description] => Hello DuckDB! 🐘 💓 🦆
-        )
-)
+# Array
+# (
+#     [0] => Array
+#         (
+#             [id] => 1
+#             [amount] => 42.21
+#             [description] => Hello DuckDB! 🐘 💓 🦆
+#         )
+# )
 ```
 
 ### Open databases from disk or in-memory
@@ -57,24 +57,22 @@ $db->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR USING COMPRESSION zstd,
 $statement = $db->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
 $statement->execute([1, 'Hello DuckDB 🦆', ['foo' => 'bar', 'baz' => 42]]);
 
-$db->exec("
-    COPY (SELECT * FROM table2) TO '/tmp/table2.parquet' (COMPRESSION zstd)
-");
+$db->exec("COPY (SELECT * FROM table2) TO '/tmp/table2.parquet' (COMPRESSION zstd)");
 
 foreach ($db->query("SELECT * FROM '/tmp/table2.parquet'", PDO::FETCH_ASSOC) as $row) {
     print_r($row);
 }
 
-Array
-(
-    [id] => 1
-    [text] => Hello DuckDB 🦆
-    [data] => Array
-        (
-            [foo] => bar
-            [baz] => 42
-        )
-)
+# Array
+# (
+#     [id] => 1
+#     [text] => Hello DuckDB 🦆
+#     [data] => Array
+#         (
+#             [foo] => bar
+#             [baz] => 42
+#         )
+# )
 ```
 
 ### Read CSV files with SQL
@@ -95,21 +93,21 @@ $db = new PDO('duckdb::memory:');
 $statement = $db->query("SELECT * FROM '/tmp/test.csv'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-Array
-(
-    [0] => Array
-        (
-            [aaa] => 123
-            [bbb] => 456
-            [ccc] => 789
-        )
-    [1] => Array
-        (
-            [aaa] => aaa
-            [bbb] => bbb
-            [ccc] => ccc
-        )
-)
+# Array
+# (
+#     [0] => Array
+#         (
+#             [aaa] => 123
+#             [bbb] => 456
+#             [ccc] => 789
+#         )
+#     [1] => Array
+#         (
+#             [aaa] => aaa
+#             [bbb] => bbb
+#             [ccc] => ccc
+#         )
+# )
 ```
 
 ### Read JSON files with SQL
@@ -122,21 +120,19 @@ $db = new PDO('duckdb::memory:');
 $statement = $db->query("SELECT * FROM '/tmp/logs.json'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-Array
-(
-    [0] => Array
-        (
-            [log] => log text
-        )
-    [1] => Array
-        (
-            [log] => log text 2
-        )
-)
+# Array
+# (
+#     [0] => Array
+#         (
+#             [log] => log text
+#         )
+#     [1] => Array
+#         (
+#             [log] => log text 2
+#         )
+# )
 
-$db->exec("
-    COPY (SELECT * FROM '/tmp/logs.json') TO '/tmp/logs_json.parquet' (COMPRESSION zstd)
-");
+$db->exec("COPY (SELECT * FROM '/tmp/logs.json') TO '/tmp/logs_json.parquet' (COMPRESSION zstd)");
 ```
 
 ### Use structured columns with a fixed schema
@@ -153,20 +149,20 @@ $statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'd' => 42.21]]
 $statement = $db->query("SELECT * FROM table1");
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
-Array
-(
-    [s] => Array
-        (
-            [v] => foo
-            [i] => 21
-            [a] => Array
-                (
-                    [0] => b
-                    [1] => c
-                )
-            [d] => 42.21
-        )
-)
+# Array
+# (
+#     [s] => Array
+#         (
+#             [v] => foo
+#             [i] => 21
+#             [a] => Array
+#                 (
+#                     [0] => b
+#                     [1] => c
+#                 )
+#             [d] => 42.21
+#         )
+# )
 ```
 
 ### Cast array columns to JSON-string
@@ -179,22 +175,22 @@ $db->exec("INSERT INTO table1 VALUES (['a', 'b'])");
 $statement = $db->query("SELECT v FROM table1");
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
-Array
-(
-    [v] => Array
-        (
-            [0] => a
-            [1] => b
-        )
-)
+# Array
+# (
+#     [v] => Array
+#         (
+#             [0] => a
+#             [1] => b
+#         )
+# )
 
 $statement = $db->query("SELECT v::json::varchar as v FROM table1");
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
-Array
-(
-    [v] => ["a","b"]
-)
+# Array
+# (
+#     [v] => ["a","b"]
+# )
 ```
 
 ### Auto increment columns
@@ -206,10 +202,10 @@ $db->exec("CREATE TABLE table1 (id INTEGER PRIMARY KEY DEFAULT nextval('table1_i
 $statement = $db->query("INSERT INTO table1 VALUES (default) RETURNING *");
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
-Array
-(
-    [id] => 1
-)
+# Array
+# (
+#     [id] => 1
+# )
 ```
 
 ### Differences to MySQL / MariaDB
@@ -221,14 +217,14 @@ $statement = $db->query("SELECT
     nullif(0/0, 'NAN'), nullif(1/0, 'INF'), nullif(-1/0, '-INF')");
 var_export($statement->fetch(PDO::FETCH_NUM));
 
-array (
-    0 => NAN, // MySQL,MariaDB: NULL
-    1 => INF, // MySQL,MariaDB: NULL
-    2 => -INF, // MySQL,MariaDB: NULL
-    3 => NULL,
-    4 => NULL,
-    5 => NULL,
-)
+# array (
+#     0 => NAN, // MySQL,MariaDB: NULL
+#     1 => INF, // MySQL,MariaDB: NULL
+#     2 => -INF, // MySQL,MariaDB: NULL
+#     3 => NULL,
+#     4 => NULL,
+#     5 => NULL,
+# )
 ```
 
 ### Install and setup with 🥧 [PIE](https://github.com/php/pie)
