@@ -18,7 +18,10 @@ PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c du
 PHP_ADD_EXTENSION_DEP(pdo_duckdb, pdo)
 PHP_ADD_MAKEFILE_FRAGMENT
 
-duckdb_libs=`ls "$ext_srcdir"/lib*.a 2>/dev/null`
+dnl Collect all static libs, excluding TPC-DS/TPC-H (benchmark extensions, not needed for PDO).
+dnl Note: libicu_extension.a must be kept - libduckdb_static.a was built with
+dnl DUCKDB_EXTENSION_ICU_LINKED=true and references IcuExtension vtable.
+duckdb_libs=`ls "$ext_srcdir"/lib*.a 2>/dev/null | grep -v -e libtpcds_extension -e libtpch_extension`
 
 dnl Link duckdb with appropriate linker flags based on platform
 case $host_os in
