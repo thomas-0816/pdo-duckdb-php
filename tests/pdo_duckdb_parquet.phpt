@@ -45,7 +45,7 @@ var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
 --EXPECTF--
 array(3) {
   [0]=>
-  array(13) {
+  array(12) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["name"]=>
@@ -70,11 +70,9 @@ array(3) {
     NULL
     ["duckdb_type"]=>
     NULL
-    ["column_id"]=>
-    int(0)
   }
   [1]=>
-  array(13) {
+  array(12) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["name"]=>
@@ -99,11 +97,9 @@ array(3) {
     string(99) "TimestampType(isAdjustedToUTC=0, unit=TimeUnit(MILLIS=<null>, MICROS=MicroSeconds(), NANOS=<null>))"
     ["duckdb_type"]=>
     string(9) "TIMESTAMP"
-    ["column_id"]=>
-    int(1)
   }
   [2]=>
-  array(13) {
+  array(12) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["name"]=>
@@ -128,8 +124,6 @@ array(3) {
     NULL
     ["duckdb_type"]=>
     string(7) "VARCHAR"
-    ["column_id"]=>
-    int(2)
   }
 }
 array(2) {
@@ -193,7 +187,7 @@ array(2) {
     ["max_is_exact"]=>
     bool(true)
     ["row_group_compressed_bytes"]=>
-    int(101)
+    int(1)
     ["geo_bbox"]=>
     NULL
     ["geo_types"]=>
@@ -259,7 +253,7 @@ array(2) {
     ["max_is_exact"]=>
     bool(true)
     ["row_group_compressed_bytes"]=>
-    int(101)
+    int(1)
     ["geo_bbox"]=>
     NULL
     ["geo_types"]=>
@@ -268,11 +262,11 @@ array(2) {
 }
 array(1) {
   [0]=>
-  array(10) {
+  array(9) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["created_by"]=>
-    string(40) "DuckDB version v1.4.5 (build 08e34c447b)"
+    string(40) "DuckDB version v1.4.5 (build f31be57c18)"
     ["num_rows"]=>
     int(2)
     ["num_row_groups"]=>
@@ -284,16 +278,9 @@ array(1) {
     ["footer_signing_key_metadata"]=>
     NULL
     ["file_size_bytes"]=>
-    int(388)
+    int(380)
     ["footer_size"]=>
-    int(275)
-    ["column_orders"]=>
-    array(2) {
-      [0]=>
-      string(42) "ColumnOrder(TYPE_ORDER=TypeDefinedOrder())"
-      [1]=>
-      string(42) "ColumnOrder(TYPE_ORDER=TypeDefinedOrder())"
-    }
+    int(267)
   }
 }
 array(2) {

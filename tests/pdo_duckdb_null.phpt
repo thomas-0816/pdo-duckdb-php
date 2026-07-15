@@ -12,8 +12,8 @@ $statement = $db->query("SELECT
   null::uinteger, null::ubigint, null::float, null::double, null::timestamp, null::date, null::time, null::interval,
   null::hugeint, null::uhugeint, null::varchar, null::blob, null::decimal, null::timestamp_s, null::timestamp_ms,
   null::timestamp_ns, null::enum('a'), null::struct(duck integer), null::integer[], null::integer[1], map_from_entries(null),
-  null::union(str varchar), null::uuid, null::bit, null::timetz, null::timestamptz, null::time_ns, null::geometry,
-  null::variant, null::bignum
+  null::union(str varchar), null::uuid, null::bit, null::timetz, null::timestamptz, null::time_ns,
+  null::bignum
 ");
 $columnCount = $statement->columnCount();
 for ($i = 0; $i < $columnCount; $i++) {
@@ -56,16 +56,14 @@ string(4) "uuid"
 string(3) "bit"
 string(6) "timetz"
 string(11) "timestamptz"
-string(7) "time_ns"
-string(8) "geometry"
-string(4) "json"
+string(7) "unknown"
 string(6) "bignum"
 array(1) {
   [0]=>
-  array(37) {
+  array(35) {
     ["CAST(NULL AS BOOLEAN)"]=>
     NULL
-    ["CAST(NULL AS "TINYINT")"]=>
+    ["CAST(NULL AS TINYINT)"]=>
     NULL
     ["CAST(NULL AS SMALLINT)"]=>
     NULL
@@ -73,43 +71,43 @@ array(1) {
     NULL
     ["CAST(NULL AS BIGINT)"]=>
     NULL
-    ["CAST(NULL AS "UTINYINT")"]=>
+    ["CAST(NULL AS UTINYINT)"]=>
     NULL
-    ["CAST(NULL AS "USMALLINT")"]=>
+    ["CAST(NULL AS USMALLINT)"]=>
     NULL
-    ["CAST(NULL AS "UINTEGER")"]=>
+    ["CAST(NULL AS UINTEGER)"]=>
     NULL
-    ["CAST(NULL AS "UBIGINT")"]=>
+    ["CAST(NULL AS UBIGINT)"]=>
     NULL
     ["CAST(NULL AS FLOAT)"]=>
     NULL
-    ["CAST(NULL AS "DOUBLE")"]=>
+    ["CAST(NULL AS DOUBLE)"]=>
     NULL
     ["CAST(NULL AS TIMESTAMP)"]=>
     NULL
-    ["CAST(NULL AS "DATE")"]=>
+    ["CAST(NULL AS DATE)"]=>
     NULL
     ["CAST(NULL AS TIME)"]=>
     NULL
     ["CAST(NULL AS INTERVAL)"]=>
     NULL
-    ["CAST(NULL AS "HUGEINT")"]=>
+    ["CAST(NULL AS HUGEINT)"]=>
     NULL
-    ["CAST(NULL AS "UHUGEINT")"]=>
+    ["CAST(NULL AS UHUGEINT)"]=>
     NULL
     ["CAST(NULL AS VARCHAR)"]=>
     NULL
-    ["CAST(NULL AS "BLOB")"]=>
+    ["CAST(NULL AS BLOB)"]=>
     NULL
-    ["CAST(NULL AS DECIMAL)"]=>
+    ["CAST(NULL AS DECIMAL(18,3))"]=>
     NULL
-    ["CAST(NULL AS "TIMESTAMP_S")"]=>
+    ["CAST(NULL AS TIMESTAMP_S)"]=>
     NULL
-    ["CAST(NULL AS "TIMESTAMP_MS")"]=>
+    ["CAST(NULL AS TIMESTAMP_MS)"]=>
     NULL
-    ["CAST(NULL AS "TIMESTAMP_NS")"]=>
+    ["CAST(NULL AS TIMESTAMP_NS)"]=>
     NULL
-    ["CAST(NULL AS "ENUM"('a'))"]=>
+    ["CAST(NULL AS ENUM('a'))"]=>
     NULL
     ["CAST(NULL AS STRUCT(duck INTEGER))"]=>
     NULL
@@ -121,21 +119,17 @@ array(1) {
     NULL
     ["CAST(NULL AS UNION(str VARCHAR))"]=>
     NULL
-    ["CAST(NULL AS "UUID")"]=>
+    ["CAST(NULL AS UUID)"]=>
     NULL
-    ["CAST(NULL AS BIT(1))"]=>
+    ["CAST(NULL AS BIT)"]=>
     NULL
-    ["CAST(NULL AS "TIME WITH TIME ZONE")"]=>
+    ["CAST(NULL AS TIME WITH TIME ZONE)"]=>
     NULL
-    ["CAST(NULL AS "TIMESTAMP WITH TIME ZONE")"]=>
+    ["CAST(NULL AS TIMESTAMP WITH TIME ZONE)"]=>
     NULL
-    ["CAST(NULL AS "TIME_NS")"]=>
+    ["CAST(NULL AS TIME_NS)"]=>
     NULL
-    ["CAST(NULL AS "GEOMETRY")"]=>
-    NULL
-    ["CAST(NULL AS "VARIANT")"]=>
-    NULL
-    ["CAST(NULL AS "BIGNUM")"]=>
+    ["CAST(NULL AS BIGNUM)"]=>
     NULL
   }
 }

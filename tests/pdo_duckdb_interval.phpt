@@ -81,7 +81,7 @@ array(1) {
 array(1) {
   [0]=>
   array(3) {
-    ["(CAST('2000-01-01' AS "DATE") + to_years(CAST(trunc(CAST(1 AS DOUBLE)) AS INTEGER)))"]=>
+    ["(CAST('2000-01-01' AS DATE) + to_years(CAST(trunc(CAST(1 AS DOUBLE)) AS INTEGER)))"]=>
     string(19) "2001-01-01 00:00:00"
     ["(CAST('2000-01-01 01:33:30' AS TIMESTAMP) - CAST('1 month 13 hours' AS INTERVAL))"]=>
     string(19) "1999-11-30 12:33:30"

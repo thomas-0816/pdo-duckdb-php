@@ -16,7 +16,7 @@ while ($row = $statement->fetch()) { var_dump($row); }
 
 $db->exec("INSTAll parquet; LOAD parquet; INSTAll json; LOAD json; INSTALL icu; LOAD icu;");
 
-$statement = $db->query("SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE extension_name not in ('autocomplete', 'core_functions') and (installed = 1 OR loaded = 1)");
+$statement = $db->query("SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE extension_name not in ('autocomplete', 'core_functions', 'jemalloc') and (installed = 1 OR loaded = 1)");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 var_dump(in_array('duckdb', PDO::getAvailableDrivers()));

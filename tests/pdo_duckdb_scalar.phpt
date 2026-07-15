@@ -25,7 +25,7 @@ array(1) {
     bool(false)
     ["CAST(NULL AS BOOLEAN)"]=>
     NULL
-    ["CAST('1992-09-20' AS "DATE")"]=>
+    ["CAST('1992-09-20' AS DATE)"]=>
     string(10) "1992-09-20"
   }
 }

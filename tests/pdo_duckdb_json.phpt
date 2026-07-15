@@ -101,7 +101,7 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["CAST(CAST('2023-05-12' AS "DATE") AS "JSON")"]=>
+    ["CAST(CAST('2023-05-12' AS DATE) AS "JSON")"]=>
     string(10) "2023-05-12"
   }
 }
