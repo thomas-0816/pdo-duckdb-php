@@ -108,7 +108,7 @@ jobs:
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.4.5/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.4.5/static-libs-osx-arm64.zip" -o static-libs-osx-arm64.zip
-          unzip -o static-libs-osx-arm64.zip '*.a' -d ./
+          unzip -o static-libs-osx-arm64.zip libduckdb_static.a -d ./
           phpize
           ./configure --with-pdo-duckdb
           make
@@ -160,21 +160,10 @@ jobs:
           ls -lt ~/Library/Logs/DiagnosticReports/ 2>/dev/null | head -10 || true
           cat ~/Library/Logs/DiagnosticReports/php*.crash 2>/dev/null | head -200 || true
 
-      - name: Run phpt tests2
-        continue-on-error: true
-        run: |
-          brew install strace
-          strace php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-
       - name: Test with MallocStackLogging
         continue-on-error: true
         run: |
           MallocStackLogging=1 MallocErrorAbort=1 php -d extension=$(pwd)/modules/pdo_duckdb.so test.php 2>&1 | tail -50 || true
-
-      - name: Test with dtruss
-        continue-on-error: true
-        run: |
-          sudo dtruss -n php -d extension=$(pwd)/modules/pdo_duckdb.so test.php 2>&1 | tail -100 || true
 
       - name: Run phpt tests
         continue-on-error: true
