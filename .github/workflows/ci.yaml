@@ -112,8 +112,74 @@ jobs:
           phpize
           ./configure --with-pdo-duckdb
           make
+
+      - name: Debug info
+        run: |
+          echo "=== otool -L ==="
+          otool -L modules/pdo_duckdb.so || true
+          echo "=== file ==="
+          file modules/pdo_duckdb.so
+          echo "=== loaded dylibs ==="
+          DYLD_PRINT_LIBRARIES=1 php -d extension=$(pwd)/modules/pdo_duckdb.so -r 'echo "ok";' 2>&1 || true
+          echo "=== duckdb symbols ==="
+          nm modules/pdo_duckdb.so 2>/dev/null | grep -i "duckdb\|_cxa\|std::" | head -40 || true
+          echo "=== configure log ==="
+          cat config.log 2>/dev/null | grep -E "lstdc|lc\+\+|lc |force_load|LDFLAGS|SHARED_LIBADD" | head -20 || true
+
+      - name: Minimal test
+        continue-on-error: true
+        run: |
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+          php -d extension=$(pwd)/modules/pdo_duckdb.so -r '
+          try {
+              $db = new PDO("duckdb::memory:");
+              echo "connect ok\n";
+              $db->exec("CREATE TABLE t(i INTEGER)");
+              $db->exec("INSERT INTO t VALUES (1)");
+              $r = $db->query("SELECT * FROM t");
+              print_r($r->fetchAll(PDO::FETCH_ASSOC));
+              echo "minimal test ok\n";
+          } catch (Throwable $e) {
+              echo "ERROR: " . $e->getMessage() . "\n";
+          }
+          '
+
+      - name: Full test under lldb
+        continue-on-error: true
+        run: |
+          EXT_SO=$(pwd)/modules/pdo_duckdb.so
+          cat > /tmp/lldb_cmds.txt << LLDB_CMDS
+          run -d extension=${EXT_SO} test.php
+          bt
+          bt all
+          frame select 0
+          register read
+          LLDB_CMDS
+          lldb --batch -s /tmp/lldb_cmds.txt -- php 2>&1 || true
+          echo "=== crash reports ==="
+          ls -lt ~/Library/Logs/DiagnosticReports/ 2>/dev/null | head -10 || true
+          cat ~/Library/Logs/DiagnosticReports/php*.crash 2>/dev/null | head -200 || true
+
+      - name: Run phpt tests2
+        continue-on-error: true
+        run: |
+          brew install strace
           strace php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+
+      - name: Test with MallocStackLogging
+        continue-on-error: true
+        run: |
+          MallocStackLogging=1 MallocErrorAbort=1 php -d extension=$(pwd)/modules/pdo_duckdb.so test.php 2>&1 | tail -50 || true
+
+      - name: Test with dtruss
+        continue-on-error: true
+        run: |
+          sudo dtruss -n php -d extension=$(pwd)/modules/pdo_duckdb.so test.php 2>&1 | tail -100 || true
+
+      - name: Run phpt tests
+        continue-on-error: true
+        run: |
+          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
   windows-build:
