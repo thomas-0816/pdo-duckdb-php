@@ -157,4 +157,4 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate release
-        uses: ./.github/workflows/validate.yml
+        uses: ./.github/workflows/validate.yaml
