@@ -206,7 +206,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
-      - name: Build container
+      - name: Build container and run clamAV
         run: |
           gh release download -p "*" -D . -R thomas-0816/pdo-duckdb-php
           ls -lisah
