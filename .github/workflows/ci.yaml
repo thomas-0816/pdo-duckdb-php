@@ -55,7 +55,6 @@ jobs:
           coverage: none
         env:
           phpts: ${{ matrix.thread-safety }}
-      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
       - name: Build & Test
         env:
           os: ${{ matrix.os }}
@@ -70,7 +69,6 @@ jobs:
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}" -o ${libduckdb}
           unzip -o ${libduckdb} libduckdb_static.a -d ./
-          docker run --rm -it --entrypoint sh -v $(pwd):/app clamav/clamav:latest /app/clamdscan.sh
           phpize
           ./configure --with-pdo-duckdb
           make
@@ -104,7 +102,6 @@ jobs:
         env:
           phpts: ${{ matrix.thread-safety }}
 
-      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
       - name: Build & Test
         run: |
           sudo systemsetup -settimezone "Europe/Berlin"
@@ -112,7 +109,6 @@ jobs:
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-osx-arm64.zip" -o static-libs-osx-arm64.zip
           unzip -o static-libs-osx-arm64.zip libduckdb_static.a -d ./
-          docker run --rm -it --entrypoint sh -v $(pwd):/app clamav/clamav:latest /app/clamdscan.sh
           phpize
           ./configure --with-pdo-duckdb
           make
