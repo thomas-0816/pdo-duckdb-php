@@ -32,8 +32,7 @@ static pdo_driver_t pdo_duckdb_driver = {
 	duckdb_handle_factory
 };
 
-/* Store original PDOStatement::execute handler */
-static zif_handler original_pdo_stmt_execute;
+/* Store original PDOStatement::execute handler (in per-thread module globals) */
 
 /* Override PDOStatement::execute to convert PHP arrays to JSON strings,
    validate that the number of input parameters matches the prepared statement,
@@ -73,7 +72,7 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 		}
 	}
 
-	original_pdo_stmt_execute(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+	PDO_DUCKDB_G(original_pdo_stmt_execute)(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 
 	pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(getThis());
 	if (pdo_stmt && pdo_stmt->driver_data) {
@@ -112,14 +111,12 @@ PHP_RINIT_FUNCTION(pdo_duckdb)
 {
 	(void)type; (void)module_number;
 
-	static zend_class_entry *pdo_stmt_ce = NULL;
-
-	if (pdo_stmt_ce == NULL) {
-		pdo_stmt_ce = zend_hash_str_find_ptr(CG(class_table), "pdostatement", sizeof("pdostatement") - 1);
+	if (PDO_DUCKDB_G(original_pdo_stmt_execute) == NULL) {
+		zend_class_entry *pdo_stmt_ce = zend_hash_str_find_ptr(CG(class_table), "pdostatement", sizeof("pdostatement") - 1);
 		if (pdo_stmt_ce) {
 			zend_function *func = zend_hash_str_find_ptr(&pdo_stmt_ce->function_table, "execute", sizeof("execute") - 1);
 			if (func && func->internal_function.handler != (zif_handler)pdo_duckdb_stmt_execute_override) {
-				original_pdo_stmt_execute = func->internal_function.handler;
+				PDO_DUCKDB_G(original_pdo_stmt_execute) = func->internal_function.handler;
 				func->internal_function.handler = (zif_handler)pdo_duckdb_stmt_execute_override;
 			}
 		}
@@ -135,6 +132,14 @@ PHP_MSHUTDOWN_FUNCTION(pdo_duckdb)
 	(void)type; (void)module_number;
 
 	php_pdo_unregister_driver(&pdo_duckdb_driver);
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ PHP_RSHUTDOWN_FUNCTION */
+PHP_RSHUTDOWN_FUNCTION(pdo_duckdb)
+{
+	(void)type; (void)module_number;
 	return SUCCESS;
 }
 /* }}} */
@@ -158,7 +163,7 @@ zend_module_entry pdo_duckdb_module_entry = {
 	PHP_MINIT(pdo_duckdb),
 	PHP_MSHUTDOWN(pdo_duckdb),
 	PHP_RINIT(pdo_duckdb),          /* RINIT */
-	NULL,                           /* RSHUTDOWN */
+	PHP_RSHUTDOWN(pdo_duckdb),      /* RSHUTDOWN */
 	PHP_MINFO(pdo_duckdb),
 	PHP_PDO_DUCKDB_VERSION,
 	STANDARD_MODULE_PROPERTIES
