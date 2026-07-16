@@ -74,21 +74,27 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	/* Extract path — PDO passes the part after the first colon */
 	dbname = estrdup(data_source);
 
-	/* Check for DuckDB config options in driver_options */
+	/* Always create a config to disable extension auto-loading on macOS.
+	   Extensions are statically linked but LoadAllExtensions is a no-op;
+	   auto-loading via dlopen fails on macOS with "missing symbol called".
+	   Users can still manually LOAD extensions via SQL. */
+	duckdb_create_config(&config);
+	duckdb_set_config(config, "autoinstall_known_extensions", "false");
+	duckdb_set_config(config, "autoload_known_extensions", "false");
+
+	/* Apply any user-provided DuckDB config options */
 	if (driver_options && Z_TYPE_P(driver_options) == IS_ARRAY) {
 		zval *config_zval = zend_hash_index_find(Z_ARRVAL_P(driver_options), PDO_DUCKDB_ATTR_CONFIG);
 		if (config_zval && Z_TYPE_P(config_zval) == IS_ARRAY) {
-			if (duckdb_create_config(&config) == DuckDBSuccess) {
-				zend_string *key;
-				zval *val;
-				ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(config_zval), key, val) {
-					if (key) {
-						zend_string *str_val = zval_get_string(val);
-						duckdb_set_config(config, ZSTR_VAL(key), ZSTR_VAL(str_val));
-						zend_string_release(str_val);
-					}
-				} ZEND_HASH_FOREACH_END();
-			}
+			zend_string *key;
+			zval *val;
+			ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(config_zval), key, val) {
+				if (key) {
+					zend_string *str_val = zval_get_string(val);
+					duckdb_set_config(config, ZSTR_VAL(key), ZSTR_VAL(str_val));
+					zend_string_release(str_val);
+				}
+			} ZEND_HASH_FOREACH_END();
 		}
 	}
 

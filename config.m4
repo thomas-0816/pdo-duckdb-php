@@ -24,13 +24,8 @@ dnl Link duckdb with appropriate linker flags based on platform
 case $host_os in
   darwin*)
     dnl macOS: use -force_load to force all symbols into the .so (equivalent to --whole-archive).
-    dnl Exclude libicu_extension.a because its bundled ICU symbols conflict with
-    dnl macOS system ICU (CoreFoundation). A no-op stub is provided in duckdb_stubs.cpp.
     PDO_DUCKDB_SHARED_LIBADD=""
     for lib in $duckdb_libs; do
-      case "$lib" in
-        *icu_extension*) continue ;;
-      esac
       PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_SHARED_LIBADD -Wl,-force_load,$lib"
     done
     PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_SHARED_LIBADD -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
@@ -54,9 +49,6 @@ if test "$ext_shared" = "no"; then
   case $host_os in
     darwin*)
       for lib in $duckdb_libs; do
-        case "$lib" in
-          *icu_extension*) continue ;;
-        esac
         LIBS="$LIBS -Wl,-force_load,$lib"
       done
       LIBS="$LIBS -lstdc++ -lc -Wl,-undefined,dynamic_lookup"

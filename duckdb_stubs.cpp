@@ -1,11 +1,6 @@
 #include "duckdb.hpp"
 #include <cstring>
 
-/* No-op stub for the ICU extension init on macOS.
-   libicu_extension.a is excluded from the link because its bundled ICU
-   symbols conflict with macOS system ICU (CoreFoundation). */
-DUCKDB_EXTENSION_API void icu_duckdb_cpp_init(duckdb::ExtensionLoader &) {}
-
 extern "C" char *duckdb_get_json_string(duckdb_connection conn, duckdb_vector vec, idx_t row) {
 	if (!vec) return NULL;
 
