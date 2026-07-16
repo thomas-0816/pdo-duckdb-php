@@ -23,11 +23,12 @@ duckdb_libs=`ls "$ext_srcdir"/lib*.a 2>/dev/null`
 dnl Link duckdb with appropriate linker flags based on platform
 case $host_os in
   darwin*)
+    dnl Strip extension_helper from libduckdb_static.a so our no-op
+    dnl duckdb::ExtensionHelper::LoadAllExtensions() in duckdb_stubs.cpp wins.
+    ar d "$ext_srcdir/libduckdb_static.a" extension_helper.cpp.o 2>/dev/null
+
     dnl macOS: use -force_load to force all symbols into the .so (equivalent to --whole-archive).
-    dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic
-    dnl IFUNC resolvers. The GCC driver adds -lgcc_s but not -lgcc for -shared
-    dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
-    PDO_DUCKDB_SHARED_LIBADD="-Wl,-multiply_defined,suppress"
+    PDO_DUCKDB_SHARED_LIBADD=""
     for lib in $duckdb_libs; do
       PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_SHARED_LIBADD -Wl,-force_load,$lib"
     done
@@ -51,7 +52,10 @@ dnl For static builds, add DuckDB libraries directly to LIBS
 if test "$ext_shared" = "no"; then
   case $host_os in
     darwin*)
-      LIBS="$LIBS -Wl,-multiply_defined,suppress"
+      dnl Strip extension_helper from libduckdb_static.a so our no-op
+      dnl duckdb::ExtensionHelper::LoadAllExtensions() in duckdb_stubs.cpp wins.
+      ar d "$ext_srcdir/libduckdb_static.a" extension_helper.cpp.o 2>/dev/null
+
       for lib in $duckdb_libs; do
         LIBS="$LIBS -Wl,-force_load,$lib"
       done
