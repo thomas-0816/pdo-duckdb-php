@@ -35,9 +35,17 @@ static zif_handler original_pdo_stmt_execute;
    leak across re-execute() calls. */
 static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 {
-	zval *params = NULL;
+	pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(ZEND_THIS);
+
+	if (!pdo_stmt->driver_data ||
+	    pdo_stmt->methods != &duckdb_stmt_methods) {
+		original_pdo_stmt_execute(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+		return;
+	}
 
 	if (ZEND_NUM_ARGS() > 0) {
+		zval *params = NULL;
+
 		if (zend_parse_parameters(1, "z", &params) == FAILURE) {
 			RETURN_THROWS();
 		}
@@ -70,16 +78,9 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 
 	original_pdo_stmt_execute(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 
-	pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(getThis());
-	if (pdo_stmt && pdo_stmt->driver_data) {
-		duckdb_clear_bindings(((pdo_duckdb_stmt *)pdo_stmt->driver_data)->stmt);
-	}
+	duckdb_clear_bindings(((pdo_duckdb_stmt *)pdo_stmt->driver_data)->stmt);
 
-	/* Clear PDO's internal bound parameter cache so that stale bindings
-	   from a previous execute() are not silently re-bound on the next
-	   call.  The caller must explicitly bind all parameters before each
-	   execute(). */
-	if (pdo_stmt && pdo_stmt->bound_params) {
+	if (pdo_stmt->bound_params) {
 		zend_hash_clean(pdo_stmt->bound_params);
 	}
 }
