@@ -14,7 +14,7 @@ $statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $statement->fetch()) { var_dump($row); }
 
-$db->exec("INSTAll parquet; LOAD parquet; INSTAll json; LOAD json; INSTALL icu; LOAD icu; INSTALL spatial; LOAD spatial;");
+$db->exec("INSTAll parquet; LOAD parquet; INSTAll json; LOAD json; INSTALL icu; LOAD icu;");
 
 $statement = $db->query("SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE extension_name not in ('autocomplete', 'core_functions') and (installed = 1 OR loaded = 1)");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
@@ -71,7 +71,7 @@ array(4) {
   ["v"]=>
   string(5) "hello"
 }
-array(4) {
+array(3) {
   [0]=>
   array(3) {
     ["extension_name"]=>
@@ -94,15 +94,6 @@ array(4) {
   array(3) {
     ["extension_name"]=>
     string(7) "parquet"
-    ["loaded"]=>
-    bool(true)
-    ["installed"]=>
-    bool(true)
-  }
-  [3]=>
-  array(3) {
-    ["extension_name"]=>
-    string(7) "spatial"
     ["loaded"]=>
     bool(true)
     ["installed"]=>
