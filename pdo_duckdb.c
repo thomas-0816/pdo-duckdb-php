@@ -63,7 +63,8 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 
 			zval *arg = ZEND_CALL_ARG(execute_data, 1);
 			zval_ptr_dtor(arg);
-			ZVAL_COPY_VALUE(arg, &new_params);
+			ZVAL_COPY(arg, &new_params);
+			zval_ptr_dtor(&new_params);
 		}
 	}
 
