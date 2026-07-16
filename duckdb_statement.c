@@ -359,6 +359,12 @@ static void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 			duckdb_vector tag_vec = duckdb_struct_vector_get_child(vec, 0);
 			uint8_t tag = ((uint8_t *)duckdb_vector_get_data(tag_vec))[row_idx];
 
+			idx_t member_count = duckdb_union_type_member_count(logical_type);
+			if (tag >= member_count || member_count == 0) {
+				ZVAL_NULL(result);
+				break;
+			}
+
 			const char *member_name = duckdb_union_type_member_name(logical_type, tag);
 			duckdb_logical_type member_type = duckdb_union_type_member_type(logical_type, tag);
 			duckdb_vector member_vec = duckdb_struct_vector_get_child(vec, tag + 1);
@@ -441,6 +447,11 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) stmt->dbh->driver_data;
 	duckdb_result *res = &S->result;
 	idx_t row_idx = S->chunk_idx;
+
+	if (colno < 0 || colno >= stmt->column_count || !S->chunk) {
+		ZVAL_NULL(result);
+		return 0;
+	}
 
 	duckdb_vector vec = duckdb_data_chunk_get_vector(S->chunk, colno);
 	duckdb_logical_type logical_type = duckdb_column_logical_type(res, colno);
