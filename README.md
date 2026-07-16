@@ -6,7 +6,7 @@ This repository provides a native DuckDB database driver for the PHP Data Object
 
 The build process bundles DuckDB directly into the release package.
 
-This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstrings, Blobs and Boolean.
+This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstring, Blob and Boolean.
 
 Supported PHP versions: 8.2 8.3 8.4 8.5
 
@@ -14,218 +14,224 @@ Supported operating systems: Ubuntu 24.04/26.04, Debian 12/13, Fedora 42/43, Ama
 
 ### Usage examples
 
-    $duckDb = new PDO('duckdb::memory:');
-    $duckDb->exec("CREATE TABLE table1 (id INTEGER, amount DECIMAL(10, 2), description VARCHAR)");
+```php
+$duckDb = new PDO('duckdb::memory:');
+$duckDb->exec("CREATE TABLE table1 (id INTEGER, amount DECIMAL(10, 2), description VARCHAR)");
 
-    $statement = $duckDb->prepare("INSERT INTO table1 VALUES (?, ?, ?)");
-    $statement->execute([1, 42.21, 'Hello DuckDB! 🐘 💓 🦆']);
+$statement = $duckDb->prepare("INSERT INTO table1 VALUES (?, ?, ?)");
+$statement->execute([1, 42.21, 'Hello DuckDB! 🐘 💓 🦆']);
 
-    $statement = $duckDb->query("SELECT * FROM table1");
-    print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+$statement = $duckDb->query("SELECT * FROM table1");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-    Array
-    (
-        [0] => Array
-            (
-                [id] => 1
-                [amount] => 42.21
-                [description] => Hello DuckDB! 🐘 💓 🦆
-            )
-    )
-
+# Array
+# (
+#     [0] => Array
+#         (
+#             [id] => 1
+#             [amount] => 42.21
+#             [description] => Hello DuckDB! 🐘 💓 🦆
+#         )
+# )
+```
 
 ### Open databases from disk or in-memory
 
-    $db = new PDO('duckdb::memory:'); // open in-memory database
+```php
+$db = new PDO('duckdb::memory:'); // open in-memory database
 
-    $db = new PDO('duckdb:/tmp/test.db'); // open database file from disk
+$db = new PDO('duckdb:/tmp/test.db'); // open database file from disk
 
-    // open database file as read-only
-    $db = new PDO('duckdb:/tmp/test.db', null, null, [
-        PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']
-    ]);
-
+// open database file as read-only
+$db = new PDO('duckdb:/tmp/test.db', null, null, [
+    PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']
+]);
+```
 
 ### Read and write Parquet files
 
-    $db = new PDO('duckdb::memory:');
-    $db->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR USING COMPRESSION zstd, data JSON)");
+```php
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR USING COMPRESSION zstd, data JSON)");
 
-    $statement = $db->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
-    $statement->execute([1, 'Hello DuckDB 🦆', ['foo' => 'bar', 'baz' => 42]]);
+$statement = $db->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
+$statement->execute([1, 'Hello DuckDB 🦆', ['foo' => 'bar', 'baz' => 42]]);
 
-    $statement = $db->exec("
-        COPY (SELECT * FROM table2) TO '/tmp/table2.parquet' (COMPRESSION zstd)
-    ");
+$db->exec("COPY (SELECT * FROM table2) TO '/tmp/table2.parquet' (COMPRESSION zstd)");
 
-    foreach ($db->query("SELECT * FROM '/tmp/table2.parquet'", PDO::FETCH_ASSOC) as $row) {
-        print_r($row);
-    }
+foreach ($db->query("SELECT * FROM '/tmp/table2.parquet'", PDO::FETCH_ASSOC) as $row) {
+    print_r($row);
+}
 
-    Array
-    (
-        [id] => 1
-        [text] => Hello DuckDB 🦆
-        [data] => Array
-            (
-                [foo] => bar
-                [baz] => 42
-            )
-    )
-
+# Array
+# (
+#     [id] => 1
+#     [text] => Hello DuckDB 🦆
+#     [data] => Array
+#         (
+#             [foo] => bar
+#             [baz] => 42
+#         )
+# )
+```
 
 ### Read CSV files with SQL
 
-    $list = [
-        ['aaa', 'bbb', 'ccc'],
-        ['123', '456', '789'],
-        ['aaa', 'bbb', 'ccc']
-    ];
-    $fp = fopen('/tmp/test.csv', 'w');
-    foreach ($list as $fields) {
-        fputcsv($fp, $fields, ',', '"', "");
-    }
-    fclose($fp);
+```php
+$list = [
+    ['aaa', 'bbb', 'ccc'],
+    ['123', '456', '789'],
+    ['aaa', 'bbb', 'ccc']
+];
+$fp = fopen('/tmp/test.csv', 'w');
+foreach ($list as $fields) {
+    fputcsv($fp, $fields, ',', '"', "");
+}
+fclose($fp);
 
-    $db = new PDO('duckdb::memory:');
-    $statement = $db->query("SELECT * FROM '/tmp/test.csv'");
-    print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+$db = new PDO('duckdb::memory:');
+$statement = $db->query("SELECT * FROM '/tmp/test.csv'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-    Array
-    (
-        [0] => Array
-            (
-                [aaa] => 123
-                [bbb] => 456
-                [ccc] => 789
-            )
-        [1] => Array
-            (
-                [aaa] => aaa
-                [bbb] => bbb
-                [ccc] => ccc
-            )
-    )
-
+# Array
+# (
+#     [0] => Array
+#         (
+#             [aaa] => 123
+#             [bbb] => 456
+#             [ccc] => 789
+#         )
+#     [1] => Array
+#         (
+#             [aaa] => aaa
+#             [bbb] => bbb
+#             [ccc] => ccc
+#         )
+# )
+```
 
 ### Read JSON files with SQL
 
-    file_put_contents('/tmp/logs.json', json_encode(['log' => 'log text']) . PHP_EOL, FILE_APPEND);
-    file_put_contents('/tmp/logs.json', json_encode(['log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
+```php
+file_put_contents('/tmp/logs.json', json_encode(['log' => 'log text']) . PHP_EOL, FILE_APPEND);
+file_put_contents('/tmp/logs.json', json_encode(['log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
 
-    $db = new PDO('duckdb::memory:');
-    $statement = $db->query("SELECT * FROM '/tmp/logs.json'");
-    print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+$db = new PDO('duckdb::memory:');
+$statement = $db->query("SELECT * FROM '/tmp/logs.json'");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-    Array
-    (
-        [0] => Array
-            (
-                [log] => log text
-            )
-        [1] => Array
-            (
-                [log] => log text 2
-            )
-    )
+# Array
+# (
+#     [0] => Array
+#         (
+#             [log] => log text
+#         )
+#     [1] => Array
+#         (
+#             [log] => log text 2
+#         )
+# )
 
-    $statement = $db->exec("
-        COPY (SELECT * FROM '/tmp/logs.json') TO '/tmp/logs_json.parquet' (COMPRESSION zstd)
-    ");
-
+$db->exec("COPY (SELECT * FROM '/tmp/logs.json') TO '/tmp/logs_json.parquet' (COMPRESSION zstd)");
+```
 
 ### Use structured columns with a fixed schema
 
-    // s is array{v: string, i: int, a: string[], d: float}
+```php
+// s is array{v: string, i: int, a: string[], d: float}
 
-    $db = new PDO('duckdb::memory:');
-    $db->exec("CREATE TABLE table1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], d DECIMAL))");
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE table1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], d DECIMAL))");
 
-    $statement = $db->prepare("INSERT INTO table1 VALUES (?)");
-    $statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'd' => 42.21]]);
+$statement = $db->prepare("INSERT INTO table1 VALUES (?)");
+$statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'd' => 42.21]]);
 
-    $statement = $db->query("SELECT * FROM table1");
-    print_r($statement->fetch(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT * FROM table1");
+print_r($statement->fetch(PDO::FETCH_ASSOC));
 
-    Array
-    (
-        [s] => Array
-            (
-                [v] => foo
-                [i] => 21
-                [a] => Array
-                    (
-                        [0] => b
-                        [1] => c
-                    )
-                [d] => 42.21
-            )
-    )
-
+# Array
+# (
+#     [s] => Array
+#         (
+#             [v] => foo
+#             [i] => 21
+#             [a] => Array
+#                 (
+#                     [0] => b
+#                     [1] => c
+#                 )
+#             [d] => 42.21
+#         )
+# )
+```
 
 ### Cast array columns to JSON-string
 
-    $db = new PDO('duckdb::memory:');
-    $db->exec("CREATE TABLE table1 (v VARCHAR[])");
-    $db->exec("INSERT INTO table1 VALUES (['a', 'b'])");
+```php
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE table1 (v VARCHAR[])");
+$db->exec("INSERT INTO table1 VALUES (['a', 'b'])");
 
-    $statement = $db->query("SELECT v FROM table1");
-    print_r($statement->fetch(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT v FROM table1");
+print_r($statement->fetch(PDO::FETCH_ASSOC));
 
-    Array
-    (
-        [v] => Array
-            (
-                [0] => a
-                [1] => b
-            )
-    )
+# Array
+# (
+#     [v] => Array
+#         (
+#             [0] => a
+#             [1] => b
+#         )
+# )
 
-    $statement = $db->query("SELECT v::json::varchar as v FROM table1");
-    print_r($statement->fetch(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT v::json::varchar as v FROM table1");
+print_r($statement->fetch(PDO::FETCH_ASSOC));
 
-    Array
-    (
-        [v] => ["a","b"]
-    )
-
+# Array
+# (
+#     [v] => ["a","b"]
+# )
+```
 
 ### Auto increment columns
 
-    $db = new PDO('duckdb::memory:');
-    $db->exec('CREATE SEQUENCE table1_id');
-    $db->exec("CREATE TABLE table1 (id INTEGER PRIMARY KEY DEFAULT nextval('table1_id'))");
-    $statement = $db->query("INSERT INTO table1 VALUES (default) RETURNING *");
-    print_r($statement->fetch(PDO::FETCH_ASSOC));
+```php
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE SEQUENCE table1_id');
+$db->exec("CREATE TABLE table1 (id INTEGER PRIMARY KEY DEFAULT nextval('table1_id'))");
+$statement = $db->query("INSERT INTO table1 VALUES (default) RETURNING *");
+print_r($statement->fetch(PDO::FETCH_ASSOC));
 
-    Array
-    (
-        [id] => 1
-    )
-
+# Array
+# (
+#     [id] => 1
+# )
+```
 
 ### Differences to MySQL / MariaDB
 
-    $db = new PDO('duckdb::memory:');
-    $statement = $db->query("SELECT
-        0/0, 1/0, -1/0,
-        nullif(0/0, 'NAN'), nullif(1/0, 'INF'), nullif(-1/0, '-INF')");
-    var_export($statement->fetch(PDO::FETCH_NUM));
+```php
+$db = new PDO('duckdb::memory:');
+$statement = $db->query("SELECT
+    0/0, 1/0, -1/0,
+    nullif(0/0, 'NAN'), nullif(1/0, 'INF'), nullif(-1/0, '-INF')");
+var_export($statement->fetch(PDO::FETCH_NUM));
 
-    array (
-        0 => NAN, // MySQL,MariaDB: NULL
-        1 => INF, // MySQL,MariaDB: NULL
-        2 => -INF, // MySQL,MariaDB: NULL
-        3 => NULL,
-        4 => NULL,
-        5 => NULL,
-    )
-
+# array (
+#     0 => NAN, // MySQL,MariaDB: NULL
+#     1 => INF, // MySQL,MariaDB: NULL
+#     2 => -INF, // MySQL,MariaDB: NULL
+#     3 => NULL,
+#     4 => NULL,
+#     5 => NULL,
+# )
+```
 
 ### Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
-    pie install thomas-0816/pdo-duckdb-php
-
+```bash
+pie install thomas-0816/pdo-duckdb-php
+```
 
 ### Install and setup with 🧟 [FrankenPHP](https://frankenphp.dev/) (Debian/Ubuntu)
 
@@ -238,7 +244,6 @@ Supported operating systems: Ubuntu 24.04/26.04, Debian 12/13, Fedora 42/43, Ama
 
     # test
     frankenphp php-cli -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-
 
 ### Install and setup with Docker
 
