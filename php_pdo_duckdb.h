@@ -19,15 +19,6 @@ ZEND_TSRMLS_CACHE_EXTERN()
 #include "ext/pdo/php_pdo.h"
 #include "ext/pdo/php_pdo_driver.h"
 
-/* Module globals – required by ZEND_DECLARE_MODULE_GLOBALS */
-ZEND_BEGIN_MODULE_GLOBALS(pdo_duckdb)
-	zif_handler original_pdo_stmt_execute;
-ZEND_END_MODULE_GLOBALS(pdo_duckdb)
-
-ZEND_EXTERN_MODULE_GLOBALS(pdo_duckdb)
-
-#define PDO_DUCKDB_G(v) ZEND_MODULE_GLOBALS_ACCESSOR(pdo_duckdb, v)
-
 /* Forward declarations of the driver and statement method tables.
    Their implementations are in duckdb_driver.c and duckdb_statement.c */
 extern struct pdo_dbh_methods   duckdb_methods;
