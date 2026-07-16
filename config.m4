@@ -12,7 +12,7 @@ PHP_CHECK_PDO_INCLUDES
 
 PHP_ADD_INCLUDE($ext_srcdir)
 
-PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp duckdb_extension_stub.cpp,
+PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp,
     $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1, 1)
 
 PHP_ADD_EXTENSION_DEP(pdo_duckdb, pdo)
@@ -27,7 +27,7 @@ case $host_os in
     dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic
     dnl IFUNC resolvers. The GCC driver adds -lgcc_s but not -lgcc for -shared
     dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
-    PDO_DUCKDB_SHARED_LIBADD=""
+    PDO_DUCKDB_SHARED_LIBADD="-Wl,-multiply_defined,suppress"
     for lib in $duckdb_libs; do
       PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_SHARED_LIBADD -Wl,-force_load,$lib"
     done
@@ -51,6 +51,7 @@ dnl For static builds, add DuckDB libraries directly to LIBS
 if test "$ext_shared" = "no"; then
   case $host_os in
     darwin*)
+      LIBS="$LIBS -Wl,-multiply_defined,suppress"
       for lib in $duckdb_libs; do
         LIBS="$LIBS -Wl,-force_load,$lib"
       done

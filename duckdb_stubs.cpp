@@ -1,6 +1,15 @@
 #include "duckdb.hpp"
 #include <cstring>
 
+namespace duckdb {
+class DuckDB;
+class ExtensionHelper {
+public:
+	static void LoadAllExtensions(DuckDB &db);
+};
+void ExtensionHelper::LoadAllExtensions(DuckDB &) {}
+}
+
 extern "C" char *duckdb_get_json_string(duckdb_connection conn, duckdb_vector vec, idx_t row) {
 	if (!vec) return NULL;
 
