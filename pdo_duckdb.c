@@ -12,12 +12,6 @@
 #include "ext/pdo/php_pdo_driver.h"
 #include "php_pdo_duckdb.h"
 
-/* Module globals (required by ZEND_DECLARE_MODULE_GLOBALS) */
-ZEND_DECLARE_MODULE_GLOBALS(pdo_duckdb)
-
-/* Define the TSRM cache for ZTS builds (required for dynamic extensions) */
-ZEND_TSRMLS_CACHE_DEFINE()
-
 /*
  * The forward declarations for duckdb_methods and duckdb_stmt_methods
  * are now in php_pdo_duckdb.h, so they do not appear here.
@@ -172,5 +166,6 @@ zend_module_entry pdo_duckdb_module_entry = {
 /* }}} */
 
 #ifdef COMPILE_DL_PDO_DUCKDB
+ZEND_TSRMLS_CACHE_DEFINE()
 ZEND_GET_MODULE(pdo_duckdb)
 #endif
