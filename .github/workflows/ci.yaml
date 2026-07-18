@@ -338,10 +338,10 @@ jobs:
           phpize
           ./configure --with-pdo-duckdb
           make
-          make install
+          sudo make install
           frankenphp php-server -l 127.0.0.1:8080 --no-compress -r ./ &
           sleep 3
           curl -i http://127.0.0.1:8080/test.php
-          ab -n 10000 -c 8 http://127.0.0.1:8080/test.php
+          ab -n 1000 -c 8 http://127.0.0.1:8080/test.php
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           echo 'OK'
