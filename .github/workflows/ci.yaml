@@ -315,3 +315,33 @@ jobs:
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           php -d extension=$(pwd)/modules/pdo_duckdb.so test_parallel.php
           echo 'OK'
+
+  frankenphp:
+    name: "FrankenPHP"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Setup
+        run: |
+          sudo curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
+          echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
+              sudo tee -a /etc/apt/sources.list.d/static-php85.list
+          sudo apt-get update
+          sudo apt-get install php-zts-cli php-zts-pdo frankenphp apache2-utils
+          sudo timedatectl set-timezone "Europe/Berlin"
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
+          unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
+          phpize
+          ./configure --with-pdo-duckdb
+          make
+          make install
+          frankenphp php-server -l 127.0.0.1:8080 --no-compress -r ./ &
+          sleep 3
+          curl -i http://127.0.0.1:8080/test.php
+          ab -n 10000 -c 8 http://127.0.0.1:8080/test.php
+          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+          echo 'OK'
