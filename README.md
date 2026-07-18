@@ -315,7 +315,6 @@ pie install thomas-0816/pdo-duckdb-php
 
     sudo make install
     sudo sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
-    sudo phpenmod-zts pdo_duckdb
 
     php-zts -m | grep duckdb
     php-zts test.php
