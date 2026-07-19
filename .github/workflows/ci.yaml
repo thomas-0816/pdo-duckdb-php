@@ -343,6 +343,6 @@ jobs:
           php-zts -m | grep pdo_duckdb
           frankenphp php-server -l 127.0.0.1:8080 --no-compress -r ./ &
           sleep 3
-          curl -i http://127.0.0.1:8080/test.php
-          ab -n 100 -c 8 http://127.0.0.1:8080/test2.php 2>&1 | tee /dev/tty | grep -E "Failed requests:\s+0"
+          curl -I http://127.0.0.1:8080/test.php
+          ab -n 100 -c 8 http://127.0.0.1:8080/test.php 2>&1 | tee /dev/stderr | grep -E "Failed requests:\s+0"
           echo 'OK'
