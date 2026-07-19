@@ -323,7 +323,7 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
-      - name: Setup
+      - name: Build & Test
         run: |
           sudo curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
           echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
@@ -340,10 +340,9 @@ jobs:
           make
           sudo make install
           sudo sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
-      - name: Test
-        run: |
+          php-zts -m | grep pdo_duckdb
           frankenphp php-server -l 127.0.0.1:8080 --no-compress -r ./ &
           sleep 3
           curl -i http://127.0.0.1:8080/test.php
-          ab -n 1000 -c 8 http://127.0.0.1:8080/test.php
+          ab -n 100 -c 8 http://127.0.0.1:8080/test2.php 2>&1 | tee /dev/tty | grep -E "Failed requests:\s+0"
           echo 'OK'
