@@ -133,7 +133,7 @@ jobs:
           frankenphp php-cli -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
           frankenphp php-server -l 127.0.0.1:8080 -r ./ &
           sleep 3
-          curl -I http://127.0.0.1:8080/test.php
+          curl -IsS http://127.0.0.1:8080/test.php
           ab -n 100 -c 8 -l http://127.0.0.1:8080/test.php 2>&1 | tee /dev/stderr | grep -E "Failed requests:\s+0"
 
   wolfi:
