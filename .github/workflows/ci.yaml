@@ -341,8 +341,7 @@ jobs:
           sudo make install
           sudo sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
           php-zts -m | grep pdo_duckdb
-          frankenphp php-server -l 127.0.0.1:8080 --no-compress -r ./ &
+          frankenphp php-server -l 127.0.0.1:8080 -r ./ &
           sleep 3
           curl -I http://127.0.0.1:8080/test.php
-          ab -n 100 -c 8 http://127.0.0.1:8080/test.php 2>&1 | tee /dev/stderr | grep -E "Failed requests:\s+0"
-          echo 'OK'
+          ab -n 100 -c 8 -l http://127.0.0.1:8080/test.php 2>&1 | tee /dev/stderr | grep -E "Failed requests:\s+0"
