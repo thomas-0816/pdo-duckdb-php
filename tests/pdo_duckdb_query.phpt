@@ -247,9 +247,33 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 $statement->execute(['b', 'c']);
+$statement->execute(['foo1' . chr(0) . '3', 'foo1' . chr(0) . '4']);
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE TABLE t1 (v1 varchar)');
+$db->exec("INSERT INTO t1 VALUES ('a" . chr(0) . "b')");
+$statement = $db->query("SELECT * FROM t1");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t1 (v1 int, v2 int, v3 int)");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?, ?, ?)");
+$statement->bindValue(1, 'foo1', PDO::PARAM_STR);
+$statement->bindValue(2, 'foo2', PDO::PARAM_STR);
+$statement->bindValue(3, 'foo3', PDO::PARAM_STR);
+try {
+  $statement->execute();
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+$statement->bindValue(1, 'foo1', PDO::PARAM_STR);
+try {
+  $statement->execute();
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
 
 ?>
 --EXPECTF--
@@ -661,7 +685,7 @@ int(1)
 Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 1, 2
 Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 2
 Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 2
-array(2) {
+array(3) {
   [0]=>
   array(2) {
     ["v1"]=>
@@ -676,4 +700,20 @@ array(2) {
     ["v2"]=>
     string(1) "c"
   }
+  [2]=>
+  array(2) {
+    ["v1"]=>
+    string(6) "foo1%s3"
+    ["v2"]=>
+    string(6) "foo1%s4"
+  }
 }
+array(1) {
+  [0]=>
+  array(1) {
+    ["v1"]=>
+    string(2) "ab"
+  }
+}
+Caught: SQLSTATE[HY000]: Conversion Error: Could not convert string 'foo1' to INT32
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 2, 3
