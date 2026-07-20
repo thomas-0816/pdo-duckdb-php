@@ -275,6 +275,23 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+class Foo {
+  public int $i;
+  public string $s;
+}
+$foo = new Foo();
+$foo->i = 42;
+$foo->s = 'Foo Bar';
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE t (j JSON)");
+$statement = $db->prepare("INSERT INTO t VALUES (?)");
+$statement->execute([$foo]);
+$statement->bindValue(1, $foo, PDO::PARAM_LOB);
+$statement->execute();
+$statement->execute([json_encode($foo)]);
+var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
+
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -717,3 +734,35 @@ array(1) {
 }
 Caught: SQLSTATE[HY000]: Conversion Error: Could not convert string 'foo1' to INT32
 Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 2, 3
+array(3) {
+  [0]=>
+  array(1) {
+    ["j"]=>
+    array(2) {
+      ["i"]=>
+      int(42)
+      ["s"]=>
+      string(7) "Foo Bar"
+    }
+  }
+  [1]=>
+  array(1) {
+    ["j"]=>
+    array(2) {
+      ["i"]=>
+      int(42)
+      ["s"]=>
+      string(7) "Foo Bar"
+    }
+  }
+  [2]=>
+  array(1) {
+    ["j"]=>
+    array(2) {
+      ["i"]=>
+      int(42)
+      ["s"]=>
+      string(7) "Foo Bar"
+    }
+  }
+}
