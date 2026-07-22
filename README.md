@@ -8,9 +8,11 @@ The build process bundles DuckDB directly into the release package.
 
 This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstring, Blob and Boolean.
 
-Supported PHP versions: 8.2 8.3 8.4 8.5
+Supported PHP versions (nts & zts): 8.2 8.3 8.4 8.5
 
 Supported operating systems: Ubuntu 24.04/26.04, Debian 12/13, Fedora 42/43, AmazonLinux, openSUSE 16, Wolfi OS, Windows Server 2022/2025 (x64), macOS 14-26 (arm64)
+
+Supported SAPIs: php-cli, php-fpm, FrankenPHP, mod_php
 
 ### Usage examples
 
