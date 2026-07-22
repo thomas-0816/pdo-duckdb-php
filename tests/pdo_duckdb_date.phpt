@@ -47,11 +47,11 @@ $statement = $db->query("SELECT '15:30:00.123456789'::TIME_NS");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db->exec("SET TimeZone='UTC'");
-$row = $db->query("SELECT TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30', TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30'::varchar")->fetch(PDO::FETCH_NUM);
+$row = $db->query("SELECT TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30', TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30'::varchar, TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30'::json")->fetch(PDO::FETCH_NUM);
 var_dump($row);
 
 $db->exec("SET TimeZone='Europe/Berlin'");
-$row = $db->query("SELECT TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30', TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30'::varchar")->fetch(PDO::FETCH_NUM);
+$row = $db->query("SELECT TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30', TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30'::varchar, TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30'::json")->fetch(PDO::FETCH_NUM);
 var_dump($row);
 
 ?>
@@ -175,15 +175,19 @@ array(1) {
     string(18) "15:30:00.123456789"
   }
 }
-array(2) {
+array(3) {
   [0]=>
   string(29) "2026-01-23 10:04:56.789123+00"
   [1]=>
   string(29) "2026-01-23 10:04:56.789123+00"
+  [2]=>
+  string(29) "2026-01-23 10:04:56.789123+00"
 }
-array(2) {
+array(3) {
   [0]=>
   string(29) "2026-01-23 11:04:56.789123+01"
   [1]=>
+  string(29) "2026-01-23 11:04:56.789123+01"
+  [2]=>
   string(29) "2026-01-23 11:04:56.789123+01"
 }

@@ -114,8 +114,8 @@ array(1) {
 }
 array(1) {
   [""version"()"]=>
-  string(6) "v1.5.4"
+  string(6) "v1.5.5"
 }
-string(6) "v1.5.4"
-string(6) "v1.5.4"
+string(6) "v1.5.5"
+string(6) "v1.5.5"
 string(6) "duckdb"

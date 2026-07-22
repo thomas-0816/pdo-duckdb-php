@@ -65,9 +65,9 @@ jobs:
             ubuntu-24.04-arm) libduckdb=static-libs-linux-arm64.zip ;;
             *) echo "error os"; exit 1 ;;
           esac
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/${libduckdb}" -o ${libduckdb}
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/${libduckdb}" -o ${libduckdb}
           unzip -o ${libduckdb} libduckdb_static.a -d ./
           phpize
           ./configure --with-pdo-duckdb
@@ -105,9 +105,9 @@ jobs:
       - name: Build & Test
         run: |
           sudo systemsetup -settimezone "Europe/Berlin"
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-osx-arm64.zip" -o static-libs-osx-arm64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-osx-arm64.zip" -o static-libs-osx-arm64.zip
           unzip -o static-libs-osx-arm64.zip libduckdb_static.a -d ./
           phpize
           ./configure --with-pdo-duckdb
@@ -137,10 +137,10 @@ jobs:
       - name: Download libduckdb
         shell: pwsh
         run: |
-          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip"
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip"
           Invoke-WebRequest -Uri $url -OutFile duckdb-src.zip
           Expand-Archive duckdb-src.zip -DestinationPath . -Force
-          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-windows-amd64.zip"
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-windows-amd64.zip"
           Invoke-WebRequest -Uri $url -OutFile duckdb.zip
           Expand-Archive duckdb.zip -DestinationPath . -Force
           Get-ChildItem -Path .
@@ -194,9 +194,9 @@ jobs:
         run: |
           export PATH="/tmp/php-asan/bin:$PATH"
           sudo timedatectl set-timezone "Europe/Berlin"
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
           unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
           phpize
           CC=clang CXX=clang++ \
@@ -230,9 +230,9 @@ jobs:
         run: |
           sudo timedatectl set-timezone "Europe/Berlin"
           sudo apt-get update && sudo apt-get install -y valgrind
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
           unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
           phpize
           ./configure --with-pdo-duckdb
@@ -267,9 +267,9 @@ jobs:
           cd php-src/ext
           git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git
           cd pdo-duckdb-php
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
           unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
           cd ../../
           ./buildconf --force
@@ -305,9 +305,9 @@ jobs:
       - name: Build PHP with pdo-duckdb-php parallel
         run: |
           sudo timedatectl set-timezone "Europe/Berlin"
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
           unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
           phpize
           ./configure --with-pdo-duckdb
@@ -331,9 +331,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install php-zts-cli php-zts-pdo php-zts-devel frankenphp apache2-utils
           sudo timedatectl set-timezone "Europe/Berlin"
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.4/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
           unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
           phpize-zts
           ./configure --with-pdo-duckdb --with-php-config=php-config-zts
