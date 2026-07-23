@@ -2,9 +2,11 @@
 
 DuckDB is an embedded SQL database designed for high-performance analytics (OLAP).
 
-This repository provides a native DuckDB database driver for the PHP Data Objects (PDO) extension.
-
-The build process bundles DuckDB directly into the release package.
+`pdo_duckdb` is a native DuckDB database driver for the PHP Data Objects (PDO) interface.\
+As a native PHP extension, it is implemented in C/C++ and does not require PHP FFI or preloading.\
+It is also thread safe and fully tested with FrankenPHP (PHP-ZTS).\
+The release packages contain pre-compiled binaries for all supported platforms and DuckDB is directly included.\
+DuckDB extensions work the same way as they do in DuckDB CLI.
 
 This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstring, Blob and Boolean.
 
@@ -322,8 +324,6 @@ pie install thomas-0816/pdo-duckdb-php
     php-zts test.php
 
 ### Why DuckDB?
-
-Its main advantages include:
 
 In-Process Architecture: Like SQLite, DuckDB embeds directly into host applications, eliminating the need for a separate server setup.
 
