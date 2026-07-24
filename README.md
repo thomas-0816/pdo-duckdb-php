@@ -58,14 +58,14 @@ $db = new PDO('duckdb:/tmp/test.db', null, null, [
 
 ```php
 $db = new PDO('duckdb::memory:');
-$db->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR USING COMPRESSION zstd, data JSON)");
+$db->exec("CREATE TABLE table1 (id INTEGER, text VARCHAR USING COMPRESSION zstd, data JSON)");
 
-$statement = $db->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
+$statement = $db->prepare("INSERT INTO table1 VALUES (?, ?, ?)");
 $statement->execute([1, 'Hello DuckDB 🦆', ['foo' => 'bar', 'baz' => 42]]);
 
-$db->exec("COPY (SELECT * FROM table2) TO '/tmp/table2.parquet' (COMPRESSION zstd)");
+$db->exec("COPY (SELECT * FROM table1) TO '/tmp/table1.parquet' (COMPRESSION zstd)");
 
-foreach ($db->query("SELECT * FROM '/tmp/table2.parquet'", PDO::FETCH_ASSOC) as $row) {
+foreach ($db->query("SELECT * FROM '/tmp/table1.parquet'", PDO::FETCH_ASSOC) as $row) {
     print_r($row);
 }
 
