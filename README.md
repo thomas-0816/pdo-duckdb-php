@@ -1,6 +1,6 @@
 # PHP PDO DuckDB
 
-<img width="500" height="273" alt="logo" src="logo.jpg?2" />
+<img width="500" height="273" alt="logo" src="logo.jpg?3" />
 
 DuckDB is an embedded SQL database designed for high-performance analytics (OLAP).
 
