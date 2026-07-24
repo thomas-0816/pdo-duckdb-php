@@ -1,4 +1,4 @@
-## PHP PDO DuckDB
+# PHP PDO DuckDB
 
 <img width="320" height="320" alt="logo" src="logo.jpg" />
 
@@ -18,7 +18,7 @@ Supported operating systems: Ubuntu 24.04/26.04, Debian 12/13, Fedora 42/43, Ama
 
 Supported SAPIs: php-cli, php-fpm, FrankenPHP, mod_php
 
-### Usage examples
+## Usage examples
 
 ```php
 $duckDb = new PDO('duckdb::memory:');
@@ -41,7 +41,7 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 # )
 ```
 
-### Open databases from disk or in-memory
+## Open databases from disk or in-memory
 
 ```php
 $db = new PDO('duckdb::memory:'); // open in-memory database
@@ -54,7 +54,7 @@ $db = new PDO('duckdb:/tmp/test.db', null, null, [
 ]);
 ```
 
-### Read and write Parquet files
+## Read and write Parquet files
 
 ```php
 $db = new PDO('duckdb::memory:');
@@ -81,7 +81,7 @@ foreach ($db->query("SELECT * FROM '/tmp/table2.parquet'", PDO::FETCH_ASSOC) as 
 # )
 ```
 
-### Read CSV files with SQL
+## Read CSV files with SQL
 
 ```php
 $list = [
@@ -116,7 +116,7 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 # )
 ```
 
-### Read JSON files with SQL
+## Read JSON files with SQL
 
 ```php
 file_put_contents('/tmp/logs.json', json_encode(['log' => 'log text']) . PHP_EOL, FILE_APPEND);
@@ -141,7 +141,7 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $db->exec("COPY (SELECT * FROM '/tmp/logs.json') TO '/tmp/logs_json.parquet' (COMPRESSION zstd)");
 ```
 
-### Use structured columns with a fixed schema
+## Use structured columns with a fixed schema
 
 ```php
 // s is array{v: string, i: int, a: string[], d: float}
@@ -171,7 +171,7 @@ print_r($statement->fetch(PDO::FETCH_ASSOC));
 # )
 ```
 
-### Cast array columns to JSON-string
+## Cast array columns to JSON-string
 
 ```php
 $db = new PDO('duckdb::memory:');
@@ -199,7 +199,7 @@ print_r($statement->fetch(PDO::FETCH_ASSOC));
 # )
 ```
 
-### Auto increment columns
+## Auto increment columns
 
 ```php
 $db = new PDO('duckdb::memory:');
@@ -214,7 +214,7 @@ print_r($statement->fetch(PDO::FETCH_ASSOC));
 # )
 ```
 
-### Differences to MySQL / MariaDB
+## Differences to MySQL / MariaDB
 
 ```php
 $db = new PDO('duckdb::memory:');
@@ -233,14 +233,15 @@ var_export($statement->fetch(PDO::FETCH_NUM));
 # )
 ```
 
-### Install and setup with 🥧 [PIE](https://github.com/php/pie)
+## Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
 ```bash
 pie install thomas-0816/pdo-duckdb-php
 ```
 
-### Install and setup with 🧟 [FrankenPHP](https://frankenphp.dev/) (Debian/Ubuntu)
+## Install and setup with 🧟 [FrankenPHP](https://frankenphp.dev/) (Debian/Ubuntu)
 
+```bash
     sudo curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
     echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
         sudo tee -a /etc/apt/sources.list.d/static-php85.list
@@ -250,9 +251,11 @@ pie install thomas-0816/pdo-duckdb-php
 
     # test
     frankenphp php-cli -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+```
 
-### Install and setup with Docker
+## Install and setup with Docker
 
+```
     FROM php:8.5-cli
     RUN <<EOF
         apt-get -y update && apt-get -y --no-install-recommends install unzip
@@ -260,10 +263,11 @@ pie install thomas-0816/pdo-duckdb-php
         php /tmp/pie install --no-build-tools-check thomas-0816/pdo-duckdb-php
         php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
     EOF
+```
 
+## Security
 
-### Security
-
+```sql
     # Disable extension loading
     SET autoload_known_extensions = false;
     SET autoinstall_known_extensions = false;
@@ -279,9 +283,11 @@ pie install thomas-0816/pdo-duckdb-php
     SET max_temp_directory_size = '4GB';
 
     https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview
+```
 
-### Compile NTS
+## Compile NTS
 
+```bash
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
     cd pdo_duckdb
 
@@ -302,9 +308,11 @@ pie install thomas-0816/pdo-duckdb-php
 
     php -m | grep duckdb
     php test.php
+```
 
-### Compile ZTS
+## Compile ZTS
 
+```bash
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
     cd pdo_duckdb
 
@@ -324,8 +332,9 @@ pie install thomas-0816/pdo-duckdb-php
 
     php-zts -m | grep duckdb
     php-zts test.php
+```
 
-### Why DuckDB?
+## Why DuckDB?
 
 In-Process Architecture: Like SQLite, DuckDB embeds directly into host applications, eliminating the need for a separate server setup.
 
@@ -358,8 +367,9 @@ This ensures queries only scan necessary data and avoids full-table sorting when
 
 Direct File Querying: You can query large datasets in open formats like Parquet and CSV directly on disk or in cloud storage (like AWS S3) without needing to import or convert the data first.
 
-### Development
+## Development
 
+```bash
     # sanity check to detect crashes
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
@@ -372,11 +382,12 @@ Direct File Querying: You can query large datasets in open formats like Parquet 
     docker run --rm -it pdo_duckdb
 
     make EXTRA_CFLAGS="-Wall -Wextra -Wno-unused-parameter" EXTRA_CXXFLAGS="-Wall -Wextra -Wno-unused-parameter"
+```
 
-### AI Disclosure
+## AI Disclosure
 
 The C code is written by AI, the tests are written without AI.
 
-### License
+## License
 
 MIT License
