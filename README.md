@@ -235,7 +235,7 @@ var_export($statement->fetch(PDO::FETCH_NUM));
 
 ## Copy data from MySQL or MariaDB to Parquet
 
-Start MariaDB, create and fill "orders" table:
+Start MariaDB container, create and fill "orders" table:
 
 ```bash
 docker run --rm -it -p 3306:3306 -e MARIADB_ROOT_PASSWORD=secret -e MARIADB_DATABASE=testdb mariadb:12
@@ -251,7 +251,7 @@ Use DuckDB MySQL extension to copy "orders" table from MariaDB to a parquet file
 ```php
 $db = new PDO('duckdb::memory:');
 $db->exec('INSTALL mysql');
-$db->exec("ATTACH 'host=127.0.0.1 user=root password=secret port=3306 database=testdb' AS testdb (TYPE mysql)");
+$db->exec("ATTACH 'host=127.0.0.1 port=3306 user=root password=secret database=testdb' AS testdb (TYPE mysql)");
 $db->exec("COPY (select * from testdb.orders) TO '/tmp/orders.parquet' (FORMAT parquet)");
 
 $rows = $db->query("SELECT * from '/tmp/orders.parquet'")->fetchAll(PDO::FETCH_ASSOC);
