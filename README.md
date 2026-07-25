@@ -105,6 +105,8 @@ foreach ($db->query("SELECT * FROM '/tmp/table1.parquet'", PDO::FETCH_ASSOC) as 
 #         [baz] => 42
 ```
 
+Note: You can read and save Parquet files on local file systems or directly on [S3 object storage](https://duckdb.org/docs/lts/core_extensions/httpfs/s3api).
+
 ## Read CSV files with SQL
 
 ```php
@@ -231,7 +233,7 @@ var_export($statement->fetch(PDO::FETCH_NUM));
 # )
 ```
 
-## Copy data from MySQL or MariaDB to PARQUET
+## Copy data from MySQL or MariaDB to Parquet
 
 Start MariaDB, create and fill "orders" table:
 
