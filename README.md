@@ -271,6 +271,23 @@ print_r($rows);
 #         [origin] => offline
 ```
 
+## Read public data using HTTPs, JSON and CSV
+
+```php
+$db = new PDO('duckdb::memory:');
+
+$url = 'https://bulk.meteostat.net/v2/stations/lite.json.gz';
+$rows = $db->query("select id, name.en from read_json('{$url}') WHERE name.en like '%Berlin%' limit 2");
+echo json_encode($rows->fetchAll(PDO::FETCH_ASSOC)), PHP_EOL;
+
+$url = 'https://data.meteostat.net/hourly/2026/10381.csv.gz';
+$rows = $db->query("select hour, temp from read_csv('{$url}') where year = 2026 and month = 7 and day = 25 and hour > 9 limit 4");
+echo json_encode($rows->fetchAll(PDO::FETCH_ASSOC)), PHP_EOL;
+
+# [{"id":"10381","en":"Berlin \/ Dahlem"},{"id":"10382","en":"Berlin \/ Tegel"}]
+# [{"hour":10,"temp":24.1},{"hour":11,"temp":25.5},{"hour":12,"temp":26.4},{"hour":13,"temp":27.4}]
+```
+
 ## Security
 
 ```sql
