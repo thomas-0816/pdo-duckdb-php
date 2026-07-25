@@ -251,7 +251,6 @@ Use DuckDB MySQL extension to copy "orders" table from MariaDB to a parquet file
 ```php
 $db = new PDO('duckdb::memory:');
 $db->exec('INSTALL mysql');
-$db->exec('LOAD mysql');
 $db->exec("ATTACH 'host=127.0.0.1 user=root password=secret port=3306 database=testdb' AS testdb (TYPE mysql)");
 $db->exec("COPY (select * from testdb.orders) TO '/tmp/orders.parquet' (FORMAT parquet)");
 
