@@ -18,6 +18,38 @@ Supported operating systems: Ubuntu 24.04/26.04, Debian 12/13, Fedora 42/43, Ama
 
 Supported SAPIs: php-cli, php-fpm, FrankenPHP, mod_php
 
+## Install and setup with 🥧 [PIE](https://github.com/php/pie)
+
+```bash
+pie install thomas-0816/pdo-duckdb-php
+```
+
+## Install and setup with 🧟 [FrankenPHP](https://frankenphp.dev/) (Debian/Ubuntu)
+
+```bash
+    sudo curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
+    echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
+        sudo tee -a /etc/apt/sources.list.d/static-php85.list
+    sudo apt-get update
+    sudo apt-get install php-zts-cli php-zts-pdo frankenphp pie-zts
+    sudo pie-zts install thomas-0816/pdo-duckdb-php
+
+    # test
+    frankenphp php-cli -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+```
+
+## Install and setup with Docker
+
+```
+    FROM php:8.5-cli
+    RUN <<EOF
+        apt-get -y update && apt-get -y --no-install-recommends install unzip
+        curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
+        php /tmp/pie install --no-build-tools-check thomas-0816/pdo-duckdb-php
+        php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    EOF
+```
+
 ## Usage examples
 
 ```php
@@ -31,14 +63,10 @@ $statement = $duckDb->query("SELECT * FROM table1");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 # Array
-# (
 #     [0] => Array
-#         (
-#             [id] => 1
-#             [amount] => 42.21
-#             [description] => Hello DuckDB! 🐘 💓 🦆
-#         )
-# )
+#         [id] => 1
+#         [amount] => 42.21
+#         [description] => Hello DuckDB! 🐘 💓 🦆
 ```
 
 ## Open databases from disk or in-memory
@@ -70,15 +98,11 @@ foreach ($db->query("SELECT * FROM '/tmp/table2.parquet'", PDO::FETCH_ASSOC) as 
 }
 
 # Array
-# (
 #     [id] => 1
 #     [text] => Hello DuckDB 🦆
 #     [data] => Array
-#         (
-#             [foo] => bar
-#             [baz] => 42
-#         )
-# )
+#         [foo] => bar
+#         [baz] => 42
 ```
 
 ## Read CSV files with SQL
@@ -100,20 +124,14 @@ $statement = $db->query("SELECT * FROM '/tmp/test.csv'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 # Array
-# (
 #     [0] => Array
-#         (
-#             [aaa] => 123
-#             [bbb] => 456
-#             [ccc] => 789
-#         )
+#         [aaa] => 123
+#         [bbb] => 456
+#         [ccc] => 789
 #     [1] => Array
-#         (
-#             [aaa] => aaa
-#             [bbb] => bbb
-#             [ccc] => ccc
-#         )
-# )
+#         [aaa] => aaa
+#         [bbb] => bbb
+#         [ccc] => ccc
 ```
 
 ## Read JSON files with SQL
@@ -127,16 +145,10 @@ $statement = $db->query("SELECT * FROM '/tmp/logs.json'");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 # Array
-# (
 #     [0] => Array
-#         (
-#             [log] => log text
-#         )
+#         [log] => log text
 #     [1] => Array
-#         (
-#             [log] => log text 2
-#         )
-# )
+#         [log] => log text 2
 
 $db->exec("COPY (SELECT * FROM '/tmp/logs.json') TO '/tmp/logs_json.parquet' (COMPRESSION zstd)");
 ```
@@ -156,19 +168,13 @@ $statement = $db->query("SELECT * FROM table1");
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
 # Array
-# (
 #     [s] => Array
-#         (
-#             [v] => foo
-#             [i] => 21
-#             [a] => Array
-#                 (
-#                     [0] => b
-#                     [1] => c
-#                 )
-#             [d] => 42.21
-#         )
-# )
+#         [v] => foo
+#         [i] => 21
+#         [a] => Array
+#             [0] => b
+#             [1] => c
+#         [d] => 42.21
 ```
 
 ## Cast array columns to JSON-string
@@ -182,21 +188,15 @@ $statement = $db->query("SELECT v FROM table1");
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
 # Array
-# (
 #     [v] => Array
-#         (
-#             [0] => a
-#             [1] => b
-#         )
-# )
+#         [0] => a
+#         [1] => b
 
 $statement = $db->query("SELECT v::json::varchar as v FROM table1");
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
 # Array
-# (
 #     [v] => ["a","b"]
-# )
 ```
 
 ## Auto increment columns
@@ -209,9 +209,7 @@ $statement = $db->query("INSERT INTO table1 VALUES (default) RETURNING *");
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
 # Array
-# (
 #     [id] => 1
-# )
 ```
 
 ## Differences to MySQL / MariaDB
@@ -233,36 +231,39 @@ var_export($statement->fetch(PDO::FETCH_NUM));
 # )
 ```
 
-## Install and setup with 🥧 [PIE](https://github.com/php/pie)
+## Copy data from MySQL or MariaDB to PARQUET
 
 ```bash
-pie install thomas-0816/pdo-duckdb-php
+# start MariaDB, create and fill "orders" table
+docker run --rm -it -p 3306:3306 -e MARIADB_ROOT_PASSWORD=secret -e MARIADB_DATABASE=testdb mariadb:12
+mysql -h 127.0.0.1 -u root -psecret testdb -e "
+    CREATE TABLE orders (id integer primary key, customerId integer, amount decimal(12, 2), origin varchar(255));
+    INSERT INTO orders VALUES (1, 42, 123.42, 'shop');
+    INSERT INTO orders VALUES (2, 21, 12.21, 'offline');
+"
 ```
 
-## Install and setup with 🧟 [FrankenPHP](https://frankenphp.dev/) (Debian/Ubuntu)
+```php
+$db = new PDO('duckdb::memory:');
+$db->exec('INSTALL mysql'); // use DuckDB MySQL extension
+$db->exec('LOAD mysql');
+$db->exec("ATTACH 'host=localhost user=root password=secret port=3306 database=testdb' AS testdb (TYPE mysql)"); // define MariaDB connection
+$db->exec("COPY (select * from testdb.orders) TO '/tmp/orders.parquet' (FORMAT parquet)"); // copy "orders" table to parquet file
 
-```bash
-    sudo curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
-    echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
-        sudo tee -a /etc/apt/sources.list.d/static-php85.list
-    sudo apt-get update
-    sudo apt-get install php-zts-cli php-zts-pdo frankenphp pie-zts
-    sudo pie-zts install thomas-0816/pdo-duckdb-php
+$rows = $db->query("SELECT * from '/tmp/orders.parquet'")->fetchAll(PDO::FETCH_NUM); // query parquet file
+print_r($rows);
 
-    # test
-    frankenphp php-cli -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-```
-
-## Install and setup with Docker
-
-```
-    FROM php:8.5-cli
-    RUN <<EOF
-        apt-get -y update && apt-get -y --no-install-recommends install unzip
-        curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
-        php /tmp/pie install --no-build-tools-check thomas-0816/pdo-duckdb-php
-        php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-    EOF
+# Array
+#     [0] => Array
+#         [0] => 1
+#         [1] => 42
+#         [2] => 123.42
+#         [3] => shop
+#     [1] => Array
+#         [0] => 2
+#         [1] => 21
+#         [2] => 12.21
+#         [3] => offline
 ```
 
 ## Security
