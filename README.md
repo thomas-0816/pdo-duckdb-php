@@ -1,6 +1,6 @@
 # PHP PDO DuckDB
 
-<img width="500" height="273" alt="logo" src="logo.jpg?2" />
+<img width="500" height="273" alt="logo" src="logo.jpg?3" />
 
 DuckDB is an embedded SQL database designed for high-performance analytics (OLAP).
 
@@ -86,14 +86,14 @@ $db = new PDO('duckdb:/tmp/test.db', null, null, [
 
 ```php
 $db = new PDO('duckdb::memory:');
-$db->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR USING COMPRESSION zstd, data JSON)");
+$db->exec("CREATE TABLE table1 (id INTEGER, text VARCHAR USING COMPRESSION zstd, data JSON)");
 
-$statement = $db->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
+$statement = $db->prepare("INSERT INTO table1 VALUES (?, ?, ?)");
 $statement->execute([1, 'Hello DuckDB 🦆', ['foo' => 'bar', 'baz' => 42]]);
 
-$db->exec("COPY (SELECT * FROM table2) TO '/tmp/table2.parquet' (COMPRESSION zstd)");
+$db->exec("COPY (SELECT * FROM table1) TO '/tmp/table1.parquet' (COMPRESSION zstd)");
 
-foreach ($db->query("SELECT * FROM '/tmp/table2.parquet'", PDO::FETCH_ASSOC) as $row) {
+foreach ($db->query("SELECT * FROM '/tmp/table1.parquet'", PDO::FETCH_ASSOC) as $row) {
     print_r($row);
 }
 
@@ -248,7 +248,7 @@ $db = new PDO('duckdb::memory:');
 $db->exec('INSTALL mysql'); // use DuckDB MySQL extension
 $db->exec('LOAD mysql');
 $db->exec("ATTACH 'host=localhost user=root password=secret port=3306 database=testdb' AS testdb (TYPE mysql)"); // define MariaDB connection
-$db->exec("COPY (select * from testdb.orders) TO '/tmp/orders.parquet' (FORMAT parquet)"); // copy "orders" table to parquet file
+$db->exec("COPY (select * from testdb.orders) TO '/tmp/orders.parquet' (FORMAT parquet)"); // copy "orders" table from MariaDB to parquet file
 
 $rows = $db->query("SELECT * from '/tmp/orders.parquet'")->fetchAll(PDO::FETCH_NUM); // query parquet file
 print_r($rows);
