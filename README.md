@@ -233,37 +233,40 @@ var_export($statement->fetch(PDO::FETCH_NUM));
 
 ## Copy data from MySQL or MariaDB to PARQUET
 
+Start MariaDB, create and fill "orders" table:
+
 ```bash
-# start MariaDB, create and fill "orders" table
 docker run --rm -it -p 3306:3306 -e MARIADB_ROOT_PASSWORD=secret -e MARIADB_DATABASE=testdb mariadb:12
 mysql -h 127.0.0.1 -u root -psecret testdb -e "
-    CREATE TABLE orders (id integer primary key, customerId integer, amount decimal(12, 2), origin varchar(255));
+    CREATE TABLE orders (id integer primary key, customer integer, amount decimal(12, 2), origin varchar(255));
     INSERT INTO orders VALUES (1, 42, 123.42, 'shop');
     INSERT INTO orders VALUES (2, 21, 12.21, 'offline');
 "
 ```
 
+Use DuckDB MySQL extension to copy "orders" table from MariaDB to a parquet file:
+
 ```php
 $db = new PDO('duckdb::memory:');
-$db->exec('INSTALL mysql'); // use DuckDB MySQL extension
+$db->exec('INSTALL mysql');
 $db->exec('LOAD mysql');
-$db->exec("ATTACH 'host=localhost user=root password=secret port=3306 database=testdb' AS testdb (TYPE mysql)"); // define MariaDB connection
-$db->exec("COPY (select * from testdb.orders) TO '/tmp/orders.parquet' (FORMAT parquet)"); // copy "orders" table from MariaDB to parquet file
+$db->exec("ATTACH 'host=127.0.0.1 user=root password=secret port=3306 database=testdb' AS testdb (TYPE mysql)");
+$db->exec("COPY (select * from testdb.orders) TO '/tmp/orders.parquet' (FORMAT parquet)");
 
-$rows = $db->query("SELECT * from '/tmp/orders.parquet'")->fetchAll(PDO::FETCH_NUM); // query parquet file
+$rows = $db->query("SELECT * from '/tmp/orders.parquet'")->fetchAll(PDO::FETCH_ASSOC);
 print_r($rows);
 
 # Array
 #     [0] => Array
-#         [0] => 1
-#         [1] => 42
-#         [2] => 123.42
-#         [3] => shop
+#         [id] => 1
+#         [customerId] => 42
+#         [amount] => 123.42
+#         [origin] => shop
 #     [1] => Array
-#         [0] => 2
-#         [1] => 21
-#         [2] => 12.21
-#         [3] => offline
+#         [id] => 2
+#         [customerId] => 21
+#         [amount] => 12.21
+#         [origin] => offline
 ```
 
 ## Security
