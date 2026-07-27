@@ -818,6 +818,10 @@ try {
 $statement = $db->query("SELECT * FROM t1");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['autoload_known_extensions' => false, 'autoinstall_known_extensions' => false, 'allow_community_extensions' => false]]);
+$statement = $db->query("select value from duckdb_settings() where name in ('autoload_known_extensions', 'autoinstall_known_extensions', 'allow_community_extensions')");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 echo "DONE", PHP_EOL;
 
 unset($db);

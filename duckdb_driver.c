@@ -81,13 +81,20 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 			if (duckdb_create_config(&config) == DuckDBSuccess) {
 				zend_string *key;
 				zval *val;
-				ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(config_zval), key, val) {
-					if (key) {
-						zend_string *str_val = zval_get_string(val);
-						duckdb_set_config(config, ZSTR_VAL(key), ZSTR_VAL(str_val));
-						zend_string_release(str_val);
+			ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(config_zval), key, val) {
+				if (key) {
+					zend_string *str_val;
+					if (Z_TYPE_P(val) == IS_TRUE) {
+						str_val = zend_string_init("true", 5, 0);
+					} else if (Z_TYPE_P(val) == IS_FALSE) {
+						str_val = zend_string_init("false", 5, 0);
+					} else {
+						str_val = zval_get_string(val);
 					}
-				} ZEND_HASH_FOREACH_END();
+					duckdb_set_config(config, ZSTR_VAL(key), ZSTR_VAL(str_val));
+					zend_string_release(str_val);
+				}
+			} ZEND_HASH_FOREACH_END();
 			}
 		}
 	}

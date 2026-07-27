@@ -59,6 +59,10 @@ var_dump($db->getAttribute(PDO::ATTR_CLIENT_VERSION));
 var_dump($db->getAttribute(PDO::ATTR_SERVER_VERSION));
 var_dump($db->getAttribute(PDO::ATTR_DRIVER_NAME));
 
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['autoload_known_extensions' => false, 'autoinstall_known_extensions' => false, 'allow_community_extensions' => false]]);
+$statement = $db->query("select value from duckdb_settings() where name in ('autoload_known_extensions', 'autoinstall_known_extensions', 'allow_community_extensions')");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(4) {
@@ -119,3 +123,20 @@ array(1) {
 string(6) "v1.5.5"
 string(6) "v1.5.5"
 string(6) "duckdb"
+array(3) {
+  [0]=>
+  array(1) {
+    ["value"]=>
+    string(5) "false"
+  }
+  [1]=>
+  array(1) {
+    ["value"]=>
+    string(5) "false"
+  }
+  [2]=>
+  array(1) {
+    ["value"]=>
+    string(5) "false"
+  }
+}
