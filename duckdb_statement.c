@@ -87,8 +87,10 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 	S->total_rows = 0;
 
 	/* For statements that return a result set (SELECT, etc.), set column count.
-	   For INSERT/UPDATE, there are no columns and we are done immediately. */
-	stmt->column_count = duckdb_column_count(&S->result);
+	   For INSERT/UPDATE, there are no columns and we are done immediately.
+	   Use php_pdo_stmt_set_column_count() so PHP core can properly rebuild
+	   stmt->columns when needed (e.g. after set_column_count(0)). */
+	php_pdo_stmt_set_column_count(stmt, (int)duckdb_column_count(&S->result));
 	if (stmt->column_count == 0) {
 		S->done = 1;
 	}
@@ -718,6 +720,7 @@ static int duckdb_stmt_cursor_closer(pdo_stmt_t *stmt)
 			S->result_set = 0;
 		}
 	}
+	stmt->column_count = 0;
 	return 1;
 }
 
