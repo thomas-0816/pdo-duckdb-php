@@ -1,6 +1,15 @@
 #include "duckdb.hpp"
 #include <cstring>
 
+extern "C" int duckdb_has_active_transaction(duckdb_connection conn) {
+	try {
+		auto *conn_ptr = reinterpret_cast<duckdb::Connection *>(conn);
+		return conn_ptr->context->transaction.HasActiveTransaction() ? 1 : 0;
+	} catch (...) {
+		return 0;
+	}
+}
+
 extern "C" char *duckdb_get_json_string(duckdb_connection conn, duckdb_vector vec, idx_t row) {
 	if (!vec) return NULL;
 
@@ -31,15 +40,6 @@ extern "C" char *duckdb_get_json_string(duckdb_connection conn, duckdb_vector ve
 		return result;
 	} catch (...) {
 		return NULL;
-	}
-}
-
-extern "C" int duckdb_has_active_transaction(duckdb_connection conn) {
-	try {
-		auto *conn_ptr = reinterpret_cast<duckdb::Connection *>(conn);
-		return conn_ptr->context->transaction.HasActiveTransaction() ? 1 : 0;
-	} catch (...) {
-		return 0;
 	}
 }
 
