@@ -195,6 +195,9 @@ static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql,
 	return true;
 }
 
+/* Check DuckDB's internal transaction state from the connection context */
+extern int duckdb_has_active_transaction(duckdb_connection conn);
+
 /* ---------------- exec (direct, non‑prepared) ---------------- */
 static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 {
@@ -357,6 +360,13 @@ static zend_result duckdb_check_liveness(pdo_dbh_t *dbh)
 	return SUCCESS;
 }
 
+/* ---------------- in_transaction callback ---------------- */
+static bool duckdb_handle_in_transaction(pdo_dbh_t *dbh)
+{
+	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
+	return duckdb_has_active_transaction(H->conn);
+}
+
 /* ---------------- driver method table ---------------- */
 struct pdo_dbh_methods duckdb_methods = {
 	duckdb_handle_closer,
@@ -371,9 +381,9 @@ struct pdo_dbh_methods duckdb_methods = {
 	duckdb_fetch_error,
 	duckdb_get_attribute,
 	duckdb_check_liveness,
-	NULL,
-	NULL,
-	NULL,
+	NULL,                   /* get_driver_methods */
+	NULL,                   /* persistent_shutdown */
+	duckdb_handle_in_transaction,
 	NULL, /* get_gc */
 #if PHP_VERSION_ID >= 80400
 	NULL  /* scanner */
