@@ -105,7 +105,11 @@ foreach ($db->query("SELECT * FROM '/tmp/table1.parquet'", PDO::FETCH_ASSOC) as 
 #         [baz] => 42
 ```
 
-Note: You can read and save Parquet files on local file systems or directly on [S3 object storage](https://duckdb.org/docs/lts/core_extensions/httpfs/s3api).
+__Apache Parquet__: very fast and efficient column based storage file format containing one table of data.\
+Each column is split into several column groups. Depending on the query, the file can be read partially by certain columns groups.\
+Different compression or dictionary algorithms can be applied to each column. Also supports encryption.
+
+__Note__: You can read and save Parquet files on local file systems or directly on [S3 object storage](https://duckdb.org/docs/lts/core_extensions/httpfs/s3api).
 
 ## Read CSV files with SQL
 
