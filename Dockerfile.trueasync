@@ -1,0 +1,34 @@
+# docker build --no-cache -f Dockerfile.trueasync -t pdo_duckdb_trueasync .
+# docker run --rm -it pdo_duckdb_trueasync
+
+FROM debian:trixie-slim AS base
+
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+ENV TZ="Europe/Berlin"
+
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get install -y build-essential autoconf libtool bison re2c pkg-config unzip git wget tzdata libuv1-dev
+    echo ${TZ} > /etc/timezone
+    ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime
+    git clone --depth=1 --branch=true-async-stable https://github.com/true-async/php-src ./php-src
+    git clone --depth=1 --branch=main https://github.com/true-async/php-async ./php-src/ext/async
+    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git ./php-src/ext/pdo-duckdb-php
+    cd php-src/ext/pdo-duckdb-php
+    wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip
+    unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
+    wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip
+    unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
+    cd ../../
+    ./buildconf --force
+    ./configure --disable-all --enable-zts --enable-async --enable-cli --enable-pcntl --enable-pdo --with-pdo-duckdb
+    make -j$(nproc)
+    make install
+    php -m | grep duckdb
+    php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php ext/pdo-duckdb-php/test_trueasync.php
+    apt-get upgrade -y && apt-get clean
+    rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
+EOF
