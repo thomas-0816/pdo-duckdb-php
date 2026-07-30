@@ -35,14 +35,14 @@ $threads = [];
 for ($i = 0; $i < 5; $i++) {
     $threads[] = Async\spawn_thread(function() use ($i) {
         $db = new PDO('duckdb::memory:');
-        $rows = $db->query("select sleep_ms(1000 + $i)");
+        $rows = $db->query("select sleep_ms(500 + $i)");
         return json_encode($rows->fetchAll(PDO::FETCH_ASSOC));
     });
 }
 
 [$result, $errors] = Async\await_all($threads);
 print_r($result);
-echo '3x sleep(1) took ', microtime(true) - $start, PHP_EOL;
+echo '5x sleep 0.5s took ', round(microtime(true) - $start, 2), 's', PHP_EOL;
 
 
 // run in parallel using threads, on-disk
