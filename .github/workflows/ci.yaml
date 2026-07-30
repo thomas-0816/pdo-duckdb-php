@@ -300,9 +300,8 @@ jobs:
           sudo apt-get update && sudo apt-get install -y build-essential autoconf libtool bison re2c pkg-config unzip libuv1-dev
           git clone --depth=1 --branch=true-async-stable https://github.com/true-async/php-src ./php-src
           git clone --depth=1 --branch=main https://github.com/true-async/php-async ./php-src/ext/async
-          cd php-src/ext
-          git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git
-          cd pdo-duckdb-php
+          git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git ./php-src/ext/pdo-duckdb-php
+          cd php-src/ext/pdo-duckdb-php
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
@@ -322,7 +321,7 @@ jobs:
               if ($t !== ['1' => 'foo', '2' => 'bar']) throw new Exception('Error select');
               echo 'ok', PHP_EOL;
           EOF
-          sapi/cli/php test_trueasync.php
+          sapi/cli/php ext/pdo-duckdb-php/test_trueasync.php
           echo 'OK'
 
   parallel:

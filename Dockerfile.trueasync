@@ -10,16 +10,16 @@ ENV TZ="Europe/Berlin"
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    apt-get install -y build-essential autoconf libtool bison re2c pkg-config unzip git wget tzdata libuv1-dev
+    apt-get install -y build-essential autoconf libtool bison re2c pkg-config unzip git tzdata libuv1-dev
     echo ${TZ} > /etc/timezone
     ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime
     git clone --depth=1 --branch=true-async-stable https://github.com/true-async/php-src ./php-src
     git clone --depth=1 --branch=main https://github.com/true-async/php-async ./php-src/ext/async
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git ./php-src/ext/pdo-duckdb-php
     cd php-src/ext/pdo-duckdb-php
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip
+    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
     unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip
+    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
     unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
     cd ../../
     ./buildconf --force
