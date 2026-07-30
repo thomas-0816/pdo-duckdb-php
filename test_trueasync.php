@@ -45,7 +45,7 @@ print_r($result);
 echo '5x sleep 0.5s took ', round(microtime(true) - $start, 2), 's', PHP_EOL;
 
 
-// run in parallel using threads, on-disk
+// run write in parallel using threads, on-disk
 @unlink('/tmp/test.duckdb');
 $pdo = new PDO('duckdb:/tmp/test.duckdb');
 $pdo->exec('create table if not exists orders (user_id integer primary key)');
@@ -64,4 +64,24 @@ for ($i = 0; $i < 10; $i++) {
 Async\await_all($threads);
 
 $pdo->exec("CALL quack_stop('quack:127.0.0.1')");
+echo json_encode($pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN)), PHP_EOL;
+
+
+// run read in parallel using threads, on-disk
+@unlink('/tmp/test.duckdb');
+$pdo = new PDO('duckdb:/tmp/test.duckdb');
+$pdo->exec('create table if not exists orders (user_id integer primary key)');
+for ($i = 0; $i < 10; $i++) {
+    $pdo->exec("INSERT INTO orders (user_id) VALUES ($i)");
+}
+$threads = [];
+for ($i = 0; $i < 10; $i++) {
+    $threads[] = Async\spawn_thread(function() use ($i) {
+        $pdo = new PDO('duckdb:/tmp/test.duckdb', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
+        return json_encode($pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN));
+    });
+}
+[$result, $errors] = Async\await_all($threads);
+print_r($result);
+
 echo json_encode($pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN)), PHP_EOL;
