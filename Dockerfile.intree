@@ -10,7 +10,7 @@ ENV TZ="Europe/Berlin"
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    apt-get update && apt-get install -y build-essential autoconf libtool bison re2c pkg-config unzip git wget tzdata
+    apt-get install -y build-essential autoconf libtool bison re2c pkg-config unzip git wget tzdata
     echo ${TZ} > /etc/timezone
     ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime
     git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git
