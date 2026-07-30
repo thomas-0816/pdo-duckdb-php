@@ -129,7 +129,41 @@ jobs:
           - 8.3
           - 8.4
           - 8.5
-#          - 8.6
+        ts:
+          - nts
+          - ts
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download libduckdb
+        shell: pwsh
+        run: |
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip"
+          Invoke-WebRequest -Uri $url -OutFile duckdb-src.zip
+          Expand-Archive duckdb-src.zip -DestinationPath . -Force
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-windows-amd64.zip"
+          Invoke-WebRequest -Uri $url -OutFile duckdb.zip
+          Expand-Archive duckdb.zip -DestinationPath . -Force
+          Get-ChildItem -Path .
+          tzutil /s "W. Europe Standard Time"
+      - name: Build extension
+        uses: php/php-windows-builder/extension@29352c0ef9e8ce65264ea9e287881a6f7758a953 # 1.9.0
+        with:
+          php-version: ${{ matrix.php-version }}
+          ts: ${{ matrix.ts }}
+          arch: x64
+          args: --with-pdo-duckdb
+          test-workers: 1
+
+  windows-build-php86:
+    name: "Windows PHP 8.6"
+    runs-on: windows-2025-vs2026
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - 8.6
         ts:
           - nts
           - ts
