@@ -1,0 +1,31 @@
+# docker build --no-cache -f Dockerfile.trueasync2 -t pdo_duckdb_trueasync2 .
+# docker run --rm -it pdo_duckdb_trueasync2
+
+FROM trueasync/php-true-async:latest
+
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+ENV TZ="Europe/Berlin"
+
+SHELL ["/bin/bash", "-c"]
+
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get install -y git unzip autoconf pkg-config libtool build-essential
+    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git
+    cd pdo-duckdb-php
+    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
+    unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
+    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+    unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
+    phpize
+    ./configure --with-pdo-duckdb
+    make -j$(nproc)
+    make install
+    php -dextension=pdo_duckdb -m | grep duckdb
+    php -dextension=pdo_duckdb -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php -dextension=pdo_duckdb test_trueasync.php
+    apt-get upgrade -y && apt-get clean
+    rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
+EOF

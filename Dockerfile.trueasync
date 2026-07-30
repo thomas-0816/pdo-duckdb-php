@@ -1,7 +1,7 @@
 # docker build --no-cache -f Dockerfile.trueasync -t pdo_duckdb_trueasync .
 # docker run --rm -it pdo_duckdb_trueasync
 
-FROM debian:trixie-slim AS base
+FROM debian:trixie-slim
 
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
@@ -10,7 +10,7 @@ ENV TZ="Europe/Berlin"
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    apt-get install -y build-essential autoconf libtool bison re2c pkg-config unzip git tzdata libuv1-dev
+    apt-get install -y build-essential autoconf libtool bison re2c pkg-config unzip git tzdata libuv1-dev curl
     echo ${TZ} > /etc/timezone
     ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime
     git clone --depth=1 --branch=true-async-stable https://github.com/true-async/php-src ./php-src
