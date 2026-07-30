@@ -669,7 +669,7 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 				state = duckdb_bind_null(S->stmt, idx);
 				break;
 			case PDO_PARAM_BOOL:
-				state = duckdb_bind_boolean(S->stmt, idx, zval_is_true(&param->parameter) ? 1 : 0);
+				state = duckdb_bind_boolean(S->stmt, idx, zend_is_true(&param->parameter) ? 1 : 0);
 				break;
 			case PDO_PARAM_INT:
 				state = duckdb_bind_int64(S->stmt, idx, (int64_t)zval_get_long(&param->parameter));

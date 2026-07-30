@@ -313,7 +313,7 @@ static bool duckdb_set_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 			H->auto_commit = zval_get_long(val) ? 1 : 0;
 			return true;
 		case PDO_DUCKDB_ATTR_UNBUFFERED:
-			H->unbuffered = zval_is_true(val) ? 1 : 0;
+			H->unbuffered = zend_is_true(val) ? 1 : 0;
 			return true;
 		default:
 			return false;
