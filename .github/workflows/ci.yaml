@@ -41,6 +41,7 @@ jobs:
           - 8.3
           - 8.4
           - 8.5
+          - 8.6
         thread-safety:
           - zts
           - nts
@@ -87,6 +88,7 @@ jobs:
           - 8.3
           - 8.4
           - 8.5
+          - 8.6
         thread-safety:
           - zts
           - nts
@@ -127,6 +129,7 @@ jobs:
           - 8.3
           - 8.4
           - 8.5
+          - 8.6
         ts:
           - nts
           - ts
