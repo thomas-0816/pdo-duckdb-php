@@ -49,11 +49,10 @@ jobs:
         shell: bash
         env:
           os: ${{ matrix.os }}
-          BOX_REQUIREMENT_CHECKER: false
         run: |
           uname -a
           php -v
-          sudo pie install thomas-0816/pdo-duckdb-php
+          sudo BOX_REQUIREMENT_CHECKER=false pie install thomas-0816/pdo-duckdb-php
           php -m | grep duckdb
           php <<'EOF'
               <?php
