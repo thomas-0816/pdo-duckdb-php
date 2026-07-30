@@ -68,7 +68,7 @@ jobs:
 
   windows:
     name: Windows
-    runs-on: windows-2022
+    runs-on: ${{ (matrix.php-version == '8.6' && 'windows-2025-vs2026') || 'windows-2022' }}
     permissions:
       contents: write # publish release
     strategy:
@@ -79,6 +79,7 @@ jobs:
           - 8.3
           - 8.4
           - 8.5
+          - 8.6
         ts:
           - nts
           - ts
