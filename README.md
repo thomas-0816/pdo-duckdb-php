@@ -12,11 +12,11 @@ DuckDB extensions work the same way as they do in DuckDB CLI.
 
 This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstring, Blob and Boolean.
 
-Supported PHP versions (nts & zts): 8.2 8.3 8.4 8.5
+Supported PHP versions (nts & zts): 8.2 8.3 8.4 8.5 8.6
 
 Supported operating systems: Ubuntu 24.04/26.04, Debian 12/13, Fedora 42/43, AmazonLinux, openSUSE 16, Wolfi OS, Windows Server 2022/2025 (x64), macOS 14-26 (arm64)
 
-Supported SAPIs: php-cli, php-fpm, FrankenPHP, mod_php
+Supported SAPIs: php-cli, php-fpm, FrankenPHP, TrueAsync, mod_php
 
 ## Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
