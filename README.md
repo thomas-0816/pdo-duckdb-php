@@ -250,7 +250,7 @@ mysql -h 127.0.0.1 -u root -psecret testdb -e "
 "
 ```
 
-Use DuckDB MySQL extension to copy "orders" table from MariaDB to a parquet file:
+Use DuckDB [MySQL extension](https://duckdb.org/docs/lts/core_extensions/mysql) to copy "orders" table from MariaDB to a parquet file:
 
 ```php
 $db = new PDO('duckdb::memory:');
