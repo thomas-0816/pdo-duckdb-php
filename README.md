@@ -291,6 +291,58 @@ echo json_encode($rows->fetchAll(PDO::FETCH_ASSOC)), PHP_EOL;
 # [{"hour":10,"temp":24.1},{"hour":11,"temp":25.5},{"hour":12,"temp":26.4},{"hour":13,"temp":27.4}]
 ```
 
+## Community extensions
+
+```php
+$db = new PDO('duckdb::memory:');
+$db->exec('INSTALL textplot FROM community');
+$db->exec('LOAD textplot');
+
+print_r($db->query("
+    SELECT tp_bar(0.8, thresholds := [ (0.7, 'green'), (0.5, 'yellow'), (0, 'red') ])
+")->fetchAll(PDO::FETCH_COLUMN));
+
+# Array
+#     [0] => 🟩🟩🟩🟩🟩🟩🟩🟩⬜⬜
+
+print_r($db->query("
+    SELECT tp_bar(n, shape := 'circle', off_color := 'black',
+        thresholds := [(0.8, 'green'), (0.65, 'orange'), (0.5, 'yellow'), (0.0, 'red')])
+    FROM (select random() as n from generate_series(4));
+")->fetchAll(PDO::FETCH_COLUMN));
+
+# Array
+#     [0] => 🔴🔴🔴🔴⚫⚫⚫⚫⚫⚫
+#     [1] => 🟢🟢🟢🟢🟢🟢🟢🟢🟢⚫
+#     [2] => 🟠🟠🟠🟠🟠🟠🟠⚫⚫⚫
+#     [3] => 🟡🟡🟡🟡🟡🟡⚫⚫⚫⚫
+#     [4] => 🔴⚫⚫⚫⚫⚫⚫⚫⚫⚫
+
+print_r($db->query("SELECT tp_qr('DuckDB!')")->fetch(PDO::FETCH_COLUMN));
+
+# ⬛⬛⬛⬛⬛⬛⬛⬜⬛⬛⬜⬛⬜⬜⬛⬛⬛⬛⬛⬛⬛
+# ⬛⬜⬜⬜⬜⬜⬛⬜⬜⬜⬜⬛⬜⬜⬛⬜⬜⬜⬜⬜⬛
+# ⬛⬜⬛⬛⬛⬜⬛⬜⬜⬜⬛⬛⬛⬜⬛⬜⬛⬛⬛⬜⬛
+# ⬛⬜⬛⬛⬛⬜⬛⬜⬛⬛⬛⬛⬜⬜⬛⬜⬛⬛⬛⬜⬛
+# ⬛⬜⬛⬛⬛⬜⬛⬜⬜⬜⬜⬛⬛⬜⬛⬜⬛⬛⬛⬜⬛
+# ⬛⬜⬜⬜⬜⬜⬛⬜⬜⬛⬜⬛⬜⬜⬛⬜⬜⬜⬜⬜⬛
+# ⬛⬛⬛⬛⬛⬛⬛⬜⬛⬜⬛⬜⬛⬜⬛⬛⬛⬛⬛⬛⬛
+# ⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬛⬜⬛⬜⬜⬜⬜⬜⬜⬜⬜
+# ⬜⬜⬛⬜⬛⬛⬛⬜⬛⬜⬜⬛⬜⬛⬜⬜⬜⬛⬜⬜⬛
+# ⬜⬛⬛⬜⬜⬜⬜⬜⬛⬛⬛⬜⬜⬜⬛⬛⬜⬜⬜⬜⬛
+# ⬛⬜⬜⬛⬛⬜⬛⬛⬜⬛⬜⬛⬛⬜⬛⬜⬛⬛⬛⬛⬛
+# ⬜⬛⬜⬛⬛⬛⬜⬜⬛⬛⬜⬜⬜⬛⬜⬜⬜⬜⬜⬛⬜
+# ⬛⬛⬜⬜⬜⬛⬛⬛⬛⬜⬛⬛⬛⬜⬜⬜⬛⬜⬜⬛⬛
+# ⬜⬜⬜⬜⬜⬜⬜⬜⬛⬛⬜⬜⬜⬜⬛⬛⬛⬛⬜⬛⬜
+# ⬛⬛⬛⬛⬛⬛⬛⬜⬜⬜⬜⬛⬜⬛⬜⬜⬛⬛⬜⬛⬛
+# ⬛⬜⬜⬜⬜⬜⬛⬜⬛⬜⬛⬜⬜⬜⬜⬛⬛⬜⬜⬜⬛
+# ⬛⬜⬛⬛⬛⬜⬛⬜⬛⬜⬛⬛⬜⬜⬛⬜⬛⬜⬜⬛⬛
+# ⬛⬜⬛⬛⬛⬜⬛⬜⬜⬛⬜⬛⬜⬛⬛⬛⬜⬛⬛⬛⬜
+# ⬛⬜⬛⬛⬛⬜⬛⬜⬛⬜⬜⬜⬛⬜⬜⬛⬛⬛⬜⬜⬛
+# ⬛⬜⬜⬜⬜⬜⬛⬜⬜⬜⬛⬜⬛⬜⬜⬛⬜⬜⬜⬛⬜
+# ⬛⬛⬛⬛⬛⬛⬛⬜⬜⬜⬛⬛⬛⬜⬛⬛⬛⬜⬛⬛⬛
+
+
 ## Security
 
 ```sql
