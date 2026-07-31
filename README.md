@@ -360,6 +360,14 @@ echo json_encode($rows->fetchAll(PDO::FETCH_ASSOC)), PHP_EOL;
     php-zts test.php
 ```
 
+## Compile with PHP TrueAsync
+
+```bash
+    docker build --no-cache -f Dockerfile.trueasync2 -t pdo_duckdb_trueasync2 .
+    docker run --rm -it pdo_duckdb_trueasync2 php -m
+    docker run --rm -it -v $(pwd):/app pdo_duckdb_trueasync2 php test_trueasync.php
+```
+
 ## Why DuckDB?
 
 In-Process Architecture: Like SQLite, DuckDB embeds directly into host applications, eliminating the need for a separate server setup.
