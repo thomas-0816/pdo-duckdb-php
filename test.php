@@ -6,6 +6,10 @@ ini_set('display_errors', 1);
 var_dump(in_array('duckdb', PDO::getAvailableDrivers()));
 
 $duckDb = new PDO('duckdb::memory:');
+$statement = $duckDb->query("SELECT current_date(), current_date, now(), date_part('year', current_date())");
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$duckDb = new PDO('duckdb::memory:');
 $duckDb->exec("CREATE TABLE table1 (id INTEGER, amount DECIMAL(10, 2), description VARCHAR USING COMPRESSION zstd)");
 
 $statement = $duckDb->prepare("INSERT INTO table1 VALUES (?, ?, ?)");
