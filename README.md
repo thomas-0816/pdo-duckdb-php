@@ -321,7 +321,7 @@ print_r($db->query("
 #     [4] => 🔴⚫⚫⚫⚫⚫⚫⚫⚫⚫
 ```
 
-open_prompt interacts with LLMs using SQL queries:
+open_prompt integrates LLMs into your SQL queries:
 
 ```php
 # ./llama-server -hf JetBrains/Mellum2-12B-A2.5B-Thinking-GGUF-Q4_K_M --parallel 1 --ctx-size 16384 --temp 0.6 --top-k 20 --reasoning off
