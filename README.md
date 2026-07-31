@@ -341,7 +341,6 @@ echo $result, PHP_EOL;
 
 More extensions: [List of Core Extensions](https://duckdb.org/docs/lts/core_extensions/overview), [List of Community Extensions](https://duckdb.org/community_extensions/list_of_extensions)
 
-
 ## Security
 
 ```sql
