@@ -293,6 +293,8 @@ echo json_encode($rows->fetchAll(PDO::FETCH_ASSOC)), PHP_EOL;
 
 ## Community extensions
 
+Textplot brings text-based data visualization directly to your SQL queries:
+
 ```php
 $db = new PDO('duckdb::memory:');
 $db->exec('INSTALL textplot FROM community');
@@ -318,6 +320,26 @@ print_r($db->query("
 #     [3] => 🟡🟡🟡🟡🟡🟡⚫⚫⚫⚫
 #     [4] => 🔴⚫⚫⚫⚫⚫⚫⚫⚫⚫
 ```
+
+open_prompt interacts with LLMs using SQL queries:
+
+```php
+# ./llama-server -hf JetBrains/Mellum2-12B-A2.5B-Thinking-GGUF-Q4_K_M --parallel 1 --ctx-size 16384 --temp 0.6 --top-k 20 --reasoning off
+
+$db = new PDO('duckdb::memory:');
+$db->exec('INSTALL open_prompt FROM community');
+$db->exec('LOAD open_prompt');
+$db->exec("SET VARIABLE openprompt_api_url = 'http://127.0.0.1:8080/v1/chat/completions'");
+$db->exec('create table customers (id integer primary key, first_name varchar, last_name varchar, birth_date date)');
+$result = $db->query("
+    SELECT open_prompt('write duckdb sql, no markdown, find customers older than 30, schema: ' || group_concat(sql))
+    FROM duckdb_tables()")->fetch(PDO::FETCH_COLUMN);
+echo $result, PHP_EOL;
+
+# SELECT * FROM customers WHERE age(birth_date) > 30;
+```
+
+More extensions: [List of Core Extensions](https://duckdb.org/docs/lts/core_extensions/overview), [List of Community Extensions](https://duckdb.org/community_extensions/list_of_extensions)
 
 
 ## Security
