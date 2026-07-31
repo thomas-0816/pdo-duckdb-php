@@ -7,7 +7,7 @@ pdo_duckdb
 
 $db = new PDO('duckdb::memory:');
 
-$statement = $db->query("SELECT current_date(), current_date, now()");
+$statement = $db->query("SELECT current_date(), current_date, now(), date_part('year', current_date())");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'Europe/Berlin']]);
@@ -63,13 +63,15 @@ var_dump($row);
 --EXPECTF--
 array(1) {
   [0]=>
-  array(3) {
+  array(4) {
     ["current_date()"]=>
     string(10) "%s"
     ["current_date"]=>
     string(10) "%s"
     ["now()"]=>
-    string(29) "%s"
+    string(%d) "%s"
+    ["date_part('year', current_date())"]=>
+    int(%d)
   }
 }
 array(1) {
