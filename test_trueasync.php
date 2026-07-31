@@ -42,10 +42,11 @@ for ($i = 0; $i < 5; $i++) {
 
 [$result, $errors] = Async\await_all($threads);
 print_r($result);
+
 echo '5x sleep 0.5s took ', round(microtime(true) - $start, 2), 's', PHP_EOL;
 
 
-// run write in parallel using threads, on-disk
+// run write in parallel using threads and Quack protocol, on-disk
 @unlink('/tmp/test.duckdb');
 $pdo = new PDO('duckdb:/tmp/test.duckdb');
 $pdo->exec('create table orders (user_id integer primary key)');
@@ -64,10 +65,11 @@ for ($i = 0; $i < 10; $i++) {
 Async\await_all($threads);
 
 $pdo->exec("CALL quack_stop('quack:127.0.0.1')");
+
 echo json_encode($pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN)), PHP_EOL;
 
 
-// run read and write in parallel using coroutines, on-disk
+// run read and write in parallel using coroutines to write and threads to read, on-disk
 @unlink('/tmp/test.duckdb');
 $pdo = new PDO('duckdb:/tmp/test.duckdb');
 $pdo->exec('create table orders (user_id integer primary key)');
