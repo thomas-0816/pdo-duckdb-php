@@ -5,6 +5,11 @@ pdo_duckdb
 --FILE--
 <?php
 
+$db = new PDO('duckdb::memory:');
+
+$statement = $db->query("SELECT current_date(), current_date, now()");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'Europe/Berlin']]);
 
 $statement = $db->query("SELECT '-infinity'::DATE AS negative, 'epoch'::DATE AS epoch, 'infinity'::DATE AS positive");
@@ -56,6 +61,17 @@ var_dump($row);
 
 ?>
 --EXPECTF--
+array(1) {
+  [0]=>
+  array(3) {
+    ["current_date()"]=>
+    string(10) "%s"
+    ["current_date"]=>
+    string(10) "%s"
+    ["now()"]=>
+    string(29) "%s"
+  }
+}
 array(1) {
   [0]=>
   array(3) {
