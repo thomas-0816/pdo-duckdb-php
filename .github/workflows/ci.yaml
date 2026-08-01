@@ -28,7 +28,7 @@ jobs:
       - name: Validate
         run: composer validate --strict
   linux_macos:
-    name: "Linux macOS"
+    name: Linux, MacOS
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
