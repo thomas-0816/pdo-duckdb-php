@@ -27,8 +27,8 @@ jobs:
           tools: composer
       - name: Validate
         run: composer validate --strict
-  linux:
-    name: "Linux"
+  linux_macos:
+    name: "Linux macOS"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -36,6 +36,7 @@ jobs:
         os:
           - ubuntu-24.04
           - ubuntu-24.04-arm
+          - macos-14
         php-version:
           - 8.2
           - 8.3
@@ -60,56 +61,16 @@ jobs:
         env:
           os: ${{ matrix.os }}
         run: |
-          sudo timedatectl set-timezone "Europe/Berlin"
           case "$os" in
-            ubuntu-24.04)     libduckdb=static-libs-linux-amd64.zip ;;
-            ubuntu-24.04-arm) libduckdb=static-libs-linux-arm64.zip ;;
+            ubuntu-24.04)     libduckdb=static-libs-linux-amd64.zip; sudo timedatectl set-timezone "Europe/Berlin" ;;
+            ubuntu-24.04-arm) libduckdb=static-libs-linux-arm64.zip; sudo timedatectl set-timezone "Europe/Berlin" ;;
+            macos-14)         libduckdb=static-libs-osx-arm64.zip; sudo systemsetup -settimezone "Europe/Berlin" ;;
             *) echo "error os"; exit 1 ;;
           esac
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/${libduckdb}" -o ${libduckdb}
           unzip -o ${libduckdb} libduckdb_static.a -d ./
-          phpize
-          ./configure --with-pdo-duckdb
-          make
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
-          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-
-  macos:
-    name: "MacOS"
-    runs-on: macos-14
-    strategy:
-      fail-fast: false
-      matrix:
-        php-version:
-          - 8.2
-          - 8.3
-          - 8.4
-          - 8.5
-          - 8.6
-        thread-safety:
-          - zts
-          - nts
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }}
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
-        with:
-          php-version: ${{ matrix.php-version }}
-          coverage: none
-        env:
-          phpts: ${{ matrix.thread-safety }}
-      - name: Build & Test
-        run: |
-          sudo systemsetup -settimezone "Europe/Berlin"
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
-          unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-osx-arm64.zip" -o static-libs-osx-arm64.zip
-          unzip -o static-libs-osx-arm64.zip libduckdb_static.a -d ./
           phpize
           ./configure --with-pdo-duckdb
           make
