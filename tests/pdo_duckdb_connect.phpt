@@ -59,9 +59,21 @@ var_dump($db->getAttribute(PDO::ATTR_CLIENT_VERSION));
 var_dump($db->getAttribute(PDO::ATTR_SERVER_VERSION));
 var_dump($db->getAttribute(PDO::ATTR_DRIVER_NAME));
 
-$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['autoload_known_extensions' => false, 'autoinstall_known_extensions' => false, 'allow_community_extensions' => false]]);
-$statement = $db->query("select value from duckdb_settings() where name in ('autoload_known_extensions', 'autoinstall_known_extensions', 'allow_community_extensions')");
-var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+$db = new PDO('duckdb::memory:');
+$db->exec('INSTALL textplot FROM community');
+$db->exec('LOAD textplot');
+$statement = $db->query("SELECT tp_bar(0.8, thresholds := [ (0.7, 'green'), (0.5, 'yellow'), (0, 'red') ])");
+var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
+
+$statement = $db->query("
+    SELECT tp_bar(n, shape := 'circle', off_color := 'black', thresholds := [(0.8, 'green'), (0.65, 'orange'), (0.5, 'yellow'), (0.0, 'red')])
+    FROM (VALUES (0.2), (0.4), (0.6), (0.8), (1.0)) t(n);
+");
+var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
+
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['autoload_known_extensions' => true, 'autoinstall_known_extensions' => false, 'allow_community_extensions' => false]]);
+$statement = $db->query("select name, value from duckdb_settings() where name in ('autoload_known_extensions', 'autoinstall_known_extensions', 'allow_community_extensions')");
+var_dump($statement->fetchAll(PDO::FETCH_KEY_PAIR));
 
 ?>
 --EXPECTF--
@@ -75,8 +87,17 @@ array(4) {
   ["v"]=>
   string(5) "hello"
 }
-array(3) {
+array(5) {
   [0]=>
+  array(3) {
+    ["extension_name"]=>
+    string(6) "httpfs"
+    ["loaded"]=>
+    bool(false)
+    ["installed"]=>
+    bool(true)
+  }
+  [1]=>
   array(3) {
     ["extension_name"]=>
     string(3) "icu"
@@ -85,7 +106,7 @@ array(3) {
     ["installed"]=>
     bool(true)
   }
-  [1]=>
+  [2]=>
   array(3) {
     ["extension_name"]=>
     string(4) "json"
@@ -94,12 +115,21 @@ array(3) {
     ["installed"]=>
     bool(true)
   }
-  [2]=>
+  [3]=>
   array(3) {
     ["extension_name"]=>
     string(7) "parquet"
     ["loaded"]=>
     bool(true)
+    ["installed"]=>
+    bool(true)
+  }
+  [4]=>
+  array(3) {
+    ["extension_name"]=>
+    string(8) "textplot"
+    ["loaded"]=>
+    bool(false)
     ["installed"]=>
     bool(true)
   }
@@ -123,20 +153,27 @@ array(1) {
 string(6) "v1.5.5"
 string(6) "v1.5.5"
 string(6) "duckdb"
-array(3) {
+array(1) {
   [0]=>
-  array(1) {
-    ["value"]=>
-    string(5) "false"
-  }
+  string(38) "🟩🟩🟩🟩🟩🟩🟩🟩⬜⬜"
+}
+array(5) {
+  [0]=>
+  string(32) "🔴🔴⚫⚫⚫⚫⚫⚫⚫⚫"
   [1]=>
-  array(1) {
-    ["value"]=>
-    string(5) "false"
-  }
+  string(34) "🔴🔴🔴🔴⚫⚫⚫⚫⚫⚫"
   [2]=>
-  array(1) {
-    ["value"]=>
-    string(5) "false"
-  }
+  string(36) "🟡🟡🟡🟡🟡🟡⚫⚫⚫⚫"
+  [3]=>
+  string(38) "🟢🟢🟢🟢🟢🟢🟢🟢⚫⚫"
+  [4]=>
+  string(40) "🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢"
+}
+array(3) {
+  ["allow_community_extensions"]=>
+  string(5) "false"
+  ["autoinstall_known_extensions"]=>
+  string(5) "false"
+  ["autoload_known_extensions"]=>
+  string(4) "true"
 }

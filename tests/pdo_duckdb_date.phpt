@@ -59,6 +59,8 @@ $db->exec("SET TimeZone='Europe/Berlin'");
 $row = $db->query("SELECT TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30', TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30'::varchar, TIMESTAMPTZ '2026-01-23 12:34:56.789123+02:30'::json")->fetch(PDO::FETCH_NUM);
 var_dump($row);
 
+$db->exec("create table t1 (yr integer not null default year(now()::TIMESTAMP))");
+
 ?>
 --EXPECTF--
 array(1) {
