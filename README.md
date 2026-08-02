@@ -341,6 +341,32 @@ echo $result, PHP_EOL;
 
 More extensions: [List of Core Extensions](https://duckdb.org/docs/lts/core_extensions/overview), [List of Community Extensions](https://duckdb.org/community_extensions/list_of_extensions)
 
+## Performance
+
+DuckDB is extremely fast when it comes to analytic queries.
+Here is an example with 10M rows, performing in __170ms on 4 threads with 128M ram__:
+
+```sql
+.timer on
+/* generate 10M rows with random data */
+COPY (
+    SELECT
+        i,
+        (random()*1_000)::decimal(11,2) as d1,
+        (random()*1_000)::int as i1,
+        to_hex((random()*100000)::int) as h1,
+        to_timestamp((i+1_0000_000) * random() * 100)::timestamp as created
+    FROM generate_series(10_000_000) s(i)
+) TO '/tmp/test.parquet' (format parquet, compression zstd);
+/* Run Time (s): real 4.158 user 4.002094 sys 0.154674 */
+
+SET threads = 4;
+SET memory_limit = '128M';
+SELECT count(*), sum(i), avg(d1), stddev(i1), avg(length(h1)), avg(date_diff('day', current_date, created))
+FROM '/tmp/test.parquet';
+/* Run Time (s): real 0.170 user 0.616465 sys 0.051658 */
+```
+
 ## Security
 
 ```sql
