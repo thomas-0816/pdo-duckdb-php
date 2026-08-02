@@ -274,6 +274,43 @@ print_r($rows);
 #         [origin] => offline
 ```
 
+## Copy data from PostgreSQL to Parquet
+
+Start PostgreSQL container, create and fill "orders" table:
+
+```bash
+docker run --rm -it -p 5432:5432 -e POSTGRES_PASSWORD=secret postgres:18
+PGPASSWORD=secret psql -h 127.0.0.1 -U postgres -c "
+    CREATE TABLE orders (id integer primary key, customer integer, amount decimal(12, 2), origin varchar(255));
+    INSERT INTO orders VALUES (1, 42, 123.42, 'shop');
+    INSERT INTO orders VALUES (2, 21, 12.21, 'offline');
+"
+```
+
+Use DuckDB [PostgreSQL extension](https://duckdb.org/docs/lts/core_extensions/postgres) to copy "orders" table from PostgreSQL to a parquet file:
+
+```php
+$db = new PDO('duckdb::memory:');
+$db->exec('INSTALL postgres');
+$db->exec("ATTACH 'host=127.0.0.1 port=5432 user=postgres password=secret' AS testdb (TYPE postgres)");
+$db->exec("COPY (select * from testdb.orders) TO '/tmp/orders.parquet' (FORMAT parquet)");
+
+$rows = $db->query("SELECT * from '/tmp/orders.parquet'")->fetchAll(PDO::FETCH_ASSOC);
+print_r($rows);
+
+# Array
+#     [0] => Array
+#         [id] => 1
+#         [customerId] => 42
+#         [amount] => 123.42
+#         [origin] => shop
+#     [1] => Array
+#         [id] => 2
+#         [customerId] => 21
+#         [amount] => 12.21
+#         [origin] => offline
+```
+
 ## Read public data using HTTPs, JSON and CSV
 
 ```php
