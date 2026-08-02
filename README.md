@@ -343,7 +343,7 @@ More extensions: [List of Core Extensions](https://duckdb.org/docs/lts/core_exte
 
 ## Performance
 
-DuckDB is extremely fast when it comes to analytic queries.
+DuckDB is extremely fast when it comes to analytic queries.\
 Here is an example with 10M rows, performing in __170ms on 4 threads with 128M ram__:
 
 ```sql
