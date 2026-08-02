@@ -350,8 +350,7 @@ Here is an example with 10M rows, performing in __170ms on 4 threads with 128M r
 .timer on
 /* generate 10M rows with random data */
 COPY (
-    SELECT
-        i,
+    SELECT i,
         (random()*1_000)::decimal(11,2) as d1,
         (random()*1_000)::int as i1,
         to_hex((random()*100000)::int) as h1,
