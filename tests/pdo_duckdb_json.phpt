@@ -43,6 +43,20 @@ $url = 'https://bulk.meteostat.net/v2/stations/lite.json.gz';
 $rows = $db->query("select id, name.en from read_json('{$url}') WHERE name.en like '%Berlin%' limit 2");
 echo json_encode($rows->fetchAll(PDO::FETCH_ASSOC)), PHP_EOL;
 
+$jsonFile = sys_get_temp_dir() . '/logs.json';
+$parquetFile = sys_get_temp_dir() . '/logs.parquet';
+file_put_contents($jsonFile, json_encode(['log' => 'log text']) . PHP_EOL);
+file_put_contents($jsonFile, json_encode(['log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
+
+$db = new PDO('duckdb::memory:');
+$statement = $db->query("SELECT * FROM '{$jsonFile}'");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db->exec("COPY (SELECT * FROM '{$jsonFile}') TO '{$parquetFile}' (COMPRESSION zstd)");
+
+$statement = $db->query("SELECT * FROM '{$parquetFile}'");
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(1) {
@@ -112,3 +126,19 @@ array(1) {
 }
 Caught: SQLSTATE[HY000]: {"exception_type":"Catalog","exception_message":"Table with name bar does not exist!\nDid you mean %s}
 [{"id":"10381","en":"Berlin \/ Dahlem"},{"id":"10382","en":"Berlin \/ Tegel"}]
+array(2) {
+  [0]=>
+  array(1) {
+    ["log"]=>
+    string(8) "log text"
+  }
+  [1]=>
+  array(1) {
+    ["log"]=>
+    string(10) "log text 2"
+  }
+}
+array(1) {
+  ["log"]=>
+  string(8) "log text"
+}

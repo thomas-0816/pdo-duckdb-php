@@ -10,14 +10,15 @@ $list = [
     ['123', '456', '789'],
     ['aaa', 'bbb', 'ccc']
 ];
-$fp = fopen('/tmp/test.csv', 'w');
+$csvFile = sys_get_temp_dir() . '/test.csv';
+$fp = fopen($csvFile, 'w');
 foreach ($list as $fields) {
     fputcsv($fp, $fields, ',', '"', "");
 }
 fclose($fp);
 
 $db = new PDO('duckdb::memory:');
-$statement = $db->query("SELECT * FROM '/tmp/test.csv'");
+$statement = $db->query("SELECT * FROM '{$csvFile}'");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:');
