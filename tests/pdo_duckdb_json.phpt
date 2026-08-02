@@ -38,6 +38,11 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+$db = new PDO('duckdb::memory:');
+$url = 'https://bulk.meteostat.net/v2/stations/lite.json.gz';
+$rows = $db->query("select id, name.en from read_json('{$url}') WHERE name.en like '%Berlin%' limit 2");
+echo json_encode($rows->fetchAll(PDO::FETCH_ASSOC)), PHP_EOL;
+
 ?>
 --EXPECTF--
 array(1) {
@@ -106,3 +111,4 @@ array(1) {
   }
 }
 Caught: SQLSTATE[HY000]: {"exception_type":"Catalog","exception_message":"Table with name bar does not exist!\nDid you mean %s}
+[{"id":"10381","en":"Berlin \/ Dahlem"},{"id":"10382","en":"Berlin \/ Tegel"}]
