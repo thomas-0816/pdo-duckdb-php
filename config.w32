@@ -21,7 +21,7 @@ if (PHP_PDO_DUCKDB != "no") {
 		// from the DLL; the extension stub is not needed since the DLL loads
 		// extensions internally.
 		EXTENSION("pdo_duckdb",
-			"pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp duckdb_extension_stub.cpp",
+			"pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp",
 			null,
 			"/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 /EHsc");
 
