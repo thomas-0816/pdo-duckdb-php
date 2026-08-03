@@ -2,14 +2,40 @@
 
 namespace duckdb {
 
+class CoreFunctionsExtension : public Extension {
+public:
+	void Load(ExtensionLoader &loader) override;
+	std::string Name() override;
+	std::string Version() const override;
+};
+
+class IcuExtension : public Extension {
+public:
+	void Load(ExtensionLoader &loader) override;
+	std::string Name() override;
+	std::string Version() const override;
+};
+
+class JsonExtension : public Extension {
+public:
+	void Load(ExtensionLoader &loader) override;
+	std::string Name() override;
+	std::string Version() const override;
+};
+
+} // namespace duckdb
+
+namespace duckdb {
+
 class ExtensionHelper {
 public:
 	static void LoadAllExtensions(DuckDB &db);
-	static bool TryAutoLoadExtension(DatabaseInstance &db, const std::string &extension_name) noexcept;
 };
 
 void ExtensionHelper::LoadAllExtensions(DuckDB &db) {
-	ExtensionHelper::TryAutoLoadExtension(*db.instance, "core_functions");
+	db.LoadStaticExtension<CoreFunctionsExtension>();
+	db.LoadStaticExtension<IcuExtension>();
+	db.LoadStaticExtension<JsonExtension>();
 }
 
 } // namespace duckdb
