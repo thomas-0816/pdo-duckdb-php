@@ -18,9 +18,9 @@ RUN <<EOF
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git ./php-src/ext/pdo-duckdb-php
     cd php-src/ext/pdo-duckdb-php
     curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
-    unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
+    unzip -o libduckdb-src.zip duckdb.hpp -d ./
     curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
-    unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
+    unzip -o static-libs-linux-amd64.zip -d ./
     cd ../../
     ./buildconf --force
     ./configure --disable-all --enable-zts --enable-async --enable-cli --enable-pcntl --enable-pdo --with-pdo-duckdb
