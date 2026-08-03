@@ -18,8 +18,9 @@ PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c du
 PHP_ADD_EXTENSION_DEP(pdo_duckdb, pdo)
 PHP_ADD_MAKEFILE_FRAGMENT
 
-dhl bundle extensions, loaded in duckdb_extension_stub.cpp
+dnl Bundle extensions, loaded in duckdb_extension_stub.cpp
 PDO_DUCKDB_ARCHIVE_FLAGS="-Wl,$ext_srcdir/libduckdb_static.a -Wl,$ext_srcdir/libcore_functions_extension.a -Wl,$ext_srcdir/libicu_extension.a -Wl,$ext_srcdir/libjson_extension.a"
+PDO_DUCKDB_ARCHIVE_FLAGS_DARWIN="-Wl,-force_load,$ext_srcdir/libduckdb_static.a -Wl,-force_load,$ext_srcdir/libcore_functions_extension.a -Wl,-force_load,$ext_srcdir/libicu_extension.a -Wl,-force_load,$ext_srcdir/libjson_extension.a"
 
 dnl Link duckdb with appropriate linker flags based on platform
 case $host_os in
@@ -28,7 +29,7 @@ case $host_os in
     dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic
     dnl IFUNC resolvers. The GCC driver adds -lgcc_s but not -lgcc for -shared
     dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
-    PDO_DUCKDB_SHARED_LIBADD="-Wl,-force_load,$ext_srcdir/libduckdb_static.a $PDO_DUCKDB_ARCHIVE_FLAGS -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
+    PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_ARCHIVE_FLAGS_DARWIN -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
     ;;
   *)
     dnl Linux/other: use --whole-archive to force all symbols into the .so.
@@ -44,7 +45,7 @@ dnl For static builds, add DuckDB libraries directly to LIBS
 if test "$ext_shared" = "no"; then
   case $host_os in
     darwin*)
-      LIBS="$LIBS -Wl,-force_load,$ext_srcdir/libduckdb_static.a $PDO_DUCKDB_ARCHIVE_FLAGS -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
+      LIBS="$LIBS $PDO_DUCKDB_ARCHIVE_FLAGS_DARWIN -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
       ;;
     *)
       LIBS="$LIBS -Wl,--whole-archive $PDO_DUCKDB_ARCHIVE_FLAGS -Wl,--no-whole-archive -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,--as-needed"
