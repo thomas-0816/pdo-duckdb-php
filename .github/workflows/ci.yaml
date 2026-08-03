@@ -82,7 +82,7 @@ jobs:
           php -i | grep -iE "ICU version|intl support" || true
           otool -L "$(which php)" | grep -iE "icu|intl" || echo "php binary links NO libicu"
           echo "=== lldb WITHOUT intl ==="
-          lldb -b -o 'breakpoint set -n malloc_error_break' -o 'run' -o 'bt 30' -o 'quit' -- php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+          lldb -b -o 'breakpoint set -n malloc_error_break' -o 'breakpoint set -n uprv_free' -o 'run' -o 'bt 3' -o 'continue' -o 'bt 30' -o 'quit' -- php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
           echo "=== lldb WITH intl forced ON ==="
           lldb -b -o 'breakpoint set -n malloc_error_break' -o 'run' -o 'bt 30' -o 'quit' -- php -d extension=$(pwd)/modules/pdo_duckdb.so -d extension=intl test.php
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
