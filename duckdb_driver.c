@@ -9,6 +9,9 @@
 #include "ext/pdo/php_pdo_driver.h"
 #include "Zend/zend_exceptions.h"
 #include "php_pdo_duckdb.h"
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 
 /* Forward declaration of statement methods (defined in duckdb_statement.c) */
 extern struct pdo_stmt_methods duckdb_stmt_methods;
@@ -59,11 +62,12 @@ static void pdo_duckdb_error(pdo_dbh_t *dbh)
 }
 
 /* ---------------- connection factory ---------------- */
+
 int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 {
 	pdo_duckdb_db_handle *H;
 	const char *data_source = dbh->data_source;
-	char *dbname = NULL, *err = NULL;
+	char *dbname = NULL, *err = NULL, *deferred_tz = NULL;
 	duckdb_state state;
 	duckdb_config config = NULL;
 
@@ -81,20 +85,25 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 			if (duckdb_create_config(&config) == DuckDBSuccess) {
 				zend_string *key;
 				zval *val;
-			ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(config_zval), key, val) {
-				if (key) {
-					zend_string *str_val;
-					if (Z_TYPE_P(val) == IS_TRUE) {
-						str_val = zend_string_init("true", 5, 0);
-					} else if (Z_TYPE_P(val) == IS_FALSE) {
-						str_val = zend_string_init("false", 5, 0);
-					} else {
-						str_val = zval_get_string(val);
+				ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(config_zval), key, val) {
+					if (key) {
+						zend_string *str_val;
+						if (Z_TYPE_P(val) == IS_TRUE) {
+							str_val = zend_string_init("true", 5, 0);
+						} else if (Z_TYPE_P(val) == IS_FALSE) {
+							str_val = zend_string_init("false", 5, 0);
+						} else {
+							str_val = zval_get_string(val);
+						}
+						if (strcasecmp(ZSTR_VAL(key), "timezone") == 0) {
+							deferred_tz = emalloc(ZSTR_LEN(str_val) + 18);
+							sprintf(deferred_tz, "SET timezone = '%s'", ZSTR_VAL(str_val));
+						} else {
+							duckdb_set_config(config, ZSTR_VAL(key), ZSTR_VAL(str_val));
+						}
+						zend_string_release(str_val);
 					}
-					duckdb_set_config(config, ZSTR_VAL(key), ZSTR_VAL(str_val));
-					zend_string_release(str_val);
-				}
-			} ZEND_HASH_FOREACH_END();
+				} ZEND_HASH_FOREACH_END();
 			}
 		}
 	}
@@ -114,6 +123,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 			"SQLSTATE[HY000]: Could not open DuckDB database: %s",
 			err ? err : "unknown error");
 		if (err) duckdb_free(err);
+		efree(deferred_tz);
 		efree(dbname);
 		dbh->driver_data = NULL;
 		efree(H);
@@ -126,9 +136,15 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 		duckdb_close(&H->db);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
 			"SQLSTATE[HY000]: Could not create DuckDB connection");
+		efree(deferred_tz);
 		dbh->driver_data = NULL;
 		efree(H);
 		return 0;
+	}
+
+	if (deferred_tz) {
+		duckdb_query(H->conn, deferred_tz, NULL);
+		efree(deferred_tz);
 	}
 
 	/* Assign db handle methods */
