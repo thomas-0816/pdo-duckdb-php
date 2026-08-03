@@ -81,6 +81,11 @@ jobs:
           php --ri intl 2>/dev/null | grep -i "ICU version" || echo "intl extension not present"
           php -i | grep -iE "ICU version|intl support" || true
           otool -L "$(which php)" | grep -iE "icu|intl" || echo "php binary links NO libicu"
+          echo "=== mach-o header (MH_TWOLEVEL 0x80 => two-level, absent => flat) ==="
+          otool -hv "$(which php)" | head -20
+          echo "=== pdo_duckdb.so exported symbols ==="
+          nm -gU modules/pdo_duckdb.so | grep -E " _uprv_free$| _ures_getByKey$| _ures_openDirect$" || echo "no ICU C symbols exported from pdo_duckdb.so"
+          nm -gU modules/pdo_duckdb.so | grep -E " _get_module$| _pdo_duckdb_module_entry$" || echo "php entry symbols not found"
           echo "=== lldb WITHOUT intl ==="
           lldb -b -o 'breakpoint set -n malloc_error_break' -o 'breakpoint set -n uprv_free' -o 'run' -o 'bt 3' -o 'continue' -o 'bt 30' -o 'quit' -- php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
           echo "=== lldb WITH intl forced ON ==="
