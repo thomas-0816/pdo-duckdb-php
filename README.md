@@ -430,10 +430,10 @@ FROM '/tmp/test.parquet';
     cd pdo_duckdb
 
     wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip
-    unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
+    unzip -o libduckdb-src.zip duckdb.hpp -d ./
 
     wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip
-    unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
+    unzip -o static-libs-linux-amd64.zip -d ./
 
     phpize
     ./configure --with-pdo-duckdb
@@ -455,10 +455,10 @@ FROM '/tmp/test.parquet';
     cd pdo_duckdb
 
     wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip
-    unzip -o libduckdb-src.zip duckdb.h duckdb.hpp -d ./
+    unzip -o libduckdb-src.zip duckdb.hpp -d ./
 
     wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip
-    unzip -o static-libs-linux-amd64.zip libduckdb_static.a -d ./
+    unzip -o static-libs-linux-amd64.zip -d ./
 
     phpize-zts
     ./configure --with-pdo-duckdb --with-php-config=php-config-zts
