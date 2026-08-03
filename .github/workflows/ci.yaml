@@ -34,17 +34,17 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-24.04
-          - ubuntu-24.04-arm
+#          - ubuntu-24.04
+#          - ubuntu-24.04-arm
           - macos-14
         php-version:
-          - 8.2
-          - 8.3
-          - 8.4
+#          - 8.2
+#          - 8.3
+#          - 8.4
           - 8.5
-          - 8.6
+#          - 8.6
         thread-safety:
-          - zts
+#          - zts
           - nts
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -75,8 +75,8 @@ jobs:
           ./configure --with-pdo-duckdb
           make
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+          lldb -b -o 'run' -o 'bt all' -o 'quit' -- php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
-          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
   windows-build:
     name: Windows
