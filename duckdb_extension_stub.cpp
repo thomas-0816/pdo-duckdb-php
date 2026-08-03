@@ -34,8 +34,8 @@ public:
 
 void ExtensionHelper::LoadAllExtensions(DuckDB &db) {
 	db.LoadStaticExtension<CoreFunctionsExtension>();
-	db.LoadStaticExtension<IcuExtension>();
 	db.LoadStaticExtension<JsonExtension>();
+	db.LoadStaticExtension<IcuExtension>();
 }
 
 } // namespace duckdb
