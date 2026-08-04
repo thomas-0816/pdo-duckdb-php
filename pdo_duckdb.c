@@ -11,6 +11,7 @@
 #include "ext/pdo/php_pdo.h"
 #include "ext/pdo/php_pdo_driver.h"
 #include "php_pdo_duckdb.h"
+#include <stdlib.h>
 
 /*
  * The forward declarations for duckdb_methods and duckdb_stmt_methods
@@ -91,6 +92,18 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 	(void)type; (void)module_number;
 
 	ZEND_TSRMLS_CACHE_UPDATE();
+
+	/* Query.Farm community extensions (textplot, etc.) fire an async telemetry
+	   thread on LOAD that can outlive httpfs' bundled OpenSSL during process
+	   teardown, causing a random SIGSEGV in CRYPTO_THREAD_write_lock at exit.
+	   Opt out so the telemetry request is never dispatched. */
+	if (!getenv("QUERY_FARM_TELEMETRY_OPT_OUT")) {
+#ifdef _WIN32
+		_putenv_s("QUERY_FARM_TELEMETRY_OPT_OUT", "1");
+#else
+		setenv("QUERY_FARM_TELEMETRY_OPT_OUT", "1", 0);
+#endif
+	}
 
 	if (FAILURE == php_pdo_register_driver(&pdo_duckdb_driver)) {
 		return FAILURE;
