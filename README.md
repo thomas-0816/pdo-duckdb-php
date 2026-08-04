@@ -53,7 +53,7 @@ pie install thomas-0816/pdo-duckdb-php
 ## Usage examples
 
 ```php
-$duckDb = new PDO('duckdb::memory:');
+$duckDb = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['TimeZone' => 'Europe/Berlin']]);
 $duckDb->exec("CREATE TABLE table1 (id INTEGER, amount DECIMAL(10, 2), description VARCHAR)");
 
 $statement = $duckDb->prepare("INSERT INTO table1 VALUES (?, ?, ?)");
