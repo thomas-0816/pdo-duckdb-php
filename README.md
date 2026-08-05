@@ -1,4 +1,4 @@
-# PHP PDO DuckDB
+# PHP PDO Driver for DuckDB
 
 <img width="500" height="273" alt="logo" src="logo.jpg?3" />
 
@@ -466,7 +466,7 @@ File-Format Agnostic: It can query flat files (JSON, CSV, and Parquet) directly 
 
 No Infrastructure Cost: It brings data warehouse-level performance to your local laptop or local server.
 
-DuckDB achieves blazing-fast analytical performance through its embedded, serverless multi-core architecture combined with columnar storage and vectorized execution.
+DuckDB achieves blazing-fast analytical performance through its __embedded, serverless multi-core__ architecture combined with columnar storage and vectorized execution.
 By executing queries directly within the host application, it eliminates serialization and network overhead, processing data in batches (vectors) rather
 than row-by-row for unparalleled speed.
 
@@ -486,6 +486,41 @@ Advanced Query Optimizer: DuckDB features an advanced query optimizer that handl
 This ensures queries only scan necessary data and avoids full-table sorting when possible.
 
 Direct File Querying: You can query large datasets in open formats like Parquet and CSV directly on disk or in cloud storage (like AWS S3) without needing to import or convert the data first.
+
+## FAQ
+
+> Do I need an extra server for DuckDB?
+
+No. DuckDB runs completely embedded inside of PHP as an extension, just like SQLite.
+
+> How much RAM and CPU do I need for DuckDB?
+
+DuckDB normally runs good with 1-4 GB RAM and 2-4 CPU cores.
+
+> How good is the compression with Parquet and zstd?
+
+For logs you normally achieve compression rates of 50-100x.
+
+> Who is maintaining DuckDB?
+
+The DuckDB project is owned and maintained by the [DuckDB Foundation](https://duckdb.foundation), a non-profit organization from Amsterdam.
+
+> Can I get commercial support for DuckDB?
+
+Yes. Commercial support is available from [DuckLabs](https://ducklabs.com), a company based in Amsterdam.
+
+> Can I get non-commercial support for DuckDB?
+
+Yes. Non-commercial is available on GitHub and Discord, see the [support policy](https://ducklabs.com/community_support_policy/) for details.\
+You can meet the core team in-person on community events, meetup, conferences, etc.
+
+> Is the PHP PDO Driver for DuckDB developed by the DuckDB project?
+
+No. This is a third-party open-source community project.
+
+> Is DuckDB fully open-source?
+
+Yes. DuckDB and all components are fully open-source under the MIT license. There is no “enterprise version” of DuckDB.
 
 ## Development
 
