@@ -14,7 +14,7 @@ $statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $statement->fetch()) { var_dump($row); }
 
-$db->exec("INSTAll parquet; LOAD parquet; INSTALL httpfs; INSTALL textplot FROM community;");
+$db->exec("INSTAll parquet; LOAD parquet; INSTALL httpfs;");
 
 $statement = $db->query("SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE extension_name not in ('autocomplete', 'core_functions') and (installed = 1 OR loaded = 1)");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
@@ -59,18 +59,6 @@ var_dump($db->getAttribute(PDO::ATTR_CLIENT_VERSION));
 var_dump($db->getAttribute(PDO::ATTR_SERVER_VERSION));
 var_dump($db->getAttribute(PDO::ATTR_DRIVER_NAME));
 
-$db = new PDO('duckdb::memory:');
-$db->exec('INSTALL textplot FROM community');
-$db->exec('LOAD textplot');
-$statement = $db->query("SELECT tp_bar(0.8, thresholds := [ (0.7, 'green'), (0.5, 'yellow'), (0, 'red') ])");
-var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
-
-$statement = $db->query("
-    SELECT tp_bar(n, shape := 'circle', off_color := 'black', thresholds := [(0.8, 'green'), (0.65, 'orange'), (0.5, 'yellow'), (0.0, 'red')])
-    FROM (VALUES (0.2), (0.4), (0.6), (0.8), (1.0)) t(n);
-");
-var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
-
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['autoload_known_extensions' => true, 'autoinstall_known_extensions' => false, 'allow_community_extensions' => false]]);
 $statement = $db->query("select name, value from duckdb_settings() where name in ('autoload_known_extensions', 'autoinstall_known_extensions', 'allow_community_extensions')");
 var_dump($statement->fetchAll(PDO::FETCH_KEY_PAIR));
@@ -87,7 +75,7 @@ array(4) {
   ["v"]=>
   string(5) "hello"
 }
-array(5) {
+array(4) {
   [0]=>
   array(3) {
     ["extension_name"]=>
@@ -124,15 +112,6 @@ array(5) {
     ["installed"]=>
     bool(true)
   }
-  [4]=>
-  array(3) {
-    ["extension_name"]=>
-    string(8) "textplot"
-    ["loaded"]=>
-    bool(false)
-    ["installed"]=>
-    bool(true)
-  }
 }
 bool(true)
 bool(true)
@@ -153,22 +132,6 @@ array(1) {
 string(6) "v1.5.5"
 string(6) "v1.5.5"
 string(6) "duckdb"
-array(1) {
-  [0]=>
-  string(38) "🟩🟩🟩🟩🟩🟩🟩🟩⬜⬜"
-}
-array(5) {
-  [0]=>
-  string(32) "🔴🔴⚫⚫⚫⚫⚫⚫⚫⚫"
-  [1]=>
-  string(34) "🔴🔴🔴🔴⚫⚫⚫⚫⚫⚫"
-  [2]=>
-  string(36) "🟡🟡🟡🟡🟡🟡⚫⚫⚫⚫"
-  [3]=>
-  string(38) "🟢🟢🟢🟢🟢🟢🟢🟢⚫⚫"
-  [4]=>
-  string(40) "🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢"
-}
 array(3) {
   ["allow_community_extensions"]=>
   string(5) "false"

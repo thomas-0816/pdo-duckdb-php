@@ -330,34 +330,6 @@ echo json_encode($rows->fetchAll(PDO::FETCH_ASSOC)), PHP_EOL;
 
 ## Community extensions
 
-Textplot brings text-based data visualization directly to your SQL queries:
-
-```php
-$db = new PDO('duckdb::memory:');
-$db->exec('INSTALL textplot FROM community');
-$db->exec('LOAD textplot');
-
-print_r($db->query("
-    SELECT tp_bar(0.8, thresholds := [ (0.7, 'green'), (0.5, 'yellow'), (0, 'red') ])
-")->fetchAll(PDO::FETCH_COLUMN));
-
-# Array
-#     [0] => 🟩🟩🟩🟩🟩🟩🟩🟩⬜⬜
-
-print_r($db->query("
-    SELECT tp_bar(n, shape := 'circle', off_color := 'black',
-        thresholds := [(0.8, 'green'), (0.65, 'orange'), (0.5, 'yellow'), (0.0, 'red')])
-    FROM (select random() as n from generate_series(4));
-")->fetchAll(PDO::FETCH_COLUMN));
-
-# Array
-#     [0] => 🔴🔴🔴🔴⚫⚫⚫⚫⚫⚫
-#     [1] => 🟢🟢🟢🟢🟢🟢🟢🟢🟢⚫
-#     [2] => 🟠🟠🟠🟠🟠🟠🟠⚫⚫⚫
-#     [3] => 🟡🟡🟡🟡🟡🟡⚫⚫⚫⚫
-#     [4] => 🔴⚫⚫⚫⚫⚫⚫⚫⚫⚫
-```
-
 open_prompt integrates LLMs into your SQL queries:
 
 ```php
@@ -377,6 +349,8 @@ echo $result, PHP_EOL;
 ```
 
 More extensions: [List of Core Extensions](https://duckdb.org/docs/lts/core_extensions/overview), [List of Community Extensions](https://duckdb.org/community_extensions/list_of_extensions)
+
+__Note__: Community extensions are NOT maintained or reviewed by the DuckDB team.
 
 ## Performance
 
