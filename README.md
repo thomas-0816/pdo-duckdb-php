@@ -509,9 +509,9 @@ The DuckDB project is owned and maintained by the [DuckDB Foundation](https://du
 
 Yes. Commercial support is available from [DuckLabs](https://ducklabs.com), a company based in Amsterdam.
 
-> Can I get non-commercial support for DuckDB?
+> Can I get free support for DuckDB?
 
-Yes. Non-commercial is available on GitHub and Discord, see the [support policy](https://ducklabs.com/community_support_policy/) for details.\
+Yes. Free support is available on GitHub and Discord, see the [support policy](https://ducklabs.com/community_support_policy/) for details.\
 You can meet the core team in-person on community events, meetup, conferences, etc.
 
 > Is the PHP PDO Driver for DuckDB developed by the DuckDB project?
@@ -520,7 +520,8 @@ No. This is a third-party open-source community project.
 
 > Is DuckDB fully open-source?
 
-Yes. DuckDB and all components are fully open-source under the MIT license. There is no “enterprise version” of DuckDB.
+Yes. DuckDB and all components are fully open-source under the MIT license.\
+There is no “enterprise version” of DuckDB.
 
 ## Development
 
