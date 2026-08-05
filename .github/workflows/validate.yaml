@@ -51,6 +51,7 @@ jobs:
         shell: bash
         env:
           os: ${{ matrix.os }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           uname -a
           php -v
