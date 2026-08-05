@@ -350,7 +350,7 @@ echo $result, PHP_EOL;
 
 More extensions: [List of Core Extensions](https://duckdb.org/docs/lts/core_extensions/overview), [List of Community Extensions](https://duckdb.org/community_extensions/list_of_extensions)
 
-__Note__: Community extensions are NOT maintained or reviewed by the DuckDB team.
+__Note__: Community extensions are third party projects, NOT maintained or reviewed by the DuckDB team.
 
 ## Performance
 
