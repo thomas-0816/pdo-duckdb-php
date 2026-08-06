@@ -2,7 +2,7 @@
     "name": "thomas-0816/pdo-duckdb-php",
     "type": "php-ext",
     "license": "MIT",
-    "description": "PHP PDO DuckDB",
+    "description": "PHP PDO Driver for DuckDB",
     "require": {
         "php": ">=8.2",
         "ext-pdo": "*"
