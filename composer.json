@@ -3,6 +3,7 @@
     "type": "php-ext",
     "license": "MIT",
     "description": "PHP PDO Driver for DuckDB",
+    "keywords": ["duckdb", "database", "analytics", "pdo"],
     "require": {
         "php": ">=8.2",
         "ext-pdo": "*"
