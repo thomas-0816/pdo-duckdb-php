@@ -40,7 +40,7 @@ fclose($fp);
 
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE test_csv AS SELECT * FROM read_csv('{$csvFile}')");
-$db->exec("INSERT INTO test_csv SELECT * FROM '/tmp/test.csv'");
+$db->exec("INSERT INTO test_csv SELECT * FROM '{$csvFile}'");
 
 echo json_encode($db->query('SHOW test_csv')->fetchAll(PDO::FETCH_ASSOC));
 
