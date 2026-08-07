@@ -155,7 +155,8 @@ foreach ($list as $fields) {
 fclose($fp);
 
 $db = new PDO('duckdb::memory:');
-$db->exec("CREATE TABLE test_csv AS SELECT * FROM '/tmp/test.csv'"); // import schema + data
+$db->exec("CREATE TABLE test_csv AS SELECT * FROM '/tmp/test.csv'"); // create schema + import data
+$db->exec("INSERT INTO test_csv SELECT * FROM '/tmp/test.csv'"); // only import data
 
 print_r($db->query('SHOW test_csv')->fetchAll(PDO::FETCH_ASSOC));
 
