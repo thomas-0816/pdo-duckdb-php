@@ -140,6 +140,36 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 #         [ccc] => ccc
 ```
 
+## CSV data import
+
+```php
+$list = [
+    ['aaa', 'bbb'],
+    ['123', '456'],
+    ['aaa', 'bbb']
+];
+$fp = fopen('/tmp/test.csv', 'w');
+foreach ($list as $fields) {
+    fputcsv($fp, $fields, ',', '"', "");
+}
+fclose($fp);
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE test_csv AS SELECT * FROM '/tmp/test.csv'"); // import schema + data
+
+print_r($db->query('SHOW test_csv')->fetchAll(PDO::FETCH_ASSOC));
+
+# Array
+#     [0] => Array
+#         [column_name] => aaa
+#         [column_type] => VARCHAR
+#         [null] => YES
+#     [1] => Array
+#         [column_name] => bbb
+#         [column_type] => VARCHAR
+#         [null] => YES
+```
+
 ## Read JSON files with SQL
 
 ```php

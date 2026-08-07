@@ -26,6 +26,23 @@ $url = 'https://data.meteostat.net/hourly/2026/10381.csv.gz';
 $rows = $db->query("select hour, temp from read_csv('{$url}') where year = 2026 and month = 7 and day = 25 and hour > 9 limit 4");
 echo json_encode($rows->fetchAll(PDO::FETCH_ASSOC)), PHP_EOL;
 
+$list = [
+    ['aaa', 'bbb'],
+    ['123', '456'],
+    ['aaa', 'bbb']
+];
+$csvFile = sys_get_temp_dir() . '/test.csv';
+$fp = fopen($csvFile, 'w');
+foreach ($list as $fields) {
+    fputcsv($fp, $fields, ',', '"', "");
+}
+fclose($fp);
+
+$db = new PDO('duckdb::memory:');
+$db->exec("CREATE TABLE test_csv AS SELECT * FROM read_csv('{$csvFile}')");
+
+echo json_encode($db->query('SHOW test_csv')->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(2) {
@@ -49,3 +66,4 @@ array(2) {
   }
 }
 [{"hour":10,"temp":24.1},{"hour":11,"temp":25.5},{"hour":12,"temp":26.4},{"hour":13,"temp":27.4}]
+[{"column_name":"aaa","column_type":"VARCHAR","null":"YES","key":null,"default":null,"extra":null},{"column_name":"bbb","column_type":"VARCHAR","null":"YES","key":null,"default":null,"extra":null}]
