@@ -86,12 +86,47 @@ jobs:
               sudo tee -a /etc/apt/sources.list.d/static-php85.list
           sudo apt-get update
           sudo apt-get install php-zts-cli php-zts-pdo frankenphp pie-zts
-          sudo pie-zts install thomas-0816/pdo-duckdb-php
+          sudo pie-zts install -v thomas-0816/pdo-duckdb-php
           frankenphp php-cli -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
           frankenphp php-server -l 127.0.0.1:8080 -r ./ &
           sleep 3
           curl -IsS http://127.0.0.1:8080/test.php
           ab -n 100 -c 8 -l http://127.0.0.1:8080/test.php 2>&1 | tee /dev/stderr | grep -E "Failed requests:\s+0"
+
+  swoole:
+    name: "Swoole"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+        php-version:
+          - 8.5
+        thread-safety:
+          - zts
+          - nts
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+          tools: pie
+          extensions: swoole
+        env:
+          phpts: ${{ matrix.thread-safety }}
+      - name: Setup
+        run: |
+          uname -a
+          php -v
+          sudo pie install -v thomas-0816/pdo-duckdb-php
+          php -m | grep duckdb
+          php test_swoole.php
+          echo 'OK'
 
   trueasync:
     name: "TrueAsync"
