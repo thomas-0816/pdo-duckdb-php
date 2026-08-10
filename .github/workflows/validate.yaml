@@ -56,9 +56,9 @@ jobs:
           uname -a
           php -v
           if [ "$RUNNER_OS" = "Windows" ]; then
-              BOX_REQUIREMENT_CHECKER=false pie install thomas-0816/pdo-duckdb-php
+              BOX_REQUIREMENT_CHECKER=false pie install -v thomas-0816/pdo-duckdb-php
           else
-              sudo BOX_REQUIREMENT_CHECKER=false GITHUB_TOKEN=${GITHUB_TOKEN} pie install thomas-0816/pdo-duckdb-php
+              sudo BOX_REQUIREMENT_CHECKER=false GITHUB_TOKEN=${GITHUB_TOKEN} pie install -v thomas-0816/pdo-duckdb-php
           fi
           php -m | grep duckdb
           php <<'EOF'

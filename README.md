@@ -45,7 +45,7 @@ pie install thomas-0816/pdo-duckdb-php
     RUN <<EOF
         apt-get -y update && apt-get -y --no-install-recommends install unzip
         curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
-        php /tmp/pie install --no-build-tools-check thomas-0816/pdo-duckdb-php
+        php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
         php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
     EOF
 ```
