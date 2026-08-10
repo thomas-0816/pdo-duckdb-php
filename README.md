@@ -482,7 +482,15 @@ FROM '/tmp/test.parquet';
 ```bash
     docker build --no-cache -f Dockerfile.trueasync2 -t pdo_duckdb_trueasync2 .
     docker run --rm -it pdo_duckdb_trueasync2 php -m
-    docker run --rm -it -v $(pwd):/app pdo_duckdb_trueasync2 php test_trueasync.php
+    docker run --rm -it -v $(pwd):/app pdo_duckdb_trueasync2 php /app/test_trueasync.php
+```
+
+## Install with Swoole
+
+```bash
+    docker build --no-cache -f Dockerfile.swoole_zts -t pdo_duckdb_swoole_zts .
+    docker run --rm -it pdo_duckdb_swoole_zts php -m
+    docker run --rm -it -v $(pwd):/app pdo_duckdb_swoole_zts php /app/test_swoole.php
 ```
 
 ## Why DuckDB?
