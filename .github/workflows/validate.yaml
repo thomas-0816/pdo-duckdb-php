@@ -44,7 +44,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
-          tools: pie
+          tools: composer, pie
         env:
           phpts: ${{ matrix.thread-safety }}
       - name: Install and test the extension
@@ -56,9 +56,11 @@ jobs:
           uname -a
           php -v
           if [ "$RUNNER_OS" = "Windows" ]; then
+              composer config --global --auth github-oauth.github.com ${GITHUB_TOKEN}
               BOX_REQUIREMENT_CHECKER=false pie install -v thomas-0816/pdo-duckdb-php
           else
-              sudo BOX_REQUIREMENT_CHECKER=false GITHUB_TOKEN=${GITHUB_TOKEN} pie install -v thomas-0816/pdo-duckdb-php
+              sudo composer config --global --auth github-oauth.github.com ${GITHUB_TOKEN}
+              sudo BOX_REQUIREMENT_CHECKER=false pie install -v thomas-0816/pdo-duckdb-php
           fi
           php -m | grep duckdb
           php <<'EOF'
