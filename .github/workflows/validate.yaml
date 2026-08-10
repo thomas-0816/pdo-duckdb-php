@@ -79,7 +79,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Setup
+      - name: Setup and test
         run: |
           sudo curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
           echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
@@ -119,7 +119,7 @@ jobs:
           extensions: swoole
         env:
           phpts: ${{ matrix.thread-safety }}
-      - name: Setup
+      - name: Setup and test
         run: |
           uname -a
           php -v
