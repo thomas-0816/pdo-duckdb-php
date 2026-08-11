@@ -412,6 +412,8 @@ FROM '/tmp/test.parquet';
 
 ## Security
 
+Use SQL `SET variable = value;` or put the settings inside the PDO::DUCKDB_ATTR_CONFIG connection [options array](#usage-examples):
+
 ```sql
 # Disable extension loading
 SET autoload_known_extensions = false;
@@ -427,8 +429,11 @@ SET threads = 4;
 SET memory_limit = '4GB';
 SET max_temp_directory_size = '4GB';
 
-https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview
+# Lock configuration
+SET lock_configuration = true;
 ```
+
+A complete list is available in the DuckDB documentation: [Securing DuckDB](https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview).
 
 ## Compile NTS
 
