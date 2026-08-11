@@ -161,7 +161,9 @@ PHP_MINFO_FUNCTION(pdo_duckdb)
 	php_info_print_table_start();
 	php_info_print_table_header(2, "PDO Driver for DuckDB", "enabled");
 	php_info_print_table_row(2, "DuckDB Library Version", duckdb_library_version());
-	php_info_print_table_row(2, "Swoole", pdo_duckdb_swoole_loaded() ? "loaded before pdo_duckdb" : "not loaded or loaded after pdo_duckdb");
+	if (zend_hash_str_exists(&module_registry, "swoole", sizeof("swoole") - 1)) {
+		php_info_print_table_row(2, "Swoole", pdo_duckdb_swoole_loaded() ? "OK" : "FAIL: loaded after pdo_duckdb");
+	}
 	php_info_print_table_end();
 }
 /* }}} */
