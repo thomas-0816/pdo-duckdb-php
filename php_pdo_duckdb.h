@@ -38,6 +38,7 @@ typedef struct _pdo_duckdb_db_handle {
 	char               error_msg[256];    /* last error message */
 	int                auto_commit;       /* PDO::ATTR_AUTOCOMMIT */
 	int                unbuffered;        /* PDO::DUCKDB_ATTR_UNBUFFERED */
+	void              *thread_lock;       /* per-connection async serialization lock (see duckdb_swoole.h) */
 } pdo_duckdb_db_handle;
 
 /* Statement data – one per PDOStatement handle */
@@ -52,6 +53,7 @@ typedef struct _pdo_duckdb_stmt {
 	int                       is_streaming; /* TRUE if result is streaming */
 	idx_t                     next_chunk_index; /* for non‑streaming results, index of next chunk */
 	idx_t                     total_rows;       /* total rows consumed from previous chunks */
+	void                     *thread_lock;      /* per-connection async serialization lock (see duckdb_swoole.h) */
 } pdo_duckdb_stmt;
 
 /* Helpers implemented in duckdb_stubs.cpp */
