@@ -411,86 +411,93 @@ FROM '/tmp/test.parquet';
 ## Security
 
 ```sql
-    # Disable extension loading
-    SET autoload_known_extensions = false;
-    SET autoinstall_known_extensions = false;
-    SET allow_community_extensions = false;
+# Disable extension loading
+SET autoload_known_extensions = false;
+SET autoinstall_known_extensions = false;
+SET allow_community_extensions = false;
 
-    # Disable external file access, directory white listing
-    SET allowed_directories = ['/tmp'];
-    SET enable_external_access = false;
+# Disable external file access, directory white listing
+SET allowed_directories = ['/tmp'];
+SET enable_external_access = false;
 
-    # Resource limits
-    SET threads = 4;
-    SET memory_limit = '4GB';
-    SET max_temp_directory_size = '4GB';
+# Resource limits
+SET threads = 4;
+SET memory_limit = '4GB';
+SET max_temp_directory_size = '4GB';
 
-    https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview
+https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview
 ```
 
 ## Compile NTS
 
 ```bash
-    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
-    cd pdo_duckdb
+git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
+cd pdo_duckdb
 
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip
-    unzip -o libduckdb-src.zip duckdb.hpp -d ./
+wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip
+unzip -o libduckdb-src.zip duckdb.hpp -d ./
 
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip
-    unzip -o static-libs-linux-amd64.zip -d ./
+wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip
+unzip -o static-libs-linux-amd64.zip -d ./
 
-    phpize
-    ./configure --with-pdo-duckdb
-    make
-    NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+phpize
+./configure --with-pdo-duckdb
+make
+NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
-    sudo make install
-    sudo sh -c 'echo "extension=pdo_duckdb.so" > /etc/php/8.5/mods-available/pdo_duckdb.ini'
-    sudo phpenmod pdo_duckdb
+sudo make install
+sudo sh -c 'echo "extension=pdo_duckdb.so" > /etc/php/8.5/mods-available/pdo_duckdb.ini'
+sudo phpenmod pdo_duckdb
 
-    php -m | grep duckdb
-    php test.php
+php -m | grep duckdb
+php test.php
 ```
 
 ## Compile ZTS
 
 ```bash
-    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
-    cd pdo_duckdb
+git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
+cd pdo_duckdb
 
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip
-    unzip -o libduckdb-src.zip duckdb.hpp -d ./
+wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip
+unzip -o libduckdb-src.zip duckdb.hpp -d ./
 
-    wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip
-    unzip -o static-libs-linux-amd64.zip -d ./
+wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip
+unzip -o static-libs-linux-amd64.zip -d ./
 
-    phpize-zts
-    ./configure --with-pdo-duckdb --with-php-config=php-config-zts
-    make
-    NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+phpize-zts
+./configure --with-pdo-duckdb --with-php-config=php-config-zts
+make
+NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
-    sudo make install
-    sudo sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
+sudo make install
+sudo sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
 
-    php-zts -m | grep duckdb
-    php-zts test.php
-```
-
-## Compile with PHP TrueAsync
-
-```bash
-    docker build --no-cache -f Dockerfile.trueasync2 -t pdo_duckdb_trueasync2 .
-    docker run --rm -it pdo_duckdb_trueasync2 php -m
-    docker run --rm -it -v $(pwd):/app pdo_duckdb_trueasync2 php /app/test_trueasync.php
+php-zts -m | grep duckdb
+php-zts test.php
 ```
 
 ## Install with Swoole
 
 ```bash
-    docker build --no-cache -f Dockerfile.swoole_zts -t pdo_duckdb_swoole_zts .
-    docker run --rm -it pdo_duckdb_swoole_zts php -m
-    docker run --rm -it -v $(pwd):/app pdo_duckdb_swoole_zts php /app/test_swoole.php
+    echo "deb https://packages.sury.org/php/ noble main" >/etc/apt/sources.list.d/ondrej-php.list
+    curl -s https://packages.sury.org/php/apt.gpg >/etc/apt/trusted.gpg.d/php.gpg
+    sudo apt-get -y update
+    sudo apt-get -y --no-install-recommends install php8.5-cli php8.5-swoole
+    curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
+    sudo php /tmp/pie install thomas-0816/pdo-duckdb-php
+    # test
+    php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php test_swoole.php
+```
+
+
+## Compile with PHP TrueAsync
+
+```bash
+docker build --no-cache -f Dockerfile.trueasync2 -t pdo_duckdb_trueasync2 .
+docker run --rm -it pdo_duckdb_trueasync2 php -m
+docker run --rm -it -v $(pwd):/app pdo_duckdb_trueasync2 php /app/test_trueasync.php
 ```
 
 ## Why DuckDB?
