@@ -9,9 +9,11 @@
 #include "ext/pdo/php_pdo_driver.h"
 #include "Zend/zend_exceptions.h"
 #include "php_pdo_duckdb.h"
+#include "duckdb_swoole.h"
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
+#include <stdlib.h>
 
 /* Forward declaration of statement methods (defined in duckdb_statement.c) */
 extern struct pdo_stmt_methods duckdb_stmt_methods;
@@ -73,6 +75,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 
 	H = ecalloc(1, sizeof(pdo_duckdb_db_handle));
 	H->error_msg[0] = '\0';
+	H->thread_lock = pdo_duckdb_thread_lock_new();
 	dbh->driver_data = H;
 
 	/* Extract path — PDO passes the part after the first colon */
@@ -108,10 +111,10 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 		}
 	}
 
-	if (strcmp(dbname, ":memory:") == 0) {
-		state = duckdb_open_ext(NULL, &H->db, config, &err);
+	if (H->thread_lock) {
+		state = pdo_duckdb_swoole_open_ext(H->thread_lock, (strcmp(dbname, ":memory:") == 0) ? NULL : dbname, &H->db, config, &err);
 	} else {
-		state = duckdb_open_ext(dbname, &H->db, config, &err);
+		state = duckdb_open_ext((strcmp(dbname, ":memory:") == 0) ? NULL : dbname, &H->db, config, &err);
 	}
 
 	if (config) {
@@ -123,6 +126,9 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 			"SQLSTATE[HY000]: Could not open DuckDB database: %s",
 			err ? err : "unknown error");
 		if (err) duckdb_free(err);
+		if (H->thread_lock) {
+			free(H->thread_lock);
+		}
 		efree(deferred_tz);
 		efree(dbname);
 		dbh->driver_data = NULL;
@@ -132,10 +138,18 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	if (err) duckdb_free(err);
 	efree(dbname);
 
-	if (duckdb_connect(H->db, &H->conn) != DuckDBSuccess) {
+	if (H->thread_lock) {
+		state = pdo_duckdb_swoole_connect(H->thread_lock, H->db, &H->conn);
+	} else {
+		state = duckdb_connect(H->db, &H->conn);
+	}
+	if (state != DuckDBSuccess) {
 		duckdb_close(&H->db);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0,
 			"SQLSTATE[HY000]: Could not create DuckDB connection");
+		if (H->thread_lock) {
+			free(H->thread_lock);
+		}
 		efree(deferred_tz);
 		dbh->driver_data = NULL;
 		efree(H);
@@ -143,7 +157,11 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	}
 
 	if (deferred_tz) {
-		duckdb_query(H->conn, deferred_tz, NULL);
+		if (H->thread_lock) {
+			pdo_duckdb_swoole_query(H->thread_lock, H->conn, deferred_tz, NULL);
+		} else {
+			duckdb_query(H->conn, deferred_tz, NULL);
+		}
 		efree(deferred_tz);
 	}
 
@@ -168,6 +186,9 @@ static void duckdb_handle_closer(pdo_dbh_t *dbh)
 			duckdb_close(&H->db);
 			H->db = NULL;
 		}
+		if (H->thread_lock) {
+			free(H->thread_lock);
+		}
 		efree(H);
 		dbh->driver_data = NULL;
 	}
@@ -184,6 +205,7 @@ static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql,
 	S = ecalloc(1, sizeof(pdo_duckdb_stmt));
 	stmt->driver_data = S;
 	S->stmt = NULL;
+	S->thread_lock = H->thread_lock;
 	S->result_set = 0;
 	S->done = 0;
 	S->chunk = NULL;
@@ -191,7 +213,12 @@ static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql,
 	S->chunk_size = 0;
 
 	char *prepared_sql = zstr_prepare(sql);
-	duckdb_state state = duckdb_prepare(H->conn, prepared_sql, &S->stmt);
+	duckdb_state state;
+	if (H->thread_lock) {
+		state = pdo_duckdb_swoole_prepare(H->thread_lock, H->conn, prepared_sql, &S->stmt);
+	} else {
+		state = duckdb_prepare(H->conn, prepared_sql, &S->stmt);
+	}
 	efree(prepared_sql);
 
 	if (state != DuckDBSuccess) {
@@ -220,7 +247,12 @@ static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	duckdb_result result;
 	char *prepared_sql = zstr_prepare((zend_string *)sql);
-	duckdb_state state = duckdb_query(H->conn, prepared_sql, &result);
+	duckdb_state state;
+	if (H->thread_lock) {
+		state = pdo_duckdb_swoole_query(H->thread_lock, H->conn, prepared_sql, &result);
+	} else {
+		state = duckdb_query(H->conn, prepared_sql, &result);
+	}
 	efree(prepared_sql);
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&result);
@@ -259,7 +291,12 @@ static bool duckdb_handle_begin(pdo_dbh_t *dbh)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	duckdb_result res;
-	duckdb_state st = duckdb_query(H->conn, "BEGIN TRANSACTION", &res);
+	duckdb_state st;
+	if (H->thread_lock) {
+		st = pdo_duckdb_swoole_query(H->thread_lock, H->conn, "BEGIN TRANSACTION", &res);
+	} else {
+		st = duckdb_query(H->conn, "BEGIN TRANSACTION", &res);
+	}
 	duckdb_destroy_result(&res);
 	if (st != DuckDBSuccess) {
 		pdo_duckdb_error(dbh);
@@ -272,7 +309,12 @@ static bool duckdb_handle_commit(pdo_dbh_t *dbh)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	duckdb_result res;
-	duckdb_state st = duckdb_query(H->conn, "COMMIT", &res);
+	duckdb_state st;
+	if (H->thread_lock) {
+		st = pdo_duckdb_swoole_query(H->thread_lock, H->conn, "COMMIT", &res);
+	} else {
+		st = duckdb_query(H->conn, "COMMIT", &res);
+	}
 	duckdb_destroy_result(&res);
 	if (st != DuckDBSuccess) {
 		pdo_duckdb_error(dbh);
@@ -285,7 +327,12 @@ static bool duckdb_handle_rollback(pdo_dbh_t *dbh)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	duckdb_result res;
-	duckdb_state st = duckdb_query(H->conn, "ROLLBACK", &res);
+	duckdb_state st;
+	if (H->thread_lock) {
+		st = pdo_duckdb_swoole_query(H->thread_lock, H->conn, "ROLLBACK", &res);
+	} else {
+		st = duckdb_query(H->conn, "ROLLBACK", &res);
+	}
 	duckdb_destroy_result(&res);
 	if (st != DuckDBSuccess) {
 		pdo_duckdb_error(dbh);
@@ -367,7 +414,12 @@ static zend_result duckdb_check_liveness(pdo_dbh_t *dbh)
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	/* A simple query to test connection */
 	duckdb_result res;
-	duckdb_state st = duckdb_query(H->conn, "SELECT 1", &res);
+	duckdb_state st;
+	if (H->thread_lock) {
+		st = pdo_duckdb_swoole_query(H->thread_lock, H->conn, "SELECT 1", &res);
+	} else {
+		st = duckdb_query(H->conn, "SELECT 1", &res);
+	}
 	if (st != DuckDBSuccess) {
 		duckdb_destroy_result(&res);
 		return FAILURE;

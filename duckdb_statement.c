@@ -9,6 +9,7 @@
 #include "ext/pdo/php_pdo_driver.h"
 #include "Zend/zend_exceptions.h"
 #include "php_pdo_duckdb.h"
+#include "duckdb_swoole.h"
 #include <math.h>
 #include "ext/json/php_json.h"
 #include "Zend/zend_smart_str.h"
@@ -26,10 +27,16 @@ static int fetch_next_chunk(pdo_duckdb_stmt *S)
 	}
 
 	if (S->is_streaming) {
-		S->chunk = duckdb_fetch_chunk(*res);
+		if (S->thread_lock) {
+			S->chunk = pdo_duckdb_swoole_fetch_chunk(S->thread_lock, NULL, *res);
+		} else {
+			S->chunk = duckdb_fetch_chunk(*res);
+		}
 	} else {
 		if (S->next_chunk_index >= duckdb_result_chunk_count(*res)) {
 			S->chunk = NULL;
+		} else if (S->thread_lock) {
+			S->chunk = pdo_duckdb_swoole_result_get_chunk(S->thread_lock, NULL, *res, S->next_chunk_index++);
 		} else {
 			S->chunk = duckdb_result_get_chunk(*res, S->next_chunk_index++);
 		}
@@ -65,9 +72,17 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 
 	duckdb_state state;
 	if (H->unbuffered) {
-		state = duckdb_execute_prepared_streaming(S->stmt, &S->result);
+		if (H->thread_lock) {
+			state = pdo_duckdb_swoole_execute_prepared_streaming(H->thread_lock, H->conn, S->stmt, &S->result);
+		} else {
+			state = duckdb_execute_prepared_streaming(S->stmt, &S->result);
+		}
 	} else {
-		state = duckdb_execute_prepared(S->stmt, &S->result);
+		if (H->thread_lock) {
+			state = pdo_duckdb_swoole_execute_prepared(H->thread_lock, H->conn, S->stmt, &S->result);
+		} else {
+			state = duckdb_execute_prepared(S->stmt, &S->result);
+		}
 	}
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&S->result);
