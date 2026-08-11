@@ -2,22 +2,41 @@
 
 Swoole\Coroutine::set(['hook_flags'=> SWOOLE_HOOK_ALL]);
 
-// run sequentially
+// run parallel, connection opened inside of coroutine
+$start = microtime(true);
 Swoole\Coroutine\run(function() {
-    $pdo = new PDO('duckdb::memory:');
-    $pdo->exec('create table orders (user_id integer primary key)');
     $wg = new Swoole\Coroutine\WaitGroup();
-    for ($i = 0; $i < 10; $i++) {
-        Swoole\Coroutine::create(function () use ($wg, $pdo, $i) {
+    for ($i = 0; $i < 5; $i++) {
+        Swoole\Coroutine::create(function () use ($wg) {
             $wg->add();
-            $pdo->exec("INSERT INTO orders (user_id) VALUES ($i)");
+            $pdo = new PDO('duckdb::memory:');
+            $pdo->exec("select sleep_ms(1000)");
             echo '.';
             $wg->done();
         });
     }
     $wg->wait(10);
-    echo json_encode($pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN)), PHP_EOL;
+    echo 'done';
 });
+echo microtime(true) - $start, PHP_EOL;
+
+// run sequentially, connection opened outside of coroutine
+$start = microtime(true);
+Swoole\Coroutine\run(function() {
+    $wg = new Swoole\Coroutine\WaitGroup();
+    $pdo = new PDO('duckdb::memory:');
+    for ($i = 0; $i < 5; $i++) {
+        Swoole\Coroutine::create(function () use ($wg, $pdo) {
+            $wg->add();
+            $pdo->exec("select sleep_ms(1000)");
+            echo '.';
+            $wg->done();
+        });
+    }
+    $wg->wait(10);
+    echo 'done';
+});
+echo microtime(true) - $start, PHP_EOL;
 
 
 // run sequentially, random delay, changes order
