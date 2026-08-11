@@ -1,5 +1,5 @@
 /*
- * Swoole interop for pdo_duckdb — see duckdb_swoole.h for the rationale.
+ * Swoole interop for pdo_duckdb — see php_pdo_duckdb.h for the rationale.
  *
  * All Swoole entry points are referenced as weak declarations, so there is no
  * link-time dependency on Swoole and no symbol name is hardcoded in the source
@@ -11,7 +11,6 @@
 
 #include "php.h"
 #include "php_pdo_duckdb.h"
-#include "duckdb_swoole.h"
 #include <cstdlib>
 #include <functional>
 

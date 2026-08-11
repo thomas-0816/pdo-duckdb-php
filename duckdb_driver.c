@@ -9,7 +9,6 @@
 #include "ext/pdo/php_pdo_driver.h"
 #include "Zend/zend_exceptions.h"
 #include "php_pdo_duckdb.h"
-#include "duckdb_swoole.h"
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif

@@ -38,7 +38,7 @@ typedef struct _pdo_duckdb_db_handle {
 	char               error_msg[256];    /* last error message */
 	int                auto_commit;       /* PDO::ATTR_AUTOCOMMIT */
 	int                unbuffered;        /* PDO::DUCKDB_ATTR_UNBUFFERED */
-	void              *thread_lock;       /* per-connection async serialization lock (see duckdb_swoole.h) */
+	void              *thread_lock;       /* per-connection async serialization lock */
 } pdo_duckdb_db_handle;
 
 /* Statement data – one per PDOStatement handle */
@@ -53,11 +53,33 @@ typedef struct _pdo_duckdb_stmt {
 	int                       is_streaming; /* TRUE if result is streaming */
 	idx_t                     next_chunk_index; /* for non‑streaming results, index of next chunk */
 	idx_t                     total_rows;       /* total rows consumed from previous chunks */
-	void                     *thread_lock;      /* per-connection async serialization lock (see duckdb_swoole.h) */
+	void                     *thread_lock;      /* per-connection async serialization lock */
 } pdo_duckdb_stmt;
 
 /* Helpers implemented in duckdb_stubs.cpp */
 char *duckdb_get_json_string(duckdb_connection conn, duckdb_vector vector, idx_t row);
 char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, idx_t row);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+/* Swoole interop: DuckDB's blocking C API is offloaded to Swoole's async
+ * thread pool while inside a coroutine. All Swoole entry points are declared
+ * weak (no link-time dependency); weak references bind at load time, so Swoole
+ * must load before this extension or calls run synchronously. */
+int pdo_duckdb_swoole_loaded(void);              /* 1 iff Swoole loaded before this extension */
+void *pdo_duckdb_thread_lock_new(void);          /* new busy-flag lock, or NULL when Swoole unavailable */
+/* DuckDB calls serialized through `lock` via Swoole's async thread pool. */
+duckdb_state pdo_duckdb_swoole_open_ext(void *lock, const char *path, duckdb_database *out_database, duckdb_config config, char **out_error);
+duckdb_state pdo_duckdb_swoole_connect(void *lock, duckdb_database database, duckdb_connection *out_connection);
+duckdb_state pdo_duckdb_swoole_prepare(void *lock, duckdb_connection connection, const char *query, duckdb_prepared_statement *out_statement);
+duckdb_state pdo_duckdb_swoole_execute_prepared(void *lock, duckdb_connection connection, duckdb_prepared_statement statement, duckdb_result *out_result);
+duckdb_state pdo_duckdb_swoole_execute_prepared_streaming(void *lock, duckdb_connection connection, duckdb_prepared_statement statement, duckdb_result *out_result);
+duckdb_state pdo_duckdb_swoole_query(void *lock, duckdb_connection connection, const char *query, duckdb_result *out_result);
+duckdb_data_chunk pdo_duckdb_swoole_fetch_chunk(void *lock, duckdb_connection connection, duckdb_result result);
+duckdb_data_chunk pdo_duckdb_swoole_result_get_chunk(void *lock, duckdb_connection connection, duckdb_result result, idx_t chunk_index);
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* PHP_PDO_DUCKDB_INT_H */
