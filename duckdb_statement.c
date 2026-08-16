@@ -678,6 +678,12 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 				state = DuckDBError;
 			}
 			smart_str_free(&buf);
+		} else if (Z_TYPE_P(&param->parameter) == IS_TRUE || Z_TYPE_P(&param->parameter) == IS_FALSE) {
+			state = duckdb_bind_boolean(S->stmt, idx, zend_is_true(&param->parameter) ? 1 : 0);
+		} else if (Z_TYPE_P(&param->parameter) == IS_LONG) {
+			state = duckdb_bind_int64(S->stmt, idx, (int64_t)zval_get_long(&param->parameter));
+		} else if (Z_TYPE_P(&param->parameter) == IS_DOUBLE) {
+			state = duckdb_bind_double(S->stmt, idx, zval_get_double(&param->parameter));
 		} else switch (PDO_PARAM_TYPE(param->param_type)) {
 			case PDO_PARAM_NULL:
 				state = duckdb_bind_null(S->stmt, idx);
