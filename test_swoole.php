@@ -1,6 +1,9 @@
 <?php
 
-Swoole\Coroutine::set(['hook_flags'=> SWOOLE_HOOK_ALL]);
+ini_set('swoole.aio_thread_num', 8); // defaults to maximum number of CPU cores available
+// server workers: $server->set(['worker_num' => 8]);
+// Swoole\Coroutine::set(['hook_flags'=> SWOOLE_HOOK_ALL]);
+
 
 // run parallel, connection opened inside of coroutine
 $start = microtime(true);
@@ -19,6 +22,7 @@ Swoole\Coroutine\run(function() {
     echo 'done';
 });
 echo microtime(true) - $start, PHP_EOL;
+
 
 // run sequentially, connection opened outside of coroutine
 $start = microtime(true);
