@@ -498,6 +498,27 @@ php-zts test.php
     php test_swoole.php
 ```
 
+## Swoole example
+
+```php
+ini_set('swoole.aio_thread_num', 8); // default: max. number of CPU cores
+// server workers: $server->set(['worker_num' => 8]);
+$start = microtime(true);
+Swoole\Coroutine\run(function() {
+    $waitGroup = new Swoole\Coroutine\WaitGroup();
+    for ($i = 0; $i < 8; $i++) {
+        Swoole\Coroutine::create(function () use ($waitGroup) {
+            $waitGroup->add();
+            $pdo = new PDO('duckdb::memory:');
+            $pdo->exec("select sleep_ms(1000)");
+            echo '.';
+            $waitGroup->done();
+        });
+    }
+    $waitGroup->wait(10);
+});
+echo microtime(true) - $start, PHP_EOL; // 1 second
+```
 
 ## Compile with PHP TrueAsync
 
