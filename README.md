@@ -344,7 +344,9 @@ print_r($rows);
 #         [origin] => offline
 ```
 
-## Read public data using HTTPs, JSON and CSV
+## Read public data using HTTPs, JSON, CSV and Parquet
+
+Query weather data:
 
 ```php
 $db = new PDO('duckdb::memory:');
@@ -359,6 +361,51 @@ echo json_encode($rows->fetchAll(PDO::FETCH_ASSOC)), PHP_EOL;
 
 # [{"id":"10381","en":"Berlin \/ Dahlem"},{"id":"10382","en":"Berlin \/ Tegel"}]
 # [{"hour":10,"temp":24.1},{"hour":11,"temp":25.5},{"hour":12,"temp":26.4},{"hour":13,"temp":27.4}]
+```
+
+Download and query historical data from Deutsche Bahn:
+
+```php
+# wget https://huggingface.co/datasets/piebro/deutsche-bahn-data/resolve/main/monthly_processed_data/data-2026-07.parquet
+
+$db = new PDO('duckdb::memory:');
+$rows = $db->query("
+    SELECT train_type, train_number, round(avg(delay_in_min)) as delay_avg, count(*) as count
+    FROM 'data-2026-07.parquet' WHERE train_type = 'ICE'
+    GROUP BY train_number, train_type
+    ORDER BY delay_avg DESC
+    LIMIT 10
+");
+print_r(array_map('json_encode', $rows->fetchAll(PDO::FETCH_ASSOC)));
+
+$rows = $db->query("
+    SELECT train_number, delay_in_min, hour(time) as hour, departure_is_canceled
+    FROM 'data-2026-07.parquet'
+    WHERE train_number = 647 AND time::date = '2026-07-11'
+");
+print_r(array_map('json_encode', $rows->fetchAll(PDO::FETCH_ASSOC)));
+
+# Array
+#     {"train_type":"ICE","train_number":"647","delay_avg":70,"count":35}
+#     {"train_type":"ICE","train_number":"1541","delay_avg":66,"count":198}
+#     {"train_type":"ICE","train_number":"79152","delay_avg":44,"count":2}
+#     {"train_type":"ICE","train_number":"2587","delay_avg":44,"count":72}
+#     {"train_type":"ICE","train_number":"2214","delay_avg":43,"count":159}
+#     {"train_type":"ICE","train_number":"953","delay_avg":42,"count":79}
+#     {"train_type":"ICE","train_number":"2311","delay_avg":42,"count":289}
+#     {"train_type":"ICE","train_number":"859","delay_avg":41,"count":80}
+#     {"train_type":"ICE","train_number":"526","delay_avg":41,"count":337}
+#     {"train_type":"ICE","train_number":"2512","delay_avg":39,"count":28}
+# Array
+#     {"train_number":"647","delay_in_min":82,"hour":0,"departure_is_canceled":false}
+#     {"train_number":"647","delay_in_min":120,"hour":1,"departure_is_canceled":false}
+#     {"train_number":"647","delay_in_min":120,"hour":1,"departure_is_canceled":false}
+#     {"train_number":"647","delay_in_min":123,"hour":2,"departure_is_canceled":false}
+#     {"train_number":"647","delay_in_min":138,"hour":2,"departure_is_canceled":false}
+#     {"train_number":"647","delay_in_min":135,"hour":3,"departure_is_canceled":false}
+#     {"train_number":"647","delay_in_min":121,"hour":4,"departure_is_canceled":true}
+#     {"train_number":"647","delay_in_min":120,"hour":4,"departure_is_canceled":false}
+#     {"train_number":"647","delay_in_min":146,"hour":4,"departure_is_canceled":false}
 ```
 
 ## Community extensions

@@ -47,6 +47,12 @@ $db->exec("INSERT INTO t1 VALUES ({'v': MAP {'key1': 10}}), ({'v': {'key1': 'val
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec("create table t1 (v VARIANT)");
+$db->exec("INSERT INTO t1 VALUES ('[1, 2, 3]')");
+$statement = $db->query("SELECT * FROM t1");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(7) {
