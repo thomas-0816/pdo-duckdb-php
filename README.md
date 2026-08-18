@@ -661,6 +661,11 @@ There is no “enterprise version” of DuckDB.
     make EXTRA_CFLAGS="-Wall -Wextra -Wno-unused-parameter" EXTRA_CXXFLAGS="-Wall -Wextra -Wno-unused-parameter"
 ```
 
+## Laravel / Symfony
+
+- [Laravel Eloquent driver for DuckDB](https://github.com/thomas-0816/laravel-duckdb)
+- [Doctrine DBAL for DuckDB](https://github.com/thomas-0816/doctrine-dbal-duckdb)
+
 ## AI Disclosure
 
 The C code is written by AI, the tests are written without AI.
