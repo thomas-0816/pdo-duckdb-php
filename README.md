@@ -379,7 +379,7 @@ $rows = $db->query("
 print_r(array_map('json_encode', $rows->fetchAll(PDO::FETCH_ASSOC)));
 
 $rows = $db->query("
-    SELECT train_number, delay_in_min, hour(time) as hour, departure_is_canceled
+    SELECT train_number, station_name, delay_in_min, hour(time) as hour, departure_is_canceled
     FROM 'data-2026-07.parquet'
     WHERE train_number = 647 AND time::date = '2026-07-11'
 ");
@@ -397,15 +397,15 @@ print_r(array_map('json_encode', $rows->fetchAll(PDO::FETCH_ASSOC)));
 #     {"train_type":"ICE","train_number":"526","delay_avg":41,"count":337}
 #     {"train_type":"ICE","train_number":"2512","delay_avg":39,"count":28}
 # Array
-#     {"train_number":"647","delay_in_min":82,"hour":0,"departure_is_canceled":false}
-#     {"train_number":"647","delay_in_min":120,"hour":1,"departure_is_canceled":false}
-#     {"train_number":"647","delay_in_min":120,"hour":1,"departure_is_canceled":false}
-#     {"train_number":"647","delay_in_min":123,"hour":2,"departure_is_canceled":false}
-#     {"train_number":"647","delay_in_min":138,"hour":2,"departure_is_canceled":false}
-#     {"train_number":"647","delay_in_min":135,"hour":3,"departure_is_canceled":false}
-#     {"train_number":"647","delay_in_min":121,"hour":4,"departure_is_canceled":true}
-#     {"train_number":"647","delay_in_min":120,"hour":4,"departure_is_canceled":false}
-#     {"train_number":"647","delay_in_min":146,"hour":4,"departure_is_canceled":false}
+#     {"train_number":"647","station_name":"Dortmund Hbf","delay_in_min":82,"hour":0,"departure_is_canceled":false}
+#     {"train_number":"647","station_name":"Hamm (Westf) Hbf","delay_in_min":120,"hour":1,"departure_is_canceled":false}
+#     {"train_number":"647","station_name":"Bielefeld Hbf","delay_in_min":120,"hour":1,"departure_is_canceled":false}
+#     {"train_number":"647","station_name":"Minden (Westf)","delay_in_min":123,"hour":2,"departure_is_canceled":false}
+#     {"train_number":"647","station_name":"Hannover Hbf","delay_in_min":138,"hour":2,"departure_is_canceled":false}
+#     {"train_number":"647","station_name":"Wolfsburg Hbf","delay_in_min":135,"hour":3,"departure_is_canceled":false}
+#     {"train_number":"647","station_name":"Berlin Hauptbahnhof","delay_in_min":121,"hour":4,"departure_is_canceled":true}
+#     {"train_number":"647","station_name":"Berlin S\u00fcdkreuz","delay_in_min":120,"hour":4,"departure_is_canceled":false}
+#     {"train_number":"647","station_name":"Berlin-Spandau","delay_in_min":146,"hour":4,"departure_is_canceled":false}
 ```
 
 ## Community extensions
