@@ -627,14 +627,9 @@ For logs you normally achieve compression rates of 50-100x.
 
 The DuckDB project is owned and maintained by the [DuckDB Foundation](https://duckdb.foundation), a non-profit organization from Amsterdam.
 
-> Can I get commercial support for DuckDB?
+> Can I get support for DuckDB?
 
-Yes. Commercial support is available from [DuckLabs](https://ducklabs.com), a company based in Amsterdam.
-
-> Can I get free support for DuckDB?
-
-Yes. Free support is available on GitHub and Discord, see the [support policy](https://ducklabs.com/community_support_policy/) for details.\
-You can meet the core team in-person on community events, meetup, conferences, etc.
+Yes. support is available on GitHub, see the [community support](https://duckdb.org/community_support) page for details.\
 
 > Is the PHP PDO Driver for DuckDB developed by the DuckDB project?
 
@@ -642,8 +637,7 @@ No. This is a third-party open-source community project.
 
 > Is DuckDB fully open-source?
 
-Yes. DuckDB and all components are fully open-source under the MIT license.\
-There is no “enterprise version” of DuckDB.
+Yes. DuckDB and all components are fully open-source under the MIT license.
 
 ## Development
 
