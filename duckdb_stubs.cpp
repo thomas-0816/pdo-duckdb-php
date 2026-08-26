@@ -10,36 +10,39 @@ extern "C" int duckdb_has_active_transaction(duckdb_connection conn) {
 	}
 }
 
-extern "C" char *duckdb_get_json_string(duckdb_connection conn, duckdb_vector vec, idx_t row) {
-	if (!vec) return NULL;
+// Forward-declare VariantUtils::ConvertVariantToValue (omitted from amalgamation header)
+namespace duckdb {
+struct VariantUtils {
+	static Value ConvertVariantToValue(const UnifiedVariantVectorData &variant, idx_t row, uint32_t values_idx);
+};
+}
 
+extern "C" int duckdb_variant_to_vector(duckdb_vector vec, idx_t row,
+                                         duckdb_vector *out_vec, duckdb_logical_type *out_type) {
 	try {
-		auto *conn_ptr = reinterpret_cast<duckdb::Connection *>(conn);
-		auto &context = *conn_ptr->context;
-
 		auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
-		auto value = vec_ptr->GetValue(row);
 
-		if (value.IsNull()) return NULL;
+		duckdb::RecursiveUnifiedVectorFormat format;
+		duckdb::Vector::RecursiveToUnifiedFormat(*vec_ptr, 1, format);
+		duckdb::UnifiedVariantVectorData variant_data(format);
 
-		auto json_str = value.CastAs(context, duckdb::LogicalType::JSON()).ToString();
+		auto value = duckdb::VariantUtils::ConvertVariantToValue(variant_data, row, 0);
+		if (value.IsNull()) return 0;
 
-		// If the JSON result starts with '"', the variant contained a VARCHAR value
-		// (DuckDB wraps VARCHAR content in a JSON string). Fall back to VARCHAR cast
-		// to preserve the raw content for php_json_decode_ex in the caller.
-		if (!json_str.empty() && json_str[0] == '"') {
-			json_str = value.CastAs(context, duckdb::LogicalType::VARCHAR).ToString();
-		}
-
-		auto *result = (char *)duckdb_malloc(json_str.size() + 1);
-		if (result) {
-			memcpy(result, json_str.c_str(), json_str.size());
-			result[json_str.size()] = '\0';
-		}
-
-		return result;
+		auto type = value.type();
+		auto *tmp_vec = new duckdb::Vector(value);
+		tmp_vec->Flatten(1);
+		*out_vec = reinterpret_cast<duckdb_vector>(tmp_vec);
+		*out_type = reinterpret_cast<duckdb_logical_type>(new duckdb::LogicalType(type));
+		return 1;
 	} catch (...) {
-		return NULL;
+		return 0;
+	}
+}
+
+extern "C" void duckdb_free_vector(duckdb_vector vec) {
+	if (vec) {
+		delete reinterpret_cast<duckdb::Vector *>(vec);
 	}
 }
 

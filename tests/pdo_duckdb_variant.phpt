@@ -7,7 +7,7 @@ pdo_duckdb
 
 $db = new PDO('duckdb::memory:');
 $db->exec("create table t1 (v VARIANT)");
-$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?), (?), (?), (?), (?), (?)");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?::integer), (?::decimal), (?), (?::integer[]), (?::varchar[]), (?::json)");
 $statement->execute(['hello', 42, 42.21, null, [1, 2], ['foo', 'bar'], ['foo' => 'bar']]);
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
@@ -15,7 +15,7 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'Europe/Berlin']]);
 $db->exec("create table t1 (v VARIANT)");
 $db->exec("CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy')");
-$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?), (?), (?), (?), (?), (?), (?), (?)");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?::integer), (?::decimal), (?), (?::integer[]), (?::json::variant), (?::json), (?::hugeint), (?::bignum)");
 $statement->execute(['hello', 42, 42.21, null, [1, 2], ['foo', 'bar', true, null], ['foo' => 'bar'], 9223372036854775807, '340282366920938463463374607431768211455']);
 $db->exec("INSERT INTO t1 VALUES (1/0), (-1/0), (0/0), ('101010'::BIT), ('2969-01-01'::date), (INTERVAL 1 YEAR), (true), (uuidv4()), ('sad'::mood), (union_value(str := 'three'))");
 $db->exec("INSERT INTO t1 VALUES (MAP {'key1': 10}), ('[1, null, {\"key\": \"value\"}]'::JSON), ({'key1': 'value1'})");
@@ -31,7 +31,7 @@ $db->exec("INSERT INTO t1 VALUES (TIMESTAMPTZ '1992-09-20 11:30:00.123456789'), 
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$db = new PDO('duckdb::memory:');
+$db = new PDO('duckdb::memory:'); // uses system default Europe/Berlin
 $db->exec("create table t1 (v3 VARIANT)");
 $db->exec("INSERT INTO t1 VALUES (TIMESTAMPTZ '1992-09-20 11:30:00.123456789'), (TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00'), (timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40'))");
 $statement = $db->query("SELECT * FROM t1");
@@ -161,7 +161,7 @@ array(28) {
   [7]=>
   array(1) {
     ["v"]=>
-    int(9223372036854775807)
+    string(19) "9223372036854775807"
   }
   [8]=>
   array(1) {
@@ -171,22 +171,22 @@ array(28) {
   [9]=>
   array(1) {
     ["v"]=>
-    string(8) "Infinity"
+    float(INF)
   }
   [10]=>
   array(1) {
     ["v"]=>
-    string(9) "-Infinity"
+    float(-INF)
   }
   [11]=>
   array(1) {
     ["v"]=>
-    string(3) "NaN"
+    float(NAN)
   }
   [12]=>
   array(1) {
     ["v"]=>
-    int(101010)
+    string(6) "101010"
   }
   [13]=>
   array(1) {
@@ -272,17 +272,17 @@ array(28) {
   [25]=>
   array(1) {
     ["v"]=>
-    string(29) "1992-09-20 09:30:00.123456+00"
+    string(29) "1992-09-20 11:30:00.123456+02"
   }
   [26]=>
   array(1) {
     ["v"]=>
-    string(29) "1992-09-20 11:30:00.123456+00"
+    string(29) "1992-09-20 13:30:00.123456+02"
   }
   [27]=>
   array(1) {
     ["v"]=>
-    string(22) "2001-02-17 03:38:40+00"
+    string(22) "2001-02-17 04:38:40+01"
   }
 }
 array(3) {
@@ -306,17 +306,17 @@ array(3) {
   [0]=>
   array(1) {
     ["v3"]=>
-    string(29) "1992-09-20 %d:30:00.123456+00"
+    string(29) "1992-09-20 11:30:00.123456+02"
   }
   [1]=>
   array(1) {
     ["v3"]=>
-    string(29) "1992-09-20 11:30:00.123456+00"
+    string(29) "1992-09-20 13:30:00.123456+02"
   }
   [2]=>
   array(1) {
     ["v3"]=>
-    string(22) "2001-02-17 03:38:40+00"
+    string(22) "2001-02-17 04:38:40+01"
   }
 }
 array(3) {
@@ -360,13 +360,6 @@ array(1) {
   [0]=>
   array(1) {
     ["v"]=>
-    array(3) {
-      [0]=>
-      int(1)
-      [1]=>
-      int(2)
-      [2]=>
-      int(3)
-    }
+    string(9) "[1, 2, 3]"
   }
 }

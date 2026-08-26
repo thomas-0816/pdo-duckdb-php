@@ -57,8 +57,14 @@ typedef struct _pdo_duckdb_stmt {
 } pdo_duckdb_stmt;
 
 /* Helpers implemented in duckdb_stubs.cpp */
-char *duckdb_get_json_string(duckdb_connection conn, duckdb_vector vector, idx_t row);
 char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, idx_t row);
+int duckdb_variant_to_vector(duckdb_vector vec, idx_t row,
+                             duckdb_vector *out_vec, duckdb_logical_type *out_type);
+void duckdb_free_vector(duckdb_vector vec);
+
+/* Implemented in duckdb_statement.c */
+void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec,
+	duckdb_logical_type logical_type, idx_t row_idx, zval *result);
 
 #ifdef __cplusplus
 extern "C" {

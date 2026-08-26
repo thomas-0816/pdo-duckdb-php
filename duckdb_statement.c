@@ -153,7 +153,7 @@ static zend_string *zval_to_map_key(zval *zv)
 /* Recursively convert a value from a DuckDB vector to a PHP zval.
    The logical_type is used to determine the type and to access child types
    for nested/complex types (struct, list, map). */
-static void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_logical_type logical_type, idx_t row_idx, zval *result)
+void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_logical_type logical_type, idx_t row_idx, zval *result)
 {
 	duckdb_type col_type = duckdb_get_type_id(logical_type);
 	uint64_t *validity = duckdb_vector_get_validity(vec);
@@ -411,15 +411,14 @@ static void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 			break;
 		}
 		case DUCKDB_TYPE_VARIANT: {
-			char *str = duckdb_get_json_string(conn, vec, row_idx);
-			if (str == NULL) {
-				ZVAL_NULL(result);
+			duckdb_vector typed_vec;
+			duckdb_logical_type typed_type;
+			if (duckdb_variant_to_vector(vec, row_idx, &typed_vec, &typed_type)) {
+				duckdb_val_from_vector(conn, typed_vec, typed_type, 0, result);
+				duckdb_destroy_logical_type(&typed_type);
+				duckdb_free_vector(typed_vec);
 			} else {
-				size_t str_len = strlen(str);
-				if (php_json_decode_ex(result, str, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
-					ZVAL_STRINGL(result, str, str_len);
-				}
-				duckdb_free(str);
+				ZVAL_NULL(result);
 			}
 			break;
 		}
