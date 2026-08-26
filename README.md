@@ -629,7 +629,7 @@ The DuckDB project is owned and maintained by the [DuckDB Foundation](https://du
 
 > Can I get support for DuckDB?
 
-Yes. support is available on GitHub, see the [community support](https://duckdb.org/community_support) page for details.\
+Yes. Support is available on GitHub, see the [community support](https://duckdb.org/community_support) page for details.
 
 > Is the PHP PDO Driver for DuckDB developed by the DuckDB project?
 
