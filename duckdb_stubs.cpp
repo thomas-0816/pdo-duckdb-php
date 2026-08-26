@@ -31,7 +31,6 @@ extern "C" int duckdb_variant_to_vector(duckdb_vector vec, idx_t row,
 
 		auto type = value.type();
 		auto *tmp_vec = new duckdb::Vector(value);
-		tmp_vec->Flatten(1);
 		*out_vec = reinterpret_cast<duckdb_vector>(tmp_vec);
 		*out_type = reinterpret_cast<duckdb_logical_type>(new duckdb::LogicalType(type));
 		return 1;
