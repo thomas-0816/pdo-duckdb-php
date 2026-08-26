@@ -578,36 +578,17 @@ docker run --rm -it -v $(pwd):/app pdo_duckdb_trueasync2 php /app/test_trueasync
 
 ## Why DuckDB?
 
-In-Process Architecture: Like SQLite, DuckDB embeds directly into host applications, eliminating the need for a separate server setup.
-
-Extreme Analytical Speed: It uses columnar storage and vectorized (batch) processing, running analytics 10–100x faster than traditional row-oriented databases.
-
-"Larger-than-Memory" Processing: DuckDB gracefully spills data to disk, allowing you to process massive datasets (e.g., 50GB+) on a machine with minimal RAM (e.g., 1GB).
-
-File-Format Agnostic: It can query flat files (JSON, CSV, and Parquet) directly via SQL without needing to import or load the data into a database first.
-
-No Infrastructure Cost: It brings data warehouse-level performance to your local laptop or local server.
-
-DuckDB achieves blazing-fast analytical performance through its __embedded, serverless multi-core__ architecture combined with columnar storage and vectorized execution.
-By executing queries directly within the host application, it eliminates serialization and network overhead, processing data in batches (vectors) rather
-than row-by-row for unparalleled speed.
-
 https://duckdb.org/why_duckdb
 
-Key Performance Advantages:
-
-Vectorized Query Execution: Unlike row-oriented engines, DuckDB processes data in cache-friendly batches (vectors). This allows modern hardware to operate on
-entire arrays of data simultaneously, drastically reducing CPU cycles per query.
-
-Columnar Storage: Data is stored by column rather than by row. For analytical queries that only require a few metrics,
-DuckDB only reads the relevant columns from disk/memory, saving massive amounts of I/O.
-
-Zero-Copy In-Process Engine: As an in-process database, DuckDB runs directly in the memory space of your application.
-
-Advanced Query Optimizer: DuckDB features an advanced query optimizer that handles filter pushdowns, unnesting of subqueries, and dynamic runtime filters.
-This ensures queries only scan necessary data and avoids full-table sorting when possible.
-
-Direct File Querying: You can query large datasets in open formats like Parquet and CSV directly on disk or in cloud storage (like AWS S3) without needing to import or convert the data first.
+Like SQLite, DuckDB embeds directly into host applications as a library, eliminating the need for network serialization and separate server setups.
+It uses columnar storage and vectorized processing, running analytics 10–100x faster than traditional row-oriented databases.
+DuckDB spills data to disk if needed, allowing to process datasets much larger than available system RAM.
+It includes an advanced query optimizer that handles joins, subqueries, expressions and filters.\
+DuckDB can directly query flat files (JSON, CSV, and Parquet) directly via SQL without needing to import the data first.
+Flat files can be read directly from disk, network attached storage or S3 comatible cloud storage.\
+Data is processed in cache-friendly batches on a multi-core architecture, allowing modern hardware to operate on arrays of data simultaneously.
+For analytical queries that only require a few metrics, DuckDB reads only the relevant columns from disk/memory, saving I/O and CPU cycles.
+This brings data warehouse-level performance to any laptop or server.
 
 ## FAQ
 
