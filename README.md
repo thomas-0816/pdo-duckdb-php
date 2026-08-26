@@ -8,7 +8,7 @@ DuckDB is an embedded SQL database designed for high-performance analytics (OLAP
 As a native PHP extension, it is implemented in C/C++ and does not require PHP FFI or preloading.\
 Compared to FFI, pdo_duckdb offers much more performance and lower latency by processing query results and type conversions in C/C++.
 It is also thread safe and fully tested with FrankenPHP (PHP-ZTS) and Swoole.\
-The release packages contain pre-compiled binaries for all supported platforms and DuckDB is directly included.\
+The release packages contain pre-compiled binaries for all supported platforms and DuckDB is directly included.
 DuckDB extensions work the same way as they do in DuckDB CLI.
 
 This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstring, Blob and Boolean.
