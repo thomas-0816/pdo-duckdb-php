@@ -752,7 +752,7 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $db = new PDO('duckdb::memory:');
 $db->exec("create table t1 (v VARIANT)");
 $db->exec("CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy')");
-$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?::integer), (?::decimal), (?), (?::integer[]), (?::json), (?::map(varchar, varchar)), (?::hugeint), (?::bignum)");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?::integer), (?::decimal), (?), (?::integer[]), (?::json), (?::json), (?::hugeint), (?::bignum)");
 $statement->execute(['hello', 42, 42.21, null, [1, 2], ['foo', 'bar', true, null], ['foo' => 'bar'], 9223372036854775807, '340282366920938463463374607431768211455']);
 $db->exec("INSERT INTO t1 VALUES (1/0), (-1/0), (0/0), ('101010'::BIT), ('2969-01-01'::date), (INTERVAL 1 YEAR), (true), (uuidv4()), ('sad'::mood), (union_value(str := 'three'))");
 $db->exec("INSERT INTO t1 VALUES (MAP {'key1': 10}), ('[1, null, {\"key\": \"value\"}]'::JSON), ({'key1': 'value1'})");
