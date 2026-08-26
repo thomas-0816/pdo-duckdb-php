@@ -6,8 +6,9 @@ DuckDB is an embedded SQL database designed for high-performance analytics (OLAP
 
 `pdo_duckdb` is a native DuckDB database driver for the PHP Data Objects (PDO) interface.\
 As a native PHP extension, it is implemented in C/C++ and does not require PHP FFI or preloading.\
-It is also thread safe and fully tested with FrankenPHP (PHP-ZTS).\
-The release packages contain pre-compiled binaries for all supported platforms and DuckDB is directly included.\
+Compared to FFI, pdo_duckdb offers much more performance and lower latency by processing query results and type conversions in C/C++.
+It is also thread safe and fully tested with FrankenPHP (PHP-ZTS) and Swoole.\
+The release packages contain pre-compiled binaries for all supported platforms and DuckDB is directly included.
 DuckDB extensions work the same way as they do in DuckDB CLI.
 
 This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstring, Blob and Boolean.
@@ -577,36 +578,17 @@ docker run --rm -it -v $(pwd):/app pdo_duckdb_trueasync2 php /app/test_trueasync
 
 ## Why DuckDB?
 
-In-Process Architecture: Like SQLite, DuckDB embeds directly into host applications, eliminating the need for a separate server setup.
-
-Extreme Analytical Speed: It uses columnar storage and vectorized (batch) processing, running analytics 10–100x faster than traditional row-oriented databases.
-
-"Larger-than-Memory" Processing: DuckDB gracefully spills data to disk, allowing you to process massive datasets (e.g., 50GB+) on a machine with minimal RAM (e.g., 1GB).
-
-File-Format Agnostic: It can query flat files (JSON, CSV, and Parquet) directly via SQL without needing to import or load the data into a database first.
-
-No Infrastructure Cost: It brings data warehouse-level performance to your local laptop or local server.
-
-DuckDB achieves blazing-fast analytical performance through its __embedded, serverless multi-core__ architecture combined with columnar storage and vectorized execution.
-By executing queries directly within the host application, it eliminates serialization and network overhead, processing data in batches (vectors) rather
-than row-by-row for unparalleled speed.
-
 https://duckdb.org/why_duckdb
 
-Key Performance Advantages:
-
-Vectorized Query Execution: Unlike row-oriented engines, DuckDB processes data in cache-friendly batches (vectors). This allows modern hardware to operate on
-entire arrays of data simultaneously, drastically reducing CPU cycles per query.
-
-Columnar Storage: Data is stored by column rather than by row. For analytical queries that only require a few metrics,
-DuckDB only reads the relevant columns from disk/memory, saving massive amounts of I/O.
-
-Zero-Copy In-Process Engine: As an in-process database, DuckDB runs directly in the memory space of your application.
-
-Advanced Query Optimizer: DuckDB features an advanced query optimizer that handles filter pushdowns, unnesting of subqueries, and dynamic runtime filters.
-This ensures queries only scan necessary data and avoids full-table sorting when possible.
-
-Direct File Querying: You can query large datasets in open formats like Parquet and CSV directly on disk or in cloud storage (like AWS S3) without needing to import or convert the data first.
+Like SQLite, DuckDB embeds directly into host applications as a library, eliminating the need for network serialization and separate server setups.
+It uses columnar storage and vectorized processing, running analytics 10–100x faster than traditional row-oriented databases.
+DuckDB spills data to disk if needed, allowing to process datasets much larger than available system RAM.
+It includes an advanced query optimizer that handles joins, subqueries, expressions and filters.\
+DuckDB can directly query flat files (JSON, CSV, and Parquet) directly via SQL without needing to import the data first.
+Flat files can be read directly from disk, network attached storage or S3 comatible cloud storage.\
+Data is processed in cache-friendly batches on a multi-core architecture, allowing modern hardware to operate on arrays of data simultaneously.
+For analytical queries that only require a few metrics, DuckDB reads only the relevant columns from disk/memory, saving I/O and CPU cycles.
+This brings data warehouse-level performance to any laptop or server.
 
 ## FAQ
 
@@ -626,14 +608,9 @@ For logs you normally achieve compression rates of 50-100x.
 
 The DuckDB project is owned and maintained by the [DuckDB Foundation](https://duckdb.foundation), a non-profit organization from Amsterdam.
 
-> Can I get commercial support for DuckDB?
+> Can I get support for DuckDB?
 
-Yes. Commercial support is available from [DuckLabs](https://ducklabs.com), a company based in Amsterdam.
-
-> Can I get free support for DuckDB?
-
-Yes. Free support is available on GitHub and Discord, see the [support policy](https://ducklabs.com/community_support_policy/) for details.\
-You can meet the core team in-person on community events, meetup, conferences, etc.
+Yes. Support is available on GitHub, see the [community support](https://duckdb.org/community_support) page for details.
 
 > Is the PHP PDO Driver for DuckDB developed by the DuckDB project?
 
@@ -641,8 +618,7 @@ No. This is a third-party open-source community project.
 
 > Is DuckDB fully open-source?
 
-Yes. DuckDB and all components are fully open-source under the MIT license.\
-There is no “enterprise version” of DuckDB.
+Yes. DuckDB and all components are fully open-source under the MIT license.
 
 ## Development
 
