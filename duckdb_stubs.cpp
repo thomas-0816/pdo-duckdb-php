@@ -14,39 +14,29 @@ extern "C" int duckdb_has_active_transaction(duckdb_connection conn) {
 
 extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector vec, idx_t row,
                                          duckdb_vector *out_vec, duckdb_logical_type *out_type) {
-	if (!out_vec || !out_type) {
-		return 0;
-	}
 	try {
 		auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
 		auto *conn_ptr = reinterpret_cast<duckdb::Connection *>(conn);
+		auto &values_vec = VariantVector::GetValues(*vec_ptr);
+		auto &type_id_vec = VariantVector::GetValuesTypeId(*vec_ptr);
+		auto &byte_offset_vec = VariantVector::GetValuesByteOffset(*vec_ptr);
+		auto &data_vec = VariantVector::GetData(*vec_ptr);
 
-		duckdb::RecursiveUnifiedVectorFormat format;
-		duckdb::Vector::RecursiveToUnifiedFormat(*vec_ptr, row + 1, format);
+		idx_t count = row + 1;
+		duckdb::UnifiedVectorFormat uf_values, uf_type_id, uf_byte_offset, uf_data;
+		values_vec.ToUnifiedFormat(count, uf_values);
+		type_id_vec.ToUnifiedFormat(count, uf_type_id);
+		byte_offset_vec.ToUnifiedFormat(count, uf_byte_offset);
+		data_vec.ToUnifiedFormat(count, uf_data);
 
-		auto map_row = format.unified.sel->get_index(row);
-		if (!format.unified.validity.RowIsValid(map_row)) {
-			return 0;
-		}
-
-		auto &values = UnifiedVariantVector::GetValues(format);
-		auto &type_id_v = UnifiedVariantVector::GetValuesTypeId(format);
-		auto &byte_offset_v = UnifiedVariantVector::GetValuesByteOffset(format);
-		auto &data_v = UnifiedVariantVector::GetData(format);
-
-		auto values_data = values.GetData<list_entry_t>(values);
-		auto type_id_data = type_id_v.GetData<uint8_t>(type_id_v);
-		auto byte_offset_data = byte_offset_v.GetData<uint32_t>(byte_offset_v);
-
-		auto values_index = values.sel->get_index(map_row);
+		auto values_data = uf_values.GetData<list_entry_t>(uf_values);
+		auto type_id_data = uf_type_id.GetData<uint8_t>(uf_type_id);
+		auto byte_offset_data = uf_byte_offset.GetData<uint32_t>(uf_byte_offset);
+		auto values_index = uf_values.sel->get_index(row);
 		auto entry = values_data[values_index];
 
-		VariantLogicalType type_id =
-		    static_cast<VariantLogicalType>(type_id_data[type_id_v.sel->get_index(entry.offset)]);
-		uint32_t byte_offset = byte_offset_data[byte_offset_v.sel->get_index(entry.offset)];
-
-		auto data_index = data_v.sel->get_index(map_row);
-		const string_t *blob = &data_v.GetData<string_t>(data_v)[data_index];
+		VariantLogicalType type_id = static_cast<VariantLogicalType>(type_id_data[uf_type_id.sel->get_index(entry.offset)]);
+		uint32_t byte_offset = byte_offset_data[uf_byte_offset.sel->get_index(entry.offset)];
 
 		duckdb::Value value = vec_ptr->GetValue(row);
 		if (value.IsNull()) {
@@ -87,6 +77,8 @@ extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector ve
 			target = LogicalType::TIMESTAMP_TZ;
 			break;
 		case VariantLogicalType::DECIMAL: {
+			auto data_index = uf_data.sel->get_index(row);
+			const string_t *blob = &uf_data.GetData<string_t>(uf_data)[data_index];
 			auto data = const_data_ptr_cast(blob->GetData()) + byte_offset;
 			uint8_t width = 0;
 			uint8_t shift = 0;
