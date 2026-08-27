@@ -112,11 +112,11 @@ extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector ve
 			case VariantLogicalType::INTERVAL:
 			case VariantLogicalType::DATE:
 			case VariantLogicalType::UUID:
-			case VariantLogicalType::TIMESTAMP_MICROS:
-			case VariantLogicalType::TIME_MICROS:
 			case VariantLogicalType::TIMESTAMP_SEC:
 			case VariantLogicalType::TIMESTAMP_MILIS:
+			case VariantLogicalType::TIMESTAMP_MICROS:
 			case VariantLogicalType::TIMESTAMP_NANOS:
+			case VariantLogicalType::TIME_MICROS:
 			case VariantLogicalType::TIME_NANOS:
 		*/
 		default:
