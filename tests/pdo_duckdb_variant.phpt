@@ -15,15 +15,17 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'Europe/Berlin']]);
 $db->exec("create table t1 (v VARIANT)");
 $db->exec("CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy')");
-$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?::integer), (?::decimal), (?), (?::integer[]), (?::json::variant), (?::json), (?::hugeint), (?::bignum)");
-$statement->execute(['hello', 42, 42.21, null, [1, 2], ['foo', 'bar', true, null], ['foo' => 'bar'], 9223372036854775807, '340282366920938463463374607431768211455']);
-$db->exec("INSERT INTO t1 VALUES (1/0), (-1/0), (0/0), ('101010'::BIT), ('2969-01-01'::date), (INTERVAL 1 YEAR), (true), (uuidv4()), ('sad'::mood), (union_value(str := 'three'))");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?::integer), (?::decimal), (?), (?::integer[]), (?::json::variant), (?::json), (?::hugeint), (?::bignum), (?::bigint), (?::bigint)");
+$statement->execute(['hello', 42, 42.21, null, [1, 2], ['foo', 'bar', true, null], ['foo' => 'bar'], 9223372036854775807, '340282366920938463463374607431768211455', PHP_INT_MAX, -PHP_INT_MAX]);
+$db->exec("INSERT INTO t1 VALUES (1/0), (-1/0), (0/0), ('101010'::BIT), ('2969-01-01'::date), (INTERVAL 1 YEAR), (true), (uuidv4()), ('sad'::mood), (union_value(str := 'three')), ('\\xAA\\xAB\\xAC'::BLOB)");
 $db->exec("INSERT INTO t1 VALUES (MAP {'key1': 10}), ('[1, null, {\"key\": \"value\"}]'::JSON), ({'key1': 'value1'})");
 $db->exec("INSERT INTO t1 VALUES (TIMESTAMP_NS '1992-09-20 11:30:00.123456789'), (TIMESTAMP_MS '1992-09-20 11:30:00.123456789'), (TIMESTAMP_S '1992-09-20 11:30:00.123456789')");
 $db->exec("INSERT INTO t1 VALUES (TIMESTAMPTZ '1992-09-20 11:30:00.123456789'), (TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00'), (timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40'))");
 
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+
 
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'UTC']]);
 $db->exec("create table t1 (v2 VARIANT)");
@@ -105,7 +107,7 @@ array(7) {
     }
   }
 }
-array(28) {
+array(31) {
   [0]=>
   array(1) {
     ["v"]=>
@@ -171,54 +173,69 @@ array(28) {
   [9]=>
   array(1) {
     ["v"]=>
-    float(INF)
+    int(9223372036854775807)
   }
   [10]=>
   array(1) {
     ["v"]=>
-    float(-INF)
+    int(-9223372036854775807)
   }
   [11]=>
   array(1) {
     ["v"]=>
-    float(NAN)
+    float(INF)
   }
   [12]=>
   array(1) {
     ["v"]=>
-    string(6) "101010"
+    float(-INF)
   }
   [13]=>
   array(1) {
     ["v"]=>
-    string(10) "2969-01-01"
+    float(NAN)
   }
   [14]=>
   array(1) {
     ["v"]=>
-    string(6) "1 year"
+    string(6) "101010"
   }
   [15]=>
   array(1) {
     ["v"]=>
-    bool(true)
+    string(10) "2969-01-01"
   }
   [16]=>
   array(1) {
     ["v"]=>
-    string(36) "%s"
+    string(6) "1 year"
   }
   [17]=>
   array(1) {
     ["v"]=>
-    string(3) "sad"
+    bool(true)
   }
   [18]=>
   array(1) {
     ["v"]=>
-    string(5) "three"
+    string(36) "%s"
   }
   [19]=>
+  array(1) {
+    ["v"]=>
+    string(3) "sad"
+  }
+  [20]=>
+  array(1) {
+    ["v"]=>
+    string(5) "three"
+  }
+  [21]=>
+  array(1) {
+    ["v"]=>
+    string(3) "%s"
+  }
+  [22]=>
   array(1) {
     ["v"]=>
     array(1) {
@@ -231,7 +248,7 @@ array(28) {
       }
     }
   }
-  [20]=>
+  [23]=>
   array(1) {
     ["v"]=>
     array(3) {
@@ -246,7 +263,7 @@ array(28) {
       }
     }
   }
-  [21]=>
+  [24]=>
   array(1) {
     ["v"]=>
     array(1) {
@@ -254,32 +271,32 @@ array(28) {
       string(6) "value1"
     }
   }
-  [22]=>
+  [25]=>
   array(1) {
     ["v"]=>
     string(29) "1992-09-20 11:30:00.123456789"
   }
-  [23]=>
+  [26]=>
   array(1) {
     ["v"]=>
     string(23) "1992-09-20 11:30:00.123"
   }
-  [24]=>
+  [27]=>
   array(1) {
     ["v"]=>
     string(19) "1992-09-20 11:30:00"
   }
-  [25]=>
+  [28]=>
   array(1) {
     ["v"]=>
     string(29) "1992-09-20 11:30:00.123456+02"
   }
-  [26]=>
+  [29]=>
   array(1) {
     ["v"]=>
     string(29) "1992-09-20 13:30:00.123456+02"
   }
-  [27]=>
+  [30]=>
   array(1) {
     ["v"]=>
     string(22) "2001-02-17 04:38:40+01"
