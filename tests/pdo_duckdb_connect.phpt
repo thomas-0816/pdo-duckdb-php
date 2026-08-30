@@ -63,6 +63,12 @@ $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['autol
 $statement = $db->query("select name, value from duckdb_settings() where name in ('autoload_known_extensions', 'autoinstall_known_extensions', 'allow_community_extensions')");
 var_dump($statement->fetchAll(PDO::FETCH_KEY_PAIR));
 
+try {
+    new PDO('duckdb::memory:', null, null, [PDO::ATTR_PERSISTENT => true]);
+} catch (PDOException $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
 ?>
 --EXPECTF--
 array(4) {
