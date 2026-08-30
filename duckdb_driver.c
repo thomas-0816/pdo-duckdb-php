@@ -106,6 +106,8 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 						if (strcasecmp(ZSTR_VAL(key), "timezone") == 0) {
 							deferred_tz = emalloc(ZSTR_LEN(str_val) + 18);
 							sprintf(deferred_tz, "SET timezone = '%s'", ZSTR_VAL(str_val));
+						} else if (strcasecmp(ZSTR_VAL(key), "force_mbedtls_unsafe") == 0) { // crashes, skip
+							continue;
 						} else {
 							duckdb_set_config(config, ZSTR_VAL(key), ZSTR_VAL(str_val));
 						}
