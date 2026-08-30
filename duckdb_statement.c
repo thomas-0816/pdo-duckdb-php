@@ -4,6 +4,7 @@
 
 #include "php.h"
 #include "php_ini.h"
+#include "main/php_streams.h"
 #include "ext/standard/info.h"
 #include "ext/pdo/php_pdo.h"
 #include "ext/pdo/php_pdo_driver.h"
@@ -653,6 +654,7 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 	if (event_type == PDO_PARAM_EVT_EXEC_PRE) {
 		duckdb_state state = DuckDBError;
 		idx_t idx;
+		zval *parameter = Z_ISREF(param->parameter) ? Z_REFVAL(param->parameter) : &param->parameter;
 
 		if (param->paramno >= 0) {
 			/* param->paramno is 0-based in PDO, but DuckDB expects 1-based index */
@@ -666,48 +668,53 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 			}
 		}
 
-		if (Z_ISNULL(param->parameter)) {
+		if (Z_ISNULL_P(parameter)) {
 			state = duckdb_bind_null(S->stmt, idx);
-		} else if (Z_TYPE_P(&param->parameter) == IS_ARRAY || Z_TYPE_P(&param->parameter) == IS_OBJECT) {
+		} else if (Z_TYPE_P(parameter) == IS_ARRAY || Z_TYPE_P(parameter) == IS_OBJECT) {
 			smart_str buf = {0};
-			if (php_json_encode(&buf, &param->parameter, 0) == SUCCESS && buf.s) {
+			if (php_json_encode(&buf, parameter, 0) == SUCCESS && buf.s) {
 				smart_str_0(&buf);
 				state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s));
 			} else {
 				state = DuckDBError;
 			}
 			smart_str_free(&buf);
-		} else if (Z_TYPE_P(&param->parameter) == IS_TRUE || Z_TYPE_P(&param->parameter) == IS_FALSE) {
-			state = duckdb_bind_boolean(S->stmt, idx, zend_is_true(&param->parameter) ? 1 : 0);
-		} else if (Z_TYPE_P(&param->parameter) == IS_LONG) {
-			state = duckdb_bind_int64(S->stmt, idx, (int64_t)zval_get_long(&param->parameter));
-		} else if (Z_TYPE_P(&param->parameter) == IS_DOUBLE) {
-			state = duckdb_bind_double(S->stmt, idx, zval_get_double(&param->parameter));
+		} else if (Z_TYPE_P(parameter) == IS_RESOURCE) {
+			zend_string *str = NULL;
+			php_stream *stream = NULL;
+			php_stream_from_zval_no_verify(stream, parameter);
+			if (stream) {
+				str = php_stream_copy_to_mem(stream, PHP_STREAM_COPY_ALL, 0);
+			}
+			state = duckdb_bind_blob(S->stmt, idx, str ? ZSTR_VAL(str) : "", str ? ZSTR_LEN(str) : 0);
+			if (str) {
+				zend_string_release(str);
+			}
+		} else if (Z_TYPE_P(parameter) == IS_TRUE || Z_TYPE_P(parameter) == IS_FALSE) {
+			state = duckdb_bind_boolean(S->stmt, idx, zend_is_true(parameter) ? 1 : 0);
+		} else if (Z_TYPE_P(parameter) == IS_LONG) {
+			state = duckdb_bind_int64(S->stmt, idx, (int64_t)zval_get_long(parameter));
+		} else if (Z_TYPE_P(parameter) == IS_DOUBLE) {
+			state = duckdb_bind_double(S->stmt, idx, zval_get_double(parameter));
 		} else switch (PDO_PARAM_TYPE(param->param_type)) {
 			case PDO_PARAM_NULL:
 				state = duckdb_bind_null(S->stmt, idx);
 				break;
 			case PDO_PARAM_BOOL:
-				state = duckdb_bind_boolean(S->stmt, idx, zend_is_true(&param->parameter) ? 1 : 0);
+				state = duckdb_bind_boolean(S->stmt, idx, zend_is_true(parameter) ? 1 : 0);
 				break;
 			case PDO_PARAM_INT:
-				state = duckdb_bind_int64(S->stmt, idx, (int64_t)zval_get_long(&param->parameter));
+				state = duckdb_bind_int64(S->stmt, idx, (int64_t)zval_get_long(parameter));
 				break;
-			case PDO_PARAM_STR: {
-				zend_string *zstr = zval_get_string(&param->parameter);
-				state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(zstr), ZSTR_LEN(zstr));
-				zend_string_release(zstr);
-				break;
-			}
 			case PDO_PARAM_LOB: {
-				zend_string *str = zval_get_string(&param->parameter);
+				zend_string *str = zval_get_string(parameter);
 				state = duckdb_bind_blob(S->stmt, idx, ZSTR_VAL(str), ZSTR_LEN(str));
 				zend_string_release(str);
 				break;
 			}
 			default:
 				{
-					zend_string *str = zval_get_string(&param->parameter);
+					zend_string *str = zval_get_string(parameter);
 					state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(str), ZSTR_LEN(str));
 					zend_string_release(str);
 				}
