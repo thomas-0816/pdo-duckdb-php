@@ -146,3 +146,4 @@ array(3) {
   ["autoload_known_extensions"]=>
   string(4) "true"
 }
+Caught: SQLSTATE[IM001]: pdo_duckdb does not support persistent connections

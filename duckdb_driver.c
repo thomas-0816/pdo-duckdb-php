@@ -66,6 +66,12 @@ static void pdo_duckdb_error(pdo_dbh_t *dbh)
 
 int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 {
+	if (dbh->is_persistent) {
+		zend_throw_exception_ex(php_pdo_get_exception(), 0,
+			"SQLSTATE[IM001]: pdo_duckdb does not support persistent connections");
+		return 0;
+	}
+
 	pdo_duckdb_db_handle *H;
 	const char *data_source = dbh->data_source;
 	char *dbname = NULL, *err = NULL, *deferred_tz = NULL;
