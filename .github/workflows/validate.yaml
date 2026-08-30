@@ -64,7 +64,7 @@ jobs:
           if [ "$RUNNER_OS" = "Windows" ]; then
               pie install -v thomas-0816/pdo-duckdb-php
           else
-              sudo -E pie install -v thomas-0816/pdo-duckdb-php
+              sudo BOX_REQUIREMENT_CHECKER=false pie install -v thomas-0816/pdo-duckdb-php
           fi
           php -m | grep duckdb
           php <<'EOF'
