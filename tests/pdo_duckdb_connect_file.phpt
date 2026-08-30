@@ -10,10 +10,10 @@ $invalidFile = sys_get_temp_dir() . '/invalid/test.db';
 
 $db = new PDO('duckdb:' . $tmpFile);
 $db->exec("CREATE TABLE t (i INTEGER, v VARCHAR)");
-$stmt = $db->prepare("INSERT INTO t VALUES (?, ?)");
-$stmt->execute([1, 'hello']);
-$stmt = $db->query("SELECT * FROM t");
-while ($row = $stmt->fetch()) { var_dump($row); }
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?)");
+$statement->execute([1, 'hello']);
+$statement = $db->query("SELECT * FROM t");
+while ($row = $statement->fetch()) { var_dump($row); }
 foreach ($db->query("SELECT * FROM t") as $row) { var_dump($row); }
 
 try {

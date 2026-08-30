@@ -291,6 +291,16 @@ $statement->execute();
 $statement->execute([json_encode($foo)]);
 var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE TABLE t (b BLOB)');
+$stream = fopen('php://memory', 'r+');
+fwrite($stream, "\xAA\xAB\xAC");
+rewind($stream);
+$statement = $db->prepare('INSERT INTO t VALUES (?)');
+$statement->bindValue(1, $stream, PDO::PARAM_LOB);
+$statement->execute();
+fclose($stream);
+var_dump($db->query('SELECT * FROM t')->fetchColumn());
 
 ?>
 --EXPECTF--
@@ -766,3 +776,4 @@ array(3) {
     }
   }
 }
+string(3) "%s"

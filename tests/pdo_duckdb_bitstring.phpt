@@ -16,14 +16,14 @@ $statement = $db->query("SELECT ('10101010'::BIT || '11110000'::BIT) AS concat")
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db->exec("CREATE TABLE bit_table (id INTEGER, b BIT)");
-$stmt = $db->prepare("INSERT INTO bit_table VALUES (?, CAST(? AS BIT))");
-$stmt->bindValue(1, 1, PDO::PARAM_INT);
-$stmt->bindValue(2, '101010', PDO::PARAM_STR);
-$stmt->execute();
-$stmt = $db->prepare("INSERT INTO bit_table VALUES (?, CAST(? AS BIT))");
-$stmt->bindValue(1, 2, PDO::PARAM_INT);
-$stmt->bindValue(2, '110011', PDO::PARAM_STR);
-$stmt->execute();
+$statement = $db->prepare("INSERT INTO bit_table VALUES (?, CAST(? AS BIT))");
+$statement->bindValue(1, 1, PDO::PARAM_INT);
+$statement->bindValue(2, '101010', PDO::PARAM_STR);
+$statement->execute();
+$statement = $db->prepare("INSERT INTO bit_table VALUES (?, CAST(? AS BIT))");
+$statement->bindValue(1, 2, PDO::PARAM_INT);
+$statement->bindValue(2, '110011', PDO::PARAM_STR);
+$statement->execute();
 $statement = $db->query("SELECT * FROM bit_table ORDER BY id");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 

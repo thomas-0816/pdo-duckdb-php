@@ -26,10 +26,10 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (i INTEGER, ui UINTEGER, b BIGINT, b2 BIGINT, ub UBIGINT, h HUGEINT, u UHUGEINT)");
-$stmt = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?, ?, ?)");
-$stmt->execute([1, 2, 9_223_372_036_854_775_806, -9_223_372_036_854_775_806, '18446744073709551614', '170141183460469231731687303715884105726', '340282366920938463463374607431768211455']);
-$stmt = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
-while ($row = $stmt->fetch()) { var_dump($row); }
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?, ?, ?)");
+$statement->execute([1, 2, 9_223_372_036_854_775_806, -9_223_372_036_854_775_806, '18446744073709551614', '170141183460469231731687303715884105726', '340282366920938463463374607431768211455']);
+$statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
+while ($row = $statement->fetch()) { var_dump($row); }
 
 $statement = $db->query("SELECT '3402823669209384634633746074317682114571111'::bignum");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
