@@ -569,6 +569,8 @@ Swoole\Coroutine\run(function() {
 echo microtime(true) - $start, PHP_EOL; // 1 second
 ```
 
+[Learn more](https://duckdb.org/docs/current/connect/concurrency) about concurrency in DuckDB.
+
 ## Compile with PHP TrueAsync
 
 ```bash
