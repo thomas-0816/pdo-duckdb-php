@@ -61,6 +61,7 @@ char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, idx_t row);
 int duckdb_variant_to_vector(duckdb_vector vec, idx_t row,
                              duckdb_vector *out_vec, duckdb_logical_type *out_type);
 void duckdb_free_vector(duckdb_vector vec);
+char *duckdb_logical_type_to_string(duckdb_logical_type logical_type);
 
 /* Implemented in duckdb_statement.c */
 void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec,

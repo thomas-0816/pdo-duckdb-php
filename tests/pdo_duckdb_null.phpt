@@ -13,7 +13,7 @@ $statement = $db->query("SELECT
   null::hugeint, null::uhugeint, null::varchar, null::blob, null::decimal, null::timestamp_s, null::timestamp_ms,
   null::timestamp_ns, null::enum('a'), null::struct(duck integer), null::integer[], null::integer[1], map_from_entries(null),
   null::union(str varchar), null::uuid, null::bit, null::timetz, null::timestamptz, null::time_ns, null::geometry,
-  null::variant, null::bignum
+  null::variant, null::bignum, null::tuple(integer, varchar)
 ");
 $columnCount = $statement->columnCount();
 for ($i = 0; $i < $columnCount; $i++) {
