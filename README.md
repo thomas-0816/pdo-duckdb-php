@@ -53,6 +53,11 @@ pie install thomas-0816/pdo-duckdb-php
     EOF
 ```
 
+## DuckDB v2 migration notes
+
+TODO SET null_on_division_by_zero = true;
+TODO SET default_transaction_invalidation_policy='SYNTACTIC_ERRORS_DO_NOT_INVALIDATE';
+
 ## Usage examples
 
 ```php
