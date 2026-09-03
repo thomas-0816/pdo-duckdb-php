@@ -1,4 +1,5 @@
 #include "duckdb.hpp"
+#include "duckdb/common/vector/variant_vector.hpp"
 #include <cstring>
 
 using namespace duckdb;
@@ -126,7 +127,8 @@ extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector ve
 			break;
 		}
 		auto typed = value.CastAs(*conn_ptr->context, target);
-		auto *tmp_vec = new duckdb::Vector(typed);
+		auto *tmp_vec = new duckdb::Vector(typed.type(), 1);
+		tmp_vec->SetValue(0, typed);
 		*out_vec = reinterpret_cast<duckdb_vector>(tmp_vec);
 		*out_type = reinterpret_cast<duckdb_logical_type>(new duckdb::LogicalType(typed.type()));
 		return 1;
