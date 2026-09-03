@@ -442,6 +442,7 @@ void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_lo
 				case DUCKDB_TYPE_TIMESTAMP_S:
 				case DUCKDB_TYPE_TIMESTAMP_MS:
 				case DUCKDB_TYPE_TIMESTAMP_NS:
+				case DUCKDB_TYPE_TIMESTAMP_TZ_NS:
 			*/
 			char *str = duckdb_get_string(conn, vec, row_idx);
 			if (str == NULL) {
@@ -587,6 +588,7 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_TIMESTAMP_MS: type_str = "timestamp_ms"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_TIMESTAMP_NS: type_str = "timestamp_ns"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_TIMESTAMP_TZ: type_str = "timestamptz"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_TIMESTAMP_TZ_NS: type_str = "timestamptz_ns"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_LIST: type_str = "list"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_STRUCT: type_str = "struct"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_MAP: type_str = "map"; pdo_type = PDO_PARAM_STR; break;
@@ -616,7 +618,16 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 
 	add_assoc_string(return_value, "native_type", (char *)type_str);
 	add_assoc_long(return_value, "pdo_type", pdo_type);
-	add_assoc_string(return_value, "duckdb:decl_type", (char *)type_str);
+
+	/* duckdb:decl_type carries the full, exact type declaration (e.g. DECIMAL(10,2),
+	   STRUCT(a INTEGER, b VARCHAR), TUPLE(INTEGER, STRING), INTEGER[], ...) as
+	   rendered by DuckDB's LogicalType::ToString(). */
+	char *decl_str = duckdb_logical_type_to_string(logical_type);
+	add_assoc_string(return_value, "duckdb:decl_type", decl_str ? decl_str : (char *)type_str);
+	if (decl_str) {
+		duckdb_free(decl_str);
+	}
+
 	add_assoc_zval(return_value, "flags", &flags);
 
 	duckdb_destroy_logical_type(&logical_type);
