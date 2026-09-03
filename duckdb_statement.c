@@ -600,6 +600,7 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_BIT: type_str = "bit"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_GEOMETRY: type_str = "geometry"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_BIGNUM: type_str = "bignum"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_SQLNULL: type_str = "null"; pdo_type = PDO_PARAM_NULL; break;
 		default: type_str = "unknown"; pdo_type = PDO_PARAM_STR; break;
 	}
 
