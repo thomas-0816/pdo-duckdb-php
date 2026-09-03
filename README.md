@@ -11,7 +11,7 @@ It is also thread safe and fully tested with FrankenPHP (PHP-ZTS) and Swoole.\
 The release packages contain pre-compiled binaries for all supported platforms and DuckDB is directly included.
 DuckDB extensions work the same way as they do in DuckDB CLI.
 
-This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Enum, Variant, Geometry, Union, Bitstring, Blob and Boolean.
+This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, JSON, Array, Struct, Map, List, Tuple, Enum, Variant, Geometry, Union, Bitstring, Blob and Boolean.
 
 Supported PHP versions (nts & zts): 8.2 8.3 8.4 8.5 8.6
 
