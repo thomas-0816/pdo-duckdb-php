@@ -41,12 +41,17 @@ extern "C" void duckdb_free_vector(duckdb_vector vec) {
 	}
 }
 
-extern "C" char *duckdb_logical_type_to_string(duckdb_logical_type logical_type) {
-	if (!logical_type) return NULL;
+extern "C" char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, idx_t row) {
+	if (!vec) return NULL;
 
 	try {
-		auto *type_ptr = reinterpret_cast<duckdb::LogicalType *>(logical_type);
-		auto str = type_ptr->ToString();
+		auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
+		auto value = vec_ptr->GetValue(row);
+
+		if (value.IsNull()) return NULL;
+
+		auto *conn_ptr = reinterpret_cast<duckdb::Connection *>(conn);
+		auto str = value.CastAs(*conn_ptr->context, duckdb::LogicalType::VARCHAR).ToString();
 
 		auto *result = (char *)duckdb_malloc(str.size() + 1);
 		if (result) {
@@ -60,17 +65,12 @@ extern "C" char *duckdb_logical_type_to_string(duckdb_logical_type logical_type)
 	}
 }
 
-extern "C" char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, idx_t row) {
-	if (!vec) return NULL;
+extern "C" char *duckdb_logical_type_to_string(duckdb_logical_type logical_type) {
+	if (!logical_type) return NULL;
 
 	try {
-		auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
-		auto value = vec_ptr->GetValue(row);
-
-		if (value.IsNull()) return NULL;
-
-		auto *conn_ptr = reinterpret_cast<duckdb::Connection *>(conn);
-		auto str = value.CastAs(*conn_ptr->context, duckdb::LogicalType::VARCHAR).ToString();
+		auto *type_ptr = reinterpret_cast<duckdb::LogicalType *>(logical_type);
+		auto str = type_ptr->ToString();
 
 		auto *result = (char *)duckdb_malloc(str.size() + 1);
 		if (result) {
