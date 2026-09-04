@@ -34,6 +34,8 @@ while ($row = $statement->fetch()) { var_dump($row); }
 $statement = $db->query("SELECT '3402823669209384634633746074317682114571111'::bignum");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+// TODO v2 select ln(-1), sqrt(-1)
+
 ?>
 --EXPECTF--
 array(1) {

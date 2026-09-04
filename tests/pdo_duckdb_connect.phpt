@@ -69,6 +69,8 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+// TODO v2 ATTACH ':memory:' AS memory_compressed (COMPRESS)
+
 ?>
 --EXPECTF--
 array(4) {
