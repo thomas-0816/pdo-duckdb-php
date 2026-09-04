@@ -164,7 +164,7 @@ jobs:
           make -j$(nproc)
       - name: Run tests under ASAN
         run: |
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+          /tmp/php-asan/bin/php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           export TEST_PHP_EXECUTABLE=/tmp/php-asan/bin/php
           export TEST_PHP_ARGS="-d extension=$(pwd)/modules/pdo_duckdb.so"
           export NO_INTERACTION=1
@@ -225,7 +225,7 @@ jobs:
           make -j$(nproc)
       - name: Run tests under ASAN
         run: |
-          php -d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep -E "duckdb|swoole"
+          /tmp/php-asan/bin/php -d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep -E "duckdb|swoole"
           export TEST_PHP_EXECUTABLE=/tmp/php-asan/bin/php
           export TEST_PHP_ARGS="-d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so"
           export NO_INTERACTION=1
