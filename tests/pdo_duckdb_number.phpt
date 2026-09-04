@@ -34,6 +34,22 @@ while ($row = $statement->fetch()) { var_dump($row); }
 $statement = $db->query("SELECT '3402823669209384634633746074317682114571111'::bignum");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+// DECIMAL: width <= 15 → float, width > 15 → string (preserve precision)
+$statement = $db->query("SELECT 1.23::DECIMAL(4,2), 0.001::DECIMAL(10,3), -3.14::DECIMAL(4,2), 0::DECIMAL(5,2)");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 999999999999999::DECIMAL(15,0), 0.99::DECIMAL(15,15)");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 1000000000000000::DECIMAL(16,0), 0.9999999999999999::DECIMAL(16,16)");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 0.311699786984687608::DECIMAL(18,18), 0.45971054587213542206239787480916869700::DECIMAL(38,38)");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT CAST(NULL AS DECIMAL(10,2))");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 // TODO v2 select ln(-1), sqrt(-1)
 
 ?>
@@ -129,5 +145,52 @@ array(1) {
   array(1) {
     ["CAST('3402823669209384634633746074317682114571111' AS "BIGNUM")"]=>
     string(43) "3402823669209384634633746074317682114571111"
+  }
+}
+array(1) {
+  [0]=>
+  array(4) {
+    ["CAST(1.23 AS DECIMAL(4, 2))"]=>
+    float(1.23)
+    ["CAST(0.001 AS DECIMAL(10, 3))"]=>
+    float(0.001)
+    ["-(CAST(3.14 AS DECIMAL(4, 2)))"]=>
+    float(-3.14)
+    ["CAST(0 AS DECIMAL(5, 2))"]=>
+    float(0)
+  }
+}
+array(1) {
+  [0]=>
+  array(2) {
+    ["CAST(999999999999999 AS DECIMAL(15, 0))"]=>
+    float(999999999999999)
+    ["CAST(0.99 AS DECIMAL(15, 15))"]=>
+    float(0.99)
+  }
+}
+array(1) {
+  [0]=>
+  array(2) {
+    ["CAST(1000000000000000 AS DECIMAL(16, 0))"]=>
+    string(16) "1000000000000000"
+    ["CAST(0.9999999999999999 AS DECIMAL(16, 16))"]=>
+    string(17) ".9999999999999999"
+  }
+}
+array(1) {
+  [0]=>
+  array(2) {
+    ["CAST(0.311699786984687608 AS DECIMAL(18, 18))"]=>
+    string(19) ".311699786984687608"
+    ["CAST(0.45971054587213545 AS DECIMAL(38, 38))"]=>
+    string(39) ".45971054587213539913392807288705646592"
+  }
+}
+array(1) {
+  [0]=>
+  array(1) {
+    ["CAST(NULL AS DECIMAL(10, 2))"]=>
+    NULL
   }
 }
