@@ -205,7 +205,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 		if (state != DuckDBSuccess) {
 			const char *err = duckdb_result_error(&res);
 			zend_throw_exception_ex(php_pdo_get_exception(), 0,
-				"SQLSTATE[HY000]: Could not execute DUCKDB_ATTR_INIT_COMMAND: %s",
+				"SQLSTATE[HY000]: Could not execute init command: %s",
 				err ? err : "unknown error");
 			duckdb_destroy_result(&res);
 			efree(init_command);

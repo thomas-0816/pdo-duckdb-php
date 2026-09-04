@@ -69,6 +69,15 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND => 'SET threads = 2']);
+var_dump($db->query("SELECT value FROM duckdb_settings() WHERE name = 'threads'")->fetchColumn());
+
+try {
+    new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND => "SELECT INVALID"]);
+} catch (PDOException $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
 // TODO v2 ATTACH ':memory:' AS memory_compressed (COMPRESS)
 
 ?>
@@ -149,3 +158,8 @@ array(3) {
   string(4) "true"
 }
 Caught: SQLSTATE[IM001]: pdo_duckdb does not support persistent connections
+string(1) "2"
+Caught: SQLSTATE[HY000]: Could not execute init command: Binder Error: Referenced column "INVALID" was not found because the FROM clause is missing
+
+LINE 1: SELECT INVALID
+               ^
