@@ -164,6 +164,14 @@ void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_lo
 		return;
 	}
 
+	/* Custom/extension types are represented with an alias set
+	   JSON is the one exception: it keeps its specialized PHP decode path below. */
+	char *alias = duckdb_logical_type_get_alias(logical_type);
+	if (alias && alias[0] && strcmp(alias, "JSON") != 0) {
+		col_type = -1; /* force duckdb_get_string() */
+	}
+	duckdb_free(alias);
+
 	switch (col_type) {
 		case DUCKDB_TYPE_INVALID:
 		case DUCKDB_TYPE_ANY: {
@@ -592,6 +600,12 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 	const char *type_str = NULL;
 	enum pdo_param_type pdo_type = PDO_PARAM_STR;
 
+	char *alias = duckdb_logical_type_get_alias(logical_type);
+	if (alias && alias[0]) {
+		type = strcmp(alias, "JSON") == 0 ? DUCKDB_TYPE_VARIANT : DUCKDB_TYPE_VARCHAR;
+	}
+	duckdb_free(alias);
+
 	switch (type) {
 		case DUCKDB_TYPE_BOOLEAN: type_str = "boolean"; pdo_type = PDO_PARAM_BOOL; break;
 		case DUCKDB_TYPE_TINYINT: type_str = "tinyint"; pdo_type = PDO_PARAM_INT; break;
@@ -618,32 +632,20 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 		case DUCKDB_TYPE_TIMESTAMP_NS: type_str = "timestamp_ns"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_TIMESTAMP_TZ: type_str = "timestamptz"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_TIMESTAMP_TZ_NS: type_str = "timestamptz_ns"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_LIST: type_str = "list"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_STRUCT: type_str = "struct"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_MAP: type_str = "map"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_LIST: type_str = "list"; pdo_type = PDO_PARAM_LOB; break;
+		case DUCKDB_TYPE_STRUCT: type_str = "struct"; pdo_type = PDO_PARAM_LOB; break;
+		case DUCKDB_TYPE_MAP: type_str = "map"; pdo_type = PDO_PARAM_LOB; break;
 		case DUCKDB_TYPE_ENUM: type_str = "enum"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_UNION: type_str = "union"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_UNION: type_str = "union"; pdo_type = PDO_PARAM_LOB; break;
 		case DUCKDB_TYPE_UUID: type_str = "uuid"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_INTERVAL: type_str = "interval"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_VARIANT: type_str = "json"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_VARIANT: type_str = "json"; pdo_type = PDO_PARAM_LOB; break;
 		case DUCKDB_TYPE_BIT: type_str = "bit"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_GEOMETRY: type_str = "geometry"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_BIGNUM: type_str = "bignum"; pdo_type = PDO_PARAM_STR; break;
 		case DUCKDB_TYPE_SQLNULL: type_str = "null"; pdo_type = PDO_PARAM_NULL; break;
+		case DUCKDB_TYPE_VARCHAR: type_str = "varchar"; pdo_type = PDO_PARAM_STR; break;
 		default: type_str = "unknown"; pdo_type = PDO_PARAM_STR; break;
-	}
-
-	/* Check for JSON alias on VARCHAR (DuckDB may report JSON as VARCHAR with "JSON" alias) */
-	if (type == DUCKDB_TYPE_VARCHAR) {
-		char *alias = duckdb_logical_type_get_alias(logical_type);
-		if (alias && strcmp(alias, "JSON") == 0) {
-			type_str = "json";
-			duckdb_free(alias);
-		} else {
-			type_str = "varchar";
-			duckdb_free(alias);
-		}
-		pdo_type = PDO_PARAM_STR;
 	}
 
 	add_assoc_string(return_value, "native_type", (char *)type_str);
