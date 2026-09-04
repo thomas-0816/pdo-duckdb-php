@@ -615,6 +615,7 @@ Swoole\Coroutine\run(function() {
         Swoole\Coroutine::create(function () use ($waitGroup) {
             $waitGroup->add();
             $pdo = new PDO('duckdb::memory:');
+            // $pdo = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
             $pdo->exec("select sleep_ms(1000)");
             echo '.';
             $waitGroup->done();
@@ -624,6 +625,8 @@ Swoole\Coroutine\run(function() {
 });
 echo microtime(true) - $start, PHP_EOL; // 1 second
 ```
+
+[Learn more](https://duckdb.org/docs/current/connect/concurrency) about concurrency in DuckDB.
 
 ## Compile with PHP TrueAsync
 
