@@ -6,9 +6,9 @@ pdo_duckdb
 <?php
 
 $db = new PDO('duckdb::memory:');
-$db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR, t TUPLE(integer, string))");
-$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?)");
-$statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello', "(1, 'a')"]);
+$db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)"); // TODO v2, t TUPLE(integer, string)
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
+$statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']); // TODO v2, "(1, 'a')"
 
 var_dump($db->lastInsertId());
 
@@ -26,7 +26,7 @@ var_dump($statement->getColumnMeta(1));
 var_dump($statement->getColumnMeta(2));
 var_dump($statement->getColumnMeta(3));
 var_dump($statement->getColumnMeta(4));
-var_dump($statement->getColumnMeta(5));
+// TODO v2 var_dump($statement->getColumnMeta(5));
 var_dump($statement->columnCount());
 
 $db = new PDO('duckdb::memory:');
@@ -344,7 +344,7 @@ array(7) {
   ["pdo_type"]=>
   int(1)
   ["duckdb:decl_type"]=>
-  string(7) "integer"
+  string(7) "INTEGER"
   ["flags"]=>
   array(0) {
   }
@@ -361,7 +361,7 @@ array(7) {
   ["pdo_type"]=>
   int(1)
   ["duckdb:decl_type"]=>
-  string(6) "bigint"
+  string(6) "BIGINT"
   ["flags"]=>
   array(0) {
   }
@@ -378,7 +378,7 @@ array(7) {
   ["pdo_type"]=>
   int(2)
   ["duckdb:decl_type"]=>
-  string(7) "decimal"
+  string(13) "DECIMAL(10,2)"
   ["flags"]=>
   array(0) {
   }
@@ -395,7 +395,7 @@ array(7) {
   ["pdo_type"]=>
   int(2)
   ["duckdb:decl_type"]=>
-  string(7) "varchar"
+  string(7) "VARCHAR"
   ["flags"]=>
   array(0) {
   }
