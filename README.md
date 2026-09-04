@@ -53,10 +53,6 @@ pie install thomas-0816/pdo-duckdb-php
     EOF
 ```
 
-## DuckDB v2 migration notes
-
-TODO SET default_transaction_invalidation_policy='SYNTACTIC_ERRORS_DO_NOT_INVALIDATE';
-
 ## Usage examples
 
 ```php
@@ -197,6 +193,27 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $db->exec("COPY (SELECT * FROM '/tmp/logs.json') TO '/tmp/logs_json.parquet' (COMPRESSION zstd)");
 ```
 
+## Read and write Excel files
+
+```php
+$db = new PDO('duckdb::memory:');
+$db->exec('INSTALL excel; LOAD excel');
+$db->exec('CREATE TABLE table1 (id INTEGER, text VARCHAR, amount DECIMAL(10, 2))');
+
+$statement = $db->prepare('INSERT INTO table1 VALUES (?, ?, ?)');
+$statement->execute([1, 'Hello DuckDB 🦆', 42.21]);
+
+$db->exec("COPY (SELECT * FROM table1) TO '/tmp/table1.xlsx'");
+
+$statement = $db->query("SELECT * FROM '/tmp/table1.xlsx'", PDO::FETCH_ASSOC);
+print_r($statement->fetch(PDO::FETCH_ASSOC));
+
+# Array
+#     [A1] => 1
+#     [B1] => Hello DuckDB 🦆
+#     [C1] => 42.21
+```
+
 ## Use structured columns with a fixed schema
 
 ```php
@@ -219,6 +236,39 @@ print_r($statement->fetch(PDO::FETCH_ASSOC));
 #             [0] => b
 #             [1] => c
 #         [d] => 42.21
+```
+
+## Views
+
+```php
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE TABLE table1 (id INTEGER, text VARCHAR, amount DECIMAL(10, 2))');
+$db->exec("INSERT INTO table1 VALUES (1, 'foo', 42.21)");
+$db->exec('CREATE VIEW view1 as SELECT * FROM table1');
+
+$statement = $db->query("SELECT * FROM view1", PDO::FETCH_ASSOC);
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+```
+
+## Transactions
+
+```php
+$list = [
+    ['aaa', 'bbb', 'ccc'],
+    ['123', '456', '789'],
+    ['ddd', 'eee', 'fff'],
+];
+$fp = fopen('/tmp/test.csv', 'w');
+foreach ($list as $fields) {
+    fputcsv($fp, $fields, ',', '"', "");
+}
+fclose($fp);
+
+$db = new PDO('duckdb::memory:');
+$db->beginTransaction();
+$db->exec("CREATE TABLE test_csv AS SELECT * FROM '/tmp/test.csv'");
+$db->exec("INSERT INTO test_csv SELECT * FROM '/tmp/test.csv'");
+$db->commit();
 ```
 
 ## Cast array columns to JSON-string
@@ -483,6 +533,9 @@ SET max_temp_directory_size = '4GB';
 
 # Lock configuration
 SET lock_configuration = true;
+
+# Query timeout (DuckDB v2, e.g. 60s)
+SET max_execution_time=60000;
 ```
 
 A complete list is available in the DuckDB documentation: [Securing DuckDB](https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview).
