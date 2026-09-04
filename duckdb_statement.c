@@ -317,7 +317,7 @@ void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_lo
 				if (str == NULL) {
 					ZVAL_NULL(result);
 				} else {
-					const char *pad = str[0] == '.' ? "0" : "";
+					const char *pad = str[str[0] == '-' || str[0] == '+'] == '.' ? "0" : "";
 					char *tmp;
 					spprintf(&tmp, 0, "%s%s", pad, str);
 					ZVAL_STRING(result, tmp);
