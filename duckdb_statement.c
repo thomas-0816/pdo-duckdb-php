@@ -221,6 +221,37 @@ void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_lo
 			}
 			break;
 		}
+		case DUCKDB_TYPE_HUGEINT: {
+			duckdb_hugeint val = ((duckdb_hugeint *)duckdb_vector_get_data(vec))[row_idx];
+			if ((val.upper == 0 && val.lower <= (uint64_t)ZEND_LONG_MAX) ||
+				(val.upper == -1 && val.lower >= (uint64_t)ZEND_LONG_MIN)) {
+				ZVAL_LONG(result, (zend_long)val.lower);
+			} else {
+				char *str = duckdb_get_string(conn, vec, row_idx);
+				if (str == NULL) {
+					ZVAL_NULL(result);
+				} else {
+					ZVAL_STRING(result, str);
+					duckdb_free(str);
+				}
+			}
+			break;
+		}
+		case DUCKDB_TYPE_UHUGEINT: {
+			duckdb_uhugeint val = ((duckdb_uhugeint *)duckdb_vector_get_data(vec))[row_idx];
+			if (val.upper == 0 && val.lower <= (uint64_t)ZEND_LONG_MAX) {
+				ZVAL_LONG(result, (zend_long)val.lower);
+			} else {
+				char *str = duckdb_get_string(conn, vec, row_idx);
+				if (str == NULL) {
+					ZVAL_NULL(result);
+				} else {
+					ZVAL_STRING(result, str);
+					duckdb_free(str);
+				}
+			}
+			break;
+		}
 		case DUCKDB_TYPE_FLOAT: {
 			float val = ((float *)duckdb_vector_get_data(vec))[row_idx];
 			if (isnan(val)) {
@@ -429,8 +460,6 @@ void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_lo
 				case DUCKDB_TYPE_UUID:
 				case DUCKDB_TYPE_GEOMETRY:
 				case DUCKDB_TYPE_BIT:
-				case DUCKDB_TYPE_HUGEINT:
-				case DUCKDB_TYPE_UHUGEINT:
 				case DUCKDB_TYPE_INTERVAL:
 				case DUCKDB_TYPE_BIGNUM:
 				case DUCKDB_TYPE_DATE:
