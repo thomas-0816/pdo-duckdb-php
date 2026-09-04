@@ -540,6 +540,12 @@ SET max_execution_time=30000;
 
 A complete list is available in the DuckDB documentation: [Securing DuckDB](https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview).
 
+Alternatively, you can run SQL statements when the connection is estabilshed using PDO::DUCKDB_ATTR_INIT_COMMAND:
+
+```php
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND => "SET threads = 2; SET memory_limit = '4GB';"]);
+```
+
 ## Compile NTS
 
 ```bash
