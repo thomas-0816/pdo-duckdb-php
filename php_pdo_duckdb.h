@@ -15,6 +15,12 @@ ZEND_TSRMLS_CACHE_EXTERN()
 /* Include the DuckDB C API header */
 #include "duckdb.h"
 
+/* DuckDB v2.x added new type enum values not present in v1.5.x.
+   Define them here so the extension compiles against both versions. */
+#ifndef DUCKDB_TYPE_TIMESTAMP_TZ_NS
+#define DUCKDB_TYPE_TIMESTAMP_TZ_NS 42
+#endif
+
 /* Include PDO headers (this brings in pdo_dbh_methods, pdo_stmt_methods, etc.) */
 #include "ext/pdo/php_pdo.h"
 #include "ext/pdo/php_pdo_driver.h"
@@ -58,7 +64,7 @@ typedef struct _pdo_duckdb_stmt {
 
 /* Helpers implemented in duckdb_stubs.cpp */
 char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, idx_t row);
-int duckdb_variant_to_vector(duckdb_vector vec, idx_t row,
+int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector vec, idx_t row,
                              duckdb_vector *out_vec, duckdb_logical_type *out_type);
 void duckdb_free_vector(duckdb_vector vec);
 char *duckdb_logical_type_to_string(duckdb_logical_type logical_type);

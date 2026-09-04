@@ -445,7 +445,7 @@ void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_lo
 		case DUCKDB_TYPE_VARIANT: {
 			duckdb_vector typed_vec;
 			duckdb_logical_type typed_type;
-			if (duckdb_variant_to_vector(vec, row_idx, &typed_vec, &typed_type)) {
+			if (duckdb_variant_to_vector(conn, vec, row_idx, &typed_vec, &typed_type)) {
 				duckdb_val_from_vector(conn, typed_vec, typed_type, 0, result);
 				duckdb_destroy_logical_type(&typed_type);
 				duckdb_free_vector(typed_vec);
