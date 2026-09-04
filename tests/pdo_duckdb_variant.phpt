@@ -7,7 +7,7 @@ pdo_duckdb
 
 $db = new PDO('duckdb::memory:');
 $db->exec("create table t1 (v VARIANT)");
-$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?::integer), (?::decimal(10, 2)), (?), (?::integer[]), (?::varchar[]), (?::json)");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?::integer), (?::decimal), (?), (?::integer[]), (?::varchar[]), (?::json)");
 $statement->execute(['hello', 42, 42.21, null, [1, 2], ['foo', 'bar'], ['foo' => 'bar']]);
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
@@ -15,7 +15,7 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'Europe/Berlin']]);
 $db->exec("create table t1 (v VARIANT)");
 $db->exec("CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy')");
-$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?::integer), (?::decimal(10, 2)), (?), (?::integer[]), (?::json::variant), (?::json), (?::hugeint), (?::bignum), (?::bigint), (?::bigint)");
+$statement = $db->prepare("INSERT INTO t1 VALUES (?), (?::integer), (?::decimal), (?), (?::integer[]), (?::json::variant), (?::json), (?::hugeint), (?::bignum), (?::bigint), (?::bigint)");
 $statement->execute(['hello', 42, 42.21, null, [1, 2], ['foo', 'bar', true, null], ['foo' => 'bar'], 9223372036854775807, '340282366920938463463374607431768211455', PHP_INT_MAX, -PHP_INT_MAX]);
 $db->exec("INSERT INTO t1 VALUES (1/0), (-1/0), (0/0), ('101010'::BIT), ('2969-01-01'::date), (INTERVAL 1 YEAR), (true), (uuidv4()), ('sad'::mood), (union_value(str := 'three')), ('\\xAA\\xAB\\xAC'::BLOB)");
 $db->exec("INSERT INTO t1 VALUES (MAP {'key1': 10}), ('[1, null, {\"key\": \"value\"}]'::JSON), ({'key1': 'value1'})");

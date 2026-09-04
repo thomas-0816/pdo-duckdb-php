@@ -34,8 +34,10 @@ while ($row = $statement->fetch()) { var_dump($row); }
 $statement = $db->query("SELECT '3402823669209384634633746074317682114571111'::bignum");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-// DECIMAL: width <= 15 → float, width > 15 → string (preserve precision)
 $statement = $db->query("SELECT 1.23::DECIMAL(4,2), 0.001::DECIMAL(10,3), -3.14::DECIMAL(4,2), 0::DECIMAL(5,2)");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT 1.23::DECIMAL(13,3), 0.001::DECIMAL(14,4), -3.14::DECIMAL(15,5), 0::DECIMAL(16,6)");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT 999999999999999::DECIMAL(15,0), 0.99::DECIMAL(15,15)");
@@ -162,6 +164,19 @@ array(1) {
 }
 array(1) {
   [0]=>
+  array(4) {
+    ["CAST(1.23 AS DECIMAL(13, 3))"]=>
+    float(1.23)
+    ["CAST(0.001 AS DECIMAL(14, 4))"]=>
+    float(0.001)
+    ["-(CAST(3.14 AS DECIMAL(15, 5)))"]=>
+    float(-3.14)
+    ["CAST(0 AS DECIMAL(16, 6))"]=>
+    float(0)
+  }
+}
+array(1) {
+  [0]=>
   array(2) {
     ["CAST(999999999999999 AS DECIMAL(15, 0))"]=>
     float(999999999999999)
@@ -173,7 +188,7 @@ array(1) {
   [0]=>
   array(2) {
     ["CAST(1000000000000000 AS DECIMAL(16, 0))"]=>
-    string(16) "1000000000000000"
+    float(1000000000000000)
     ["CAST(0.9999999999999999 AS DECIMAL(16, 16))"]=>
     string(17) ".9999999999999999"
   }

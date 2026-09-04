@@ -311,8 +311,41 @@ void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_lo
 			break;
 		}
 		case DUCKDB_TYPE_DECIMAL: {
-			uint8_t width = duckdb_decimal_width(logical_type);
-			if (width > 15) {
+			duckdb_type internal_type = duckdb_decimal_internal_type(logical_type);
+			duckdb_hugeint hugeint_val;
+			switch (internal_type) {
+				case DUCKDB_TYPE_SMALLINT: {
+					int16_t val = ((int16_t *)duckdb_vector_get_data(vec))[row_idx];
+					hugeint_val.lower = (uint64_t)(int64_t)val;
+					hugeint_val.upper = val < 0 ? -1 : 0;
+					break;
+				}
+				case DUCKDB_TYPE_INTEGER: {
+					int32_t val = ((int32_t *)duckdb_vector_get_data(vec))[row_idx];
+					hugeint_val.lower = (uint64_t)(int64_t)val;
+					hugeint_val.upper = val < 0 ? -1 : 0;
+					break;
+				}
+				case DUCKDB_TYPE_BIGINT: {
+					int64_t val = ((int64_t *)duckdb_vector_get_data(vec))[row_idx];
+					hugeint_val.lower = (uint64_t)val;
+					hugeint_val.upper = val < 0 ? -1 : 0;
+					break;
+				}
+				default: {
+					hugeint_val = ((duckdb_hugeint *)duckdb_vector_get_data(vec))[row_idx];
+					break;
+				}
+			}
+			if ((hugeint_val.upper == 0 && hugeint_val.lower <= (1ULL << 53)) ||
+				(~hugeint_val.upper == 0 && (~hugeint_val.lower + 1) <= (1ULL << 53))
+			) {
+				duckdb_decimal dec_val;
+				dec_val.width = duckdb_decimal_width(logical_type);
+				dec_val.scale = duckdb_decimal_scale(logical_type);
+				dec_val.value = hugeint_val;
+				ZVAL_DOUBLE(result, duckdb_decimal_to_double(dec_val));
+			} else {
 				char *str = duckdb_get_string(conn, vec, row_idx);
 				if (str == NULL) {
 					ZVAL_NULL(result);
@@ -320,42 +353,6 @@ void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_lo
 					ZVAL_STRING(result, str);
 					duckdb_free(str);
 				}
-			} else {
-				uint8_t scale = duckdb_decimal_scale(logical_type);
-				duckdb_type internal_type = duckdb_decimal_internal_type(logical_type);
-
-				duckdb_hugeint hugeint_val;
-				switch (internal_type) {
-					case DUCKDB_TYPE_SMALLINT: {
-						int16_t val = ((int16_t *)duckdb_vector_get_data(vec))[row_idx];
-						hugeint_val.lower = (uint64_t)(int64_t)val;
-						hugeint_val.upper = val < 0 ? -1 : 0;
-						break;
-					}
-					case DUCKDB_TYPE_INTEGER: {
-						int32_t val = ((int32_t *)duckdb_vector_get_data(vec))[row_idx];
-						hugeint_val.lower = (uint64_t)(int64_t)val;
-						hugeint_val.upper = val < 0 ? -1 : 0;
-						break;
-					}
-					case DUCKDB_TYPE_BIGINT: {
-						int64_t val = ((int64_t *)duckdb_vector_get_data(vec))[row_idx];
-						hugeint_val.lower = (uint64_t)val;
-						hugeint_val.upper = val < 0 ? -1 : 0;
-						break;
-					}
-					default: {
-						hugeint_val = ((duckdb_hugeint *)duckdb_vector_get_data(vec))[row_idx];
-						break;
-					}
-				}
-
-				duckdb_decimal dec_val;
-				dec_val.width = width;
-				dec_val.scale = scale;
-				dec_val.value = hugeint_val;
-
-				ZVAL_DOUBLE(result, duckdb_decimal_to_double(dec_val));
 			}
 			break;
 		}
