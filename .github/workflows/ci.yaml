@@ -168,12 +168,11 @@ jobs:
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
           ./configure --with-pdo-duckdb --with-php-config=/tmp/php-asan/bin/php-config
           make -j$(nproc)
-          make install
       - name: Run tests under ASAN
         run: |
-          php -m | grep -E "duckdb|swoole"
+          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep -E "duckdb|swoole"
           export TEST_PHP_EXECUTABLE=/tmp/php-asan/bin/php
-          # export TEST_PHP_ARGS="-d extension=$(pwd)/modules/pdo_duckdb.so"
+          export TEST_PHP_ARGS="-d extension=$(pwd)/modules/pdo_duckdb.so"
           export NO_INTERACTION=1
           /tmp/php-asan/bin/php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
 
@@ -221,8 +220,6 @@ jobs:
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
           ./configure --with-php-config=/tmp/php-asan/bin/php-config
           make -j$(nproc)
-          make install
-          echo "extension=swoole.so" > /tmp/php-asan/lib/php.ini.d/swoole.ini
       - name: Build pdo_duckdb extension with ASAN
         run: |
           export PATH="/tmp/php-asan/bin:$PATH"
@@ -238,12 +235,11 @@ jobs:
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
           ./configure --with-pdo-duckdb --with-php-config=/tmp/php-asan/bin/php-config
           make -j$(nproc)
-          make install
       - name: Run tests under ASAN
         run: |
-          php -m | grep -E "duckdb|swoole"
+          php -d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep -E "duckdb|swoole"
           export TEST_PHP_EXECUTABLE=/tmp/php-asan/bin/php
-          # export TEST_PHP_ARGS="-d extension=swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so"
+          export TEST_PHP_ARGS="-d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so"
           export NO_INTERACTION=1
           /tmp/php-asan/bin/php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
 
