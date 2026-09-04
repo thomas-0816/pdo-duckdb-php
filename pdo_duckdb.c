@@ -112,6 +112,7 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 	/* Register driver-specific class constants */
 	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_UNBUFFERED", sizeof("DUCKDB_ATTR_UNBUFFERED") - 1, (zend_long)PDO_DUCKDB_ATTR_UNBUFFERED);
 	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_CONFIG", sizeof("DUCKDB_ATTR_CONFIG") - 1, (zend_long)PDO_DUCKDB_ATTR_CONFIG);
+	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_INIT_COMMAND", sizeof("DUCKDB_ATTR_INIT_COMMAND") - 1, (zend_long)PDO_DUCKDB_ATTR_INIT_COMMAND);
 
 	/* Override PDOStatement::execute once at module init (single-threaded).
 	   This replaces the global handler for ALL PDO drivers, but our wrapper

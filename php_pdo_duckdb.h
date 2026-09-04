@@ -33,7 +33,8 @@ extern struct pdo_stmt_methods  duckdb_stmt_methods;
 /* Driver‑specific attributes (mapped to PDO constants) */
 enum {
 	PDO_DUCKDB_ATTR_UNBUFFERED = PDO_ATTR_DRIVER_SPECIFIC,
-	PDO_DUCKDB_ATTR_CONFIG
+	PDO_DUCKDB_ATTR_CONFIG,
+	PDO_DUCKDB_ATTR_INIT_COMMAND
 };
 
 /* Connection data – one per PDO handle */
