@@ -62,6 +62,28 @@ static void pdo_duckdb_error(pdo_dbh_t *dbh)
 	memcpy(dbh->error_code, "HY000", sizeof(pdo_error_type));
 }
 
+/* ---------------- connection closer ---------------- */
+static void duckdb_handle_closer(pdo_dbh_t *dbh)
+{
+	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
+	if (H) {
+		if (H->conn) {
+			duckdb_interrupt(H->conn);
+			duckdb_disconnect(&H->conn);
+			H->conn = NULL;
+		}
+		if (H->db) {
+			duckdb_close(&H->db);
+			H->db = NULL;
+		}
+		if (H->thread_lock) {
+			free(H->thread_lock);
+		}
+		efree(H);
+		dbh->driver_data = NULL;
+	}
+}
+
 /* ---------------- connection factory ---------------- */
 
 int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
@@ -74,7 +96,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 
 	pdo_duckdb_db_handle *H;
 	const char *data_source = dbh->data_source;
-	char *dbname = NULL, *err = NULL, *deferred_tz = NULL;
+	char *dbname = NULL, *err = NULL, *init_command = NULL;
 	duckdb_state state;
 	duckdb_config config = NULL;
 
@@ -104,8 +126,8 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 							str_val = zval_get_string(val);
 						}
 						if (strcasecmp(ZSTR_VAL(key), "timezone") == 0) {
-							deferred_tz = emalloc(ZSTR_LEN(str_val) + 18);
-							sprintf(deferred_tz, "SET timezone = '%s'", ZSTR_VAL(str_val));
+							init_command = emalloc(ZSTR_LEN(str_val) + 20);
+							sprintf(init_command, "SET TimeZone = '%s'; ", ZSTR_VAL(str_val));
 						} else if (strcasecmp(ZSTR_VAL(key), "force_mbedtls_unsafe") == 0) { // crashes, skip
 							continue;
 						} else {
@@ -136,7 +158,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 		if (H->thread_lock) {
 			free(H->thread_lock);
 		}
-		efree(deferred_tz);
+		efree(init_command);
 		efree(dbname);
 		dbh->driver_data = NULL;
 		efree(H);
@@ -157,48 +179,48 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 		if (H->thread_lock) {
 			free(H->thread_lock);
 		}
-		efree(deferred_tz);
+		efree(init_command);
 		dbh->driver_data = NULL;
 		efree(H);
 		return 0;
 	}
 
-	if (deferred_tz) {
-		if (H->thread_lock) {
-			pdo_duckdb_swoole_query(H->thread_lock, H->conn, deferred_tz, NULL);
-		} else {
-			duckdb_query(H->conn, deferred_tz, NULL);
+	/* execute PDO::DUCKDB_ATTR_INIT_COMMAND */
+	zval *init_zval = NULL;
+	if (driver_options && Z_TYPE_P(driver_options) == IS_ARRAY) {
+		init_zval = zend_hash_index_find(Z_ARRVAL_P(driver_options), PDO_DUCKDB_ATTR_INIT_COMMAND);
+		if (init_zval && Z_TYPE_P(init_zval) == IS_STRING) {
+			size_t prev = init_command ? strlen(init_command) : 0;
+			init_command = erealloc(init_command, prev + Z_STRLEN_P(init_zval) + 1);
+			sprintf(init_command + prev, "%s", Z_STRVAL_P(init_zval));
 		}
-		efree(deferred_tz);
 	}
+	if (init_command && strlen(init_command) > 0) {
+		duckdb_result res;
+		if (H->thread_lock) {
+			state = pdo_duckdb_swoole_query(H->thread_lock, H->conn, init_command, &res);
+		} else {
+			state = duckdb_query(H->conn, init_command, &res);
+		}
+		if (state != DuckDBSuccess) {
+			const char *err = duckdb_result_error(&res);
+			zend_throw_exception_ex(php_pdo_get_exception(), 0,
+				"SQLSTATE[HY000]: Could not execute DUCKDB_ATTR_INIT_COMMAND: %s",
+				err ? err : "unknown error");
+			duckdb_destroy_result(&res);
+			efree(init_command);
+			duckdb_handle_closer(dbh);
+			return 0;
+		}
+		duckdb_destroy_result(&res);
+	}
+	efree(init_command);
 
 	/* Assign db handle methods */
 	dbh->methods = &duckdb_methods;
 	dbh->alloc_own_columns = 1;
 
 	return 1;
-}
-
-/* ---------------- connection closer ---------------- */
-static void duckdb_handle_closer(pdo_dbh_t *dbh)
-{
-	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
-	if (H) {
-		if (H->conn) {
-			duckdb_interrupt(H->conn);
-			duckdb_disconnect(&H->conn);
-			H->conn = NULL;
-		}
-		if (H->db) {
-			duckdb_close(&H->db);
-			H->db = NULL;
-		}
-		if (H->thread_lock) {
-			free(H->thread_lock);
-		}
-		efree(H);
-		dbh->driver_data = NULL;
-	}
 }
 
 /* ---------------- preparer ---------------- */
