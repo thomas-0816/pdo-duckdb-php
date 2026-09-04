@@ -534,8 +534,8 @@ SET max_temp_directory_size = '4GB';
 # Lock configuration
 SET lock_configuration = true;
 
-# Query timeout (DuckDB v2, e.g. 60s)
-SET max_execution_time=60000;
+# Query timeout (DuckDB v2, e.g. 30s)
+SET max_execution_time=30000;
 ```
 
 A complete list is available in the DuckDB documentation: [Securing DuckDB](https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview).
