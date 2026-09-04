@@ -144,13 +144,7 @@ jobs:
           CC=clang CXX=clang++ \
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure \
-            --enable-debug \
-            --disable-zts \
-            --disable-all \
-            --enable-cli \
-            --enable-pdo \
-            --prefix=/tmp/php-asan
+          ./configure --enable-debug --disable-zts --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
           make -j$(nproc)
           make install
       - name: Build extension with ASAN
@@ -170,7 +164,7 @@ jobs:
           make -j$(nproc)
       - name: Run tests under ASAN
         run: |
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep -E "duckdb|swoole"
+          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           export TEST_PHP_EXECUTABLE=/tmp/php-asan/bin/php
           export TEST_PHP_ARGS="-d extension=$(pwd)/modules/pdo_duckdb.so"
           export NO_INTERACTION=1
@@ -199,13 +193,7 @@ jobs:
           CC=clang CXX=clang++ \
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure \
-            --enable-debug \
-            --disable-zts \
-            --disable-all \
-            --enable-cli \
-            --enable-pdo \
-            --prefix=/tmp/php-asan
+          ./configure --enable-debug --disable-zts --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
           make -j$(nproc)
           make install
       - name: Build swoole extension with ASAN
