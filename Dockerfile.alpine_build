@@ -1,0 +1,26 @@
+FROM alpine:latest
+
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+
+RUN <<EOF
+    set -euxo pipefail
+    apk update
+    apk add --no-cache git build-base php85 php85-pdo php85-mbstring php85-dev icu-dev tzdata
+    ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
+    apk add duckdb-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
+    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git
+    cd pdo-duckdb-php
+    cp /usr/lib/libduckdb_* ./
+    cp /usr/lib/libcore_functions_extension.a ./
+    cp /usr/lib/libjson_extension.a ./
+    cp /usr/lib/libicu_extension.a ./
+    cp /usr/include/duckdb.h ./
+    cp /usr/include/duckdb.hpp ./
+    phpize
+    ./configure --with-pdo-duckdb
+    make
+    php -dextension=modules/pdo_duckdb.so -m | grep duckdb
+    php -dextension=modules/pdo_duckdb.so -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+EOF
