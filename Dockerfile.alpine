@@ -1,0 +1,15 @@
+FROM alpine:latest
+
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+
+RUN <<EOF
+    set -euxo pipefail
+    apk update
+    apk add --no-cache curl php85 php85-pdo php85-mbstring php85-iconv php85-openssl php85-phar tzdata libstdc++
+    ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
+    curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
+    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
+    php -m | grep duckdb
+    php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+EOF
