@@ -68,16 +68,26 @@ jobs:
 
   linux_alpine:
     name: "Linux Alpine"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: write # publish release
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          - ubuntu-22.04-arm
+        php-version:
+          - 83
+          - 84
+          - 85
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build the extension
         run: |
-          docker build -f Dockerfile.alpine_build -t pdo-duckdb-alpine .
+          docker build --build-arg PHP_VERSION=${{ matrix.php-version }} -f Dockerfile.alpine_build -t pdo-duckdb-alpine .
           id=$(docker create pdo-duckdb-alpine)
           docker cp "$id:/pdo-duckdb-php/modules/pdo_duckdb.so" ./pdo_duckdb.so
           docker rm "$id"

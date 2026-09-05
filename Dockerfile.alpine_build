@@ -3,10 +3,12 @@ FROM alpine:latest
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 
+ARG PHP_VERSION=85
+
 RUN <<EOF
     set -euxo pipefail
     apk update
-    apk add --no-cache git build-base php85 php85-pdo php85-mbstring php85-dev icu-dev tzdata
+    apk add --no-cache git build-base php${PHP_VERSION} php${PHP_VERSION}-pdo php${PHP_VERSION}-mbstring php${PHP_VERSION}-dev icu-dev tzdata
     ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
     apk add duckdb-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git
