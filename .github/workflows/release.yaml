@@ -87,10 +87,7 @@ jobs:
           tag: ${{ github.event.release.tag_name }}
         run: |
           docker build --build-arg tag=${tag} -f Dockerfile.alpine_build -t pdo-duckdb-alpine .
-          id=$(docker create pdo-duckdb-alpine)
-          docker cp "$id:/pdo-duckdb-php/*.zip" ./
-          docker rm "$id"
-          file pdo_duckdb.so
+          docker run --rm -w /pdo-duckdb-php/ pdo-duckdb-alpine /bin/sh -c 'tar -cf - *.zip' | tar -xvf -
           ls -l *.zip
           gh release upload "$tag" *.zip --clobber
 
