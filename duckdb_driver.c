@@ -108,35 +108,38 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	/* Extract path — PDO passes the part after the first colon */
 	dbname = estrdup(data_source);
 
-	/* Check for DuckDB config options in driver_options */
+	/* reset defaults (missing in alpine) */
+	if (duckdb_create_config(&config) == DuckDBSuccess) {
+		duckdb_set_config(config, "autoinstall_known_extensions", "true");
+		duckdb_set_config(config, "autoload_known_extensions", "true");
+	}
+
 	if (driver_options && Z_TYPE_P(driver_options) == IS_ARRAY) {
 		zval *config_zval = zend_hash_index_find(Z_ARRVAL_P(driver_options), PDO_DUCKDB_ATTR_CONFIG);
-		if (config_zval && Z_TYPE_P(config_zval) == IS_ARRAY) {
-			if (duckdb_create_config(&config) == DuckDBSuccess) {
-				zend_string *key;
-				zval *val;
-				ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(config_zval), key, val) {
-					if (key) {
-						zend_string *str_val;
-						if (Z_TYPE_P(val) == IS_TRUE) {
-							str_val = zend_string_init("true", 5, 0);
-						} else if (Z_TYPE_P(val) == IS_FALSE) {
-							str_val = zend_string_init("false", 5, 0);
-						} else {
-							str_val = zval_get_string(val);
-						}
-						if (strcasecmp(ZSTR_VAL(key), "timezone") == 0) {
-							init_command = emalloc(ZSTR_LEN(str_val) + 20);
-							sprintf(init_command, "SET TimeZone = '%s'; ", ZSTR_VAL(str_val));
-						} else if (strcasecmp(ZSTR_VAL(key), "force_mbedtls_unsafe") == 0) { // crashes, skip
-							continue;
-						} else {
-							duckdb_set_config(config, ZSTR_VAL(key), ZSTR_VAL(str_val));
-						}
-						zend_string_release(str_val);
+		if (config_zval && Z_TYPE_P(config_zval) == IS_ARRAY && config) {
+			zend_string *key;
+			zval *val;
+			ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(config_zval), key, val) {
+				if (key) {
+					zend_string *str_val;
+					if (Z_TYPE_P(val) == IS_TRUE) {
+						str_val = zend_string_init("true", 5, 0);
+					} else if (Z_TYPE_P(val) == IS_FALSE) {
+						str_val = zend_string_init("false", 5, 0);
+					} else {
+						str_val = zval_get_string(val);
 					}
-				} ZEND_HASH_FOREACH_END();
-			}
+					if (strcasecmp(ZSTR_VAL(key), "timezone") == 0) {
+						init_command = emalloc(ZSTR_LEN(str_val) + 20);
+						sprintf(init_command, "SET TimeZone = '%s'; ", ZSTR_VAL(str_val));
+					} else if (strcasecmp(ZSTR_VAL(key), "force_mbedtls_unsafe") == 0) { // crashes, skip
+						continue;
+					} else {
+						duckdb_set_config(config, ZSTR_VAL(key), ZSTR_VAL(str_val));
+					}
+					zend_string_release(str_val);
+				}
+			} ZEND_HASH_FOREACH_END();
 		}
 	}
 
