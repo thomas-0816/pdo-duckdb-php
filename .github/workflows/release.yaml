@@ -66,6 +66,39 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           configure-flags: '--with-pdo-duckdb'
 
+  linux_alpine:
+    name: "Linux Alpine"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # publish release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the extension
+        run: |
+          docker build -f Dockerfile.alpine_build -t pdo-duckdb-alpine .
+          id=$(docker create pdo-duckdb-alpine)
+          docker cp "$id:/pdo-duckdb-php/modules/pdo_duckdb.so" ./pdo_duckdb.so
+          docker rm "$id"
+          file pdo_duckdb.so
+      - name: Create zip archive and upload
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.event.release.tag_name }}
+        run: |
+          php_version=$(docker run --rm pdo-duckdb-alpine php-config --version | cut -d. -f1-2)
+          arch=$(uname -m)
+          case "$arch" in
+            x86_64|amd64)  arch_name=x86_64 ;;
+            aarch64|arm64) arch_name=arm64 ;;
+            x86)           arch_name=x86 ;;
+            *) echo "unsupported arch: $arch"; exit 1 ;;
+          esac
+          /usr/bin/zip -j "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" pdo_duckdb.so
+          ls -l "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip"
+          gh release upload "$tag" "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" --clobber
+
   windows:
     name: Windows
     runs-on: ${{ (matrix.php-version == '8.6' && 'windows-2025-vs2026') || 'windows-2022' }}
@@ -133,12 +166,11 @@ jobs:
   clamav:
     name: "Docker: clamAV"
     runs-on: ubuntu-latest
-    needs: [linux_macos, windows]
+    needs: [linux_macos, windows, linux_alpine]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
       - name: Build container and run clamAV
         run: |
           gh release download -p "*" -D . -R thomas-0816/pdo-duckdb-php
