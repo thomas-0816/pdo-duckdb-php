@@ -230,7 +230,7 @@ jobs:
           export TEST_PHP_ARGS="-d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so"
           export NO_INTERACTION=1
           /tmp/php-asan/bin/php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
-          /tmp/php-asan/bin/php test_swoole.php
+          /tmp/php-asan/bin/php -d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
 
   valgrind:
     name: "Valgrind"
