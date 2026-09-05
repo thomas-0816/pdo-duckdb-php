@@ -86,8 +86,10 @@ jobs:
         with:
           persist-credentials: false
       - name: Build the extension
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
         run: |
-          docker build --build-arg PHP_VERSION=${{ matrix.php-version }} -f Dockerfile.alpine_build -t pdo-duckdb-alpine .
+          docker build --build-arg PHP_VERSION=$PHP_VERSION -f Dockerfile.alpine_build -t pdo-duckdb-alpine .
           id=$(docker create pdo-duckdb-alpine)
           docker cp "$id:/pdo-duckdb-php/modules/pdo_duckdb.so" ./pdo_duckdb.so
           docker rm "$id"
