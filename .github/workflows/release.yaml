@@ -77,39 +77,22 @@ jobs:
         os:
           - ubuntu-22.04
           - ubuntu-22.04-arm
-        php-version:
-          - 83
-          - 84
-          - 85
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Build the extension
-        env:
-          PHP_VERSION: ${{ matrix.php-version }}
-        run: |
-          docker build --build-arg PHP_VERSION=$PHP_VERSION -f Dockerfile.alpine_build -t pdo-duckdb-alpine .
-          id=$(docker create pdo-duckdb-alpine)
-          docker cp "$id:/pdo-duckdb-php/modules/pdo_duckdb.so" ./pdo_duckdb.so
-          docker rm "$id"
-          file pdo_duckdb.so
-      - name: Create zip archive and upload
+      - name: Build the extension and upload zip archive
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.event.release.tag_name }}
         run: |
-          php_version=$(docker run --rm pdo-duckdb-alpine php-config --version | cut -d. -f1-2)
-          arch=$(uname -m)
-          case "$arch" in
-            x86_64|amd64)  arch_name=x86_64 ;;
-            aarch64|arm64) arch_name=arm64 ;;
-            x86)           arch_name=x86 ;;
-            *) echo "unsupported arch: $arch"; exit 1 ;;
-          esac
-          /usr/bin/zip -j "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" pdo_duckdb.so
-          ls -l "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip"
-          gh release upload "$tag" "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" --clobber
+          docker build --build-arg tag=${tag} -f Dockerfile.alpine_build -t pdo-duckdb-alpine .
+          id=$(docker create pdo-duckdb-alpine)
+          docker cp "$id:/pdo-duckdb-php/*.zip" ./
+          docker rm "$id"
+          file pdo_duckdb.so
+          ls -l *.zip
+          gh release upload "$tag" *.zip --clobber
 
   windows:
     name: Windows

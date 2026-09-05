@@ -3,14 +3,17 @@ FROM alpine:latest
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 
-ARG PHP_VERSION=85
+ARG tag
 
 RUN <<EOF
     set -euxo pipefail
     apk update
-    apk add --no-cache git build-base php${PHP_VERSION} php${PHP_VERSION}-pdo php${PHP_VERSION}-mbstring php${PHP_VERSION}-dev icu-dev tzdata
+    apk add --no-cache git build-base icu-dev tzdata zip \
+        php83 php83-pdo php83-mbstring php83-dev \
+        php84 php84-pdo php84-mbstring php84-dev \
+        php85 php85-pdo php85-mbstring php85-dev
+    apk add --no-cache php86 php86-pdo php86-mbstring php86-dev duckdb-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
     ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
-    apk add duckdb-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git
     cd pdo-duckdb-php
     cp /usr/lib/libduckdb_* ./
@@ -19,10 +22,76 @@ RUN <<EOF
     cp /usr/lib/libicu_extension.a ./
     cp /usr/include/duckdb.h ./
     cp /usr/include/duckdb.hpp ./
-    phpize
-    ./configure --with-pdo-duckdb
+EOF
+
+RUN <<EOF
+    phpize83
+    ./configure --with-pdo-duckdb --with-php-config=php-config83
     make
-    php -dextension=modules/pdo_duckdb.so -m | grep duckdb
-    php -dextension=modules/pdo_duckdb.so -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-    php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php83 -dextension=modules/pdo_duckdb.so -m | grep duckdb
+    php83 -dextension=modules/pdo_duckdb.so -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php83 run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php_version=$(php-config83 --version | cut -d. -f1-2)
+    arch=$(uname -m)
+    case "$arch" in
+        x86_64|amd64)  arch_name=x86_64 ;;
+        aarch64|arm64) arch_name=arm64 ;;
+        x86)           arch_name=x86 ;;
+        *) echo "unsupported arch: $arch"; exit 1 ;;
+    esac
+    zip -j "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" modules/pdo_duckdb.so
+EOF
+
+RUN <<EOF
+    phpize84
+    ./configure --with-pdo-duckdb --with-php-config=php-config84
+    make
+    php84 -dextension=modules/pdo_duckdb.so -m | grep duckdb
+    php84 -dextension=modules/pdo_duckdb.so -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php84 run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php_version=$(php-config84 --version | cut -d. -f1-2)
+    arch=$(uname -m)
+    case "$arch" in
+        x86_64|amd64)  arch_name=x86_64 ;;
+        aarch64|arm64) arch_name=arm64 ;;
+        x86)           arch_name=x86 ;;
+        *) echo "unsupported arch: $arch"; exit 1 ;;
+    esac
+    zip -j "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" modules/pdo_duckdb.so
+EOF
+
+RUN <<EOF
+    phpize85
+    ./configure --with-pdo-duckdb --with-php-config=php-config85
+    make
+    php85 -dextension=modules/pdo_duckdb.so -m | grep duckdb
+    php85 -dextension=modules/pdo_duckdb.so -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php85 run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php_version=$(php-config85 --version | cut -d. -f1-2)
+    arch=$(uname -m)
+    case "$arch" in
+        x86_64|amd64)  arch_name=x86_64 ;;
+        aarch64|arm64) arch_name=arm64 ;;
+        x86)           arch_name=x86 ;;
+        *) echo "unsupported arch: $arch"; exit 1 ;;
+    esac
+    zip -j "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" modules/pdo_duckdb.so
+EOF
+
+RUN <<EOF
+    phpize86
+    ./configure --with-pdo-duckdb --with-php-config=php-config86
+    make
+    php86 -dextension=modules/pdo_duckdb.so -m | grep duckdb
+    php86 -dextension=modules/pdo_duckdb.so -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php86 run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php_version=$(php-config86 --version | cut -d. -f1-2)
+    arch=$(uname -m)
+    case "$arch" in
+        x86_64|amd64)  arch_name=x86_64 ;;
+        aarch64|arm64) arch_name=arm64 ;;
+        x86)           arch_name=x86 ;;
+        *) echo "unsupported arch: $arch"; exit 1 ;;
+    esac
+    zip -j "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" modules/pdo_duckdb.so
 EOF
