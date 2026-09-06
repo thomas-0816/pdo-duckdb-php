@@ -252,5 +252,5 @@ array(2) {
   ["id"]=>
   int(1)
   ["distance"]=>
-  float(0.0001407862)
+  float(0.0001407%d)
 }
