@@ -29,3 +29,5 @@ array(3) {
   ["C1"]=>
   float(42.21)
 }
+--XLEAK--
+DuckDB's excel extension leaks LocalFileSystem file handles and libxml2 buffers on xlsx I/O (upstream, unfixable from the PDO driver).
