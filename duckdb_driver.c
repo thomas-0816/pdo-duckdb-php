@@ -193,9 +193,11 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	if (driver_options && Z_TYPE_P(driver_options) == IS_ARRAY) {
 		init_zval = zend_hash_index_find(Z_ARRVAL_P(driver_options), PDO_DUCKDB_ATTR_INIT_COMMAND);
 		if (init_zval && Z_TYPE_P(init_zval) == IS_STRING) {
+			char *prepared_init = zstr_prepare(Z_STR_P(init_zval));
 			size_t prev = init_command ? strlen(init_command) : 0;
-			init_command = erealloc(init_command, prev + Z_STRLEN_P(init_zval) + 1);
-			sprintf(init_command + prev, "%s", Z_STRVAL_P(init_zval));
+			init_command = erealloc(init_command, prev + strlen(prepared_init) + 1);
+			strcpy(init_command + prev, prepared_init);
+			efree(prepared_init);
 		}
 	}
 	if (init_command && strlen(init_command) > 0) {
