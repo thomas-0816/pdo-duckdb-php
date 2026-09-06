@@ -1,3 +1,5 @@
+# docker build --build-arg tag=${tag} -f Dockerfile.alpine_build -t pdo-duckdb-alpine-build .
+
 FROM alpine:latest
 
 ENV TERM="xterm-256color"
