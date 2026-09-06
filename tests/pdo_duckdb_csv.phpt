@@ -1,5 +1,5 @@
 --TEST--
-PDO_duckdb: Test json
+PDO_duckdb: Test csv
 --EXTENSIONS--
 pdo_duckdb
 --FILE--

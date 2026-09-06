@@ -57,12 +57,12 @@ pie install thomas-0816/pdo-duckdb-php
 
 ```php
 $duckDb = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['TimeZone' => 'Europe/Berlin']]);
-$duckDb->exec("CREATE TABLE table1 (id INTEGER, amount DECIMAL(10, 2), description VARCHAR)");
+$duckDb->exec('CREATE TABLE table1 (id INTEGER, amount DECIMAL(10, 2), description VARCHAR)');
 
-$statement = $duckDb->prepare("INSERT INTO table1 VALUES (?, ?, ?)");
+$statement = $duckDb->prepare('INSERT INTO table1 VALUES (?, ?, ?)');
 $statement->execute([1, 42.21, 'Hello DuckDB! 🐘 💓 🦆']);
 
-$statement = $duckDb->query("SELECT * FROM table1");
+$statement = $duckDb->query('SELECT * FROM table1');
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 # Array
@@ -91,7 +91,7 @@ $db = new PDO('duckdb:/tmp/test.db', null, null, [
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE table1 (id INTEGER, text VARCHAR USING COMPRESSION zstd, data JSON)");
 
-$statement = $db->prepare("INSERT INTO table1 VALUES (?, ?, ?)");
+$statement = $db->prepare('INSERT INTO table1 VALUES (?, ?, ?)');
 $statement->execute([1, 'Hello DuckDB 🦆', ['foo' => 'bar', 'baz' => 42]]);
 
 $db->exec("COPY (SELECT * FROM table1) TO '/tmp/table1.parquet' (COMPRESSION zstd)");
@@ -201,7 +201,7 @@ $db->exec('INSTALL excel; LOAD excel');
 $db->exec('CREATE TABLE table1 (id INTEGER, text VARCHAR, amount DECIMAL(10, 2))');
 
 $statement = $db->prepare('INSERT INTO table1 VALUES (?, ?, ?)');
-$statement->execute([1, 'Hello DuckDB 🦆', 42.21]);
+$statement->execute([1, 'Hello Excel 🦆', 42.21]);
 
 $db->exec("COPY (SELECT * FROM table1) TO '/tmp/table1.xlsx'");
 
@@ -210,7 +210,7 @@ print_r($statement->fetch(PDO::FETCH_ASSOC));
 
 # Array
 #     [A1] => 1
-#     [B1] => Hello DuckDB 🦆
+#     [B1] => Hello Excel 🦆
 #     [C1] => 42.21
 ```
 
@@ -220,12 +220,12 @@ print_r($statement->fetch(PDO::FETCH_ASSOC));
 // s is array{v: string, i: int, a: string[], d: float}
 
 $db = new PDO('duckdb::memory:');
-$db->exec("CREATE TABLE table1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], d DECIMAL))");
+$db->exec('CREATE TABLE table1 (s STRUCT(v VARCHAR, i INTEGER, a VARCHAR[], d DECIMAL))');
 
-$statement = $db->prepare("INSERT INTO table1 VALUES (?)");
+$statement = $db->prepare('INSERT INTO table1 VALUES (?)');
 $statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'd' => 42.21]]);
 
-$statement = $db->query("SELECT * FROM table1");
+$statement = $db->query('SELECT * FROM table1');
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
 # Array
@@ -238,6 +238,29 @@ print_r($statement->fetch(PDO::FETCH_ASSOC));
 #         [d] => 42.21
 ```
 
+## Vector Similarity Search (HNSW)
+
+```php
+$db = new PDO('duckdb::memory:');
+$db->exec('INSTALL vss; LOAD vss');
+
+$db->exec('CREATE TABLE table1 (id int primary key, embeddings float[3])');
+$db->exec("CREATE INDEX table1_hnsw ON table1 USING HNSW (embeddings) WITH (metric = 'cosine')");
+
+$db->exec('INSERT INTO table1 VALUES (1, [1, 2, 3])');
+$db->exec('INSERT INTO table1 VALUES (2, [4, 5, 6])');
+
+$statement = $db->query('
+    SELECT id, array_cosine_distance(embeddings, [1.1, 2.1, 3.1]::FLOAT[3]) as distance
+    FROM table1 WHERE distance <= 0.01 ORDER BY distance
+');
+print_r($statement->fetch(PDO::FETCH_ASSOC));
+
+# Array
+#     [id] => 1
+#     [distance] => 0.0001407862
+```
+
 ## Views
 
 ```php
@@ -246,7 +269,7 @@ $db->exec('CREATE TABLE table1 (id INTEGER, text VARCHAR, amount DECIMAL(10, 2))
 $db->exec("INSERT INTO table1 VALUES (1, 'foo', 42.21)");
 $db->exec('CREATE VIEW view1 as SELECT * FROM table1');
 
-$statement = $db->query("SELECT * FROM view1", PDO::FETCH_ASSOC);
+$statement = $db->query('SELECT * FROM view1', PDO::FETCH_ASSOC);
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 ```
 
@@ -275,10 +298,10 @@ $db->commit();
 
 ```php
 $db = new PDO('duckdb::memory:');
-$db->exec("CREATE TABLE table1 (v VARCHAR[])");
+$db->exec('CREATE TABLE table1 (v VARCHAR[])');
 $db->exec("INSERT INTO table1 VALUES (['a', 'b'])");
 
-$statement = $db->query("SELECT v FROM table1");
+$statement = $db->query('SELECT v FROM table1');
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
 # Array
@@ -286,7 +309,7 @@ print_r($statement->fetch(PDO::FETCH_ASSOC));
 #         [0] => a
 #         [1] => b
 
-$statement = $db->query("SELECT v::json::varchar as v FROM table1");
+$statement = $db->query('SELECT v::json::varchar as v FROM table1');
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
 # Array
@@ -299,7 +322,7 @@ print_r($statement->fetch(PDO::FETCH_ASSOC));
 $db = new PDO('duckdb::memory:');
 $db->exec('CREATE SEQUENCE table1_id');
 $db->exec("CREATE TABLE table1 (id INTEGER PRIMARY KEY DEFAULT nextval('table1_id'))");
-$statement = $db->query("INSERT INTO table1 VALUES (default) RETURNING *");
+$statement = $db->query('INSERT INTO table1 VALUES (default) RETURNING *');
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
 # Array

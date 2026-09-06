@@ -42,6 +42,18 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT * FROM y");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec('INSTALL vss; LOAD vss');
+$db->exec('CREATE TABLE table1 (id int primary key, embeddings float[3])');
+$db->exec("CREATE INDEX table1_hnsw ON table1 USING HNSW (embeddings) WITH (metric = 'cosine')");
+$db->exec('INSERT INTO table1 VALUES (1, [1, 2, 3])');
+$db->exec('INSERT INTO table1 VALUES (2, [4, 5, 6])');
+$statement = $db->query('
+    SELECT id, array_cosine_distance(embeddings, [1.1, 2.1, 3.1]::FLOAT[3]) as distance
+    FROM table1 WHERE distance <= 0.01 ORDER BY distance
+');
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(1) {
@@ -235,4 +247,10 @@ array(1) {
       float(4.3)
     }
   }
+}
+array(2) {
+  ["id"]=>
+  int(1)
+  ["distance"]=>
+  float(0.0001407862)
 }

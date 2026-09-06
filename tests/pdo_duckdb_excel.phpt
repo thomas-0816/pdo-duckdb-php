@@ -1,0 +1,31 @@
+--TEST--
+PDO_duckdb: Test excel
+--EXTENSIONS--
+pdo_duckdb
+--FILE--
+<?php
+
+$excelFile = sys_get_temp_dir() . '/test.xlsx';
+
+$db = new PDO('duckdb::memory:');
+$db->exec('INSTALL excel; LOAD excel');
+$db->exec('CREATE TABLE table1 (id INTEGER, text VARCHAR, amount DECIMAL(10, 2))');
+
+$statement = $db->prepare('INSERT INTO table1 VALUES (?, ?, ?)');
+$statement->execute([1, 'Hello Excel 🦆', 42.21]);
+
+$db->exec("COPY (SELECT * FROM table1) TO '{$excelFile}'");
+
+$statement = $db->query("SELECT * FROM '{$excelFile}'", PDO::FETCH_ASSOC);
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
+?>
+--EXPECTF--
+array(3) {
+  ["A1"]=>
+  float(1)
+  ["B1"]=>
+  string(16) "Hello Excel 🦆"
+  ["C1"]=>
+  float(42.21)
+}
