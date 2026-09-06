@@ -86,8 +86,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.event.release.tag_name }}
         run: |
-          docker build --build-arg tag=${tag} -f Dockerfile.alpine_build -t pdo-duckdb-alpine .
-          docker run --rm -w /pdo-duckdb-php/ pdo-duckdb-alpine /bin/sh -c 'tar -cf - *.zip' | tar -xvf -
+          docker build --build-arg tag=${tag} -f Dockerfile.alpine_build -t pdo-duckdb-alpine-build .
+          docker run --rm -w /pdo-duckdb-php/ pdo-duckdb-alpine-build /bin/sh -c 'tar -cf - *.zip' | tar -xvf -
           ls -l *.zip
           gh release upload "$tag" *.zip --clobber
 
