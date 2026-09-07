@@ -205,7 +205,7 @@ $statement->execute([1, 'Hello Excel 🦆', 42.21]);
 
 $db->exec("COPY (SELECT * FROM table1) TO '/tmp/table1.xlsx'");
 
-$statement = $db->query("SELECT * FROM '/tmp/table1.xlsx'", PDO::FETCH_ASSOC);
+$statement = $db->query("SELECT * FROM '/tmp/table1.xlsx'");
 print_r($statement->fetch(PDO::FETCH_ASSOC));
 
 # Array
@@ -269,7 +269,7 @@ $db->exec('CREATE TABLE table1 (id INTEGER, text VARCHAR, amount DECIMAL(10, 2))
 $db->exec("INSERT INTO table1 VALUES (1, 'foo', 42.21)");
 $db->exec('CREATE VIEW view1 as SELECT * FROM table1');
 
-$statement = $db->query('SELECT * FROM view1', PDO::FETCH_ASSOC);
+$statement = $db->query('SELECT * FROM view1');
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 ```
 
