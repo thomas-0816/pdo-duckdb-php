@@ -180,6 +180,16 @@ jobs:
       - name: Build container
         run: docker build --no-cache -f Dockerfile.arch -t pdo_duckdb_arch .
 
+  alma:
+    name: "Docker: Alma Linux"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build container
+        run: docker build --no-cache -f Dockerfile.alma -t pdo_duckdb_alma .
+
   phpofficial:
     name: "Docker: php official"
     runs-on: ubuntu-latest
