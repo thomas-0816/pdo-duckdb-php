@@ -53,7 +53,8 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT CAST(NULL AS DECIMAL(10,2))");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-// TODO v2 select ln(-1), sqrt(-1)
+$statement = $db->query("SELECT ln(-1), sqrt(-1)");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 ?>
 --EXPECTF--
@@ -210,5 +211,14 @@ array(1) {
   array(1) {
     ["CAST(NULL AS DECIMAL(10, 2))"]=>
     NULL
+  }
+}
+array(1) {
+  [0]=>
+  array(2) {
+    ["ln(-1)"]=>
+    float(NAN)
+    ["sqrt(-1)"]=>
+    float(NAN)
   }
 }

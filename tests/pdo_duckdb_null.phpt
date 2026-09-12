@@ -21,34 +21,6 @@ for ($i = 0; $i < $columnCount; $i++) {
 }
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-/*
-// TODO v2
-SELECT null::variant, null::bignum
-SELECT row(), struct_pack()
-SELECT typeof(row())
-SELECT typeof(NULL::STRUCT)
-SELECT NULL::STRUCT()
-SELECT NULL::STRUCT, row()::STRUCT
-CREATE TABLE t(i INTEGER, s STRUCT)
-INSERT INTO t VALUES (1, row()), (2, NULL), (3, row())
-SELECT i, s FROM t ORDER BY i
-SELECT count(*) FROM t WHERE s IS NOT NULL
-SELECT i FROM t ORDER BY s, i
-SELECT s, count(*) FROM t WHERE s IS NOT NULL GROUP BY s
-SELECT count(*) FROM (SELECT DISTINCT s FROM t)
-SELECT row() = row(), row() IS NOT DISTINCT FROM row()
-SELECT t1.i, t2.i, t1.s FROM t t1 JOIN t t2 USING (s) WHERE t1.s IS NOT NULL AND t1.i < t2.i ORDER BY 1, 2
-SELECT {'a': row(), 'b': 1}, [row(), row()], typeof({'a': row()})
-SELECT row()::VARCHAR
-SELECT struct_concat(row(), row()), struct_concat(row(), {'x': 1}), struct_concat({'x': 1}, row())
-SELECT struct_concat(row(), row(1, 2))
-SELECT struct_contains(row(), 'a'), struct_contains(row(), 5)
-SELECT struct_extract(row(), 'a')
-SELECT row()[1]
-SELECT unnest(row())
-SELECT i, s FROM t ORDER BY i
-*/
-
 ?>
 --EXPECTF--
 string(7) "boolean"

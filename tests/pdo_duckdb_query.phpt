@@ -6,9 +6,9 @@ pdo_duckdb
 <?php
 
 $db = new PDO('duckdb::memory:');
-$db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)"); // TODO v2, t TUPLE(integer, string)
-$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?)");
-$statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']); // TODO v2, "(1, 'a')"
+$db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR, t TUPLE(integer, string))");
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?)");
+$statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello', "(1, 'a')"]);
 
 var_dump($db->lastInsertId());
 
@@ -26,7 +26,7 @@ var_dump($statement->getColumnMeta(1));
 var_dump($statement->getColumnMeta(2));
 var_dump($statement->getColumnMeta(3));
 var_dump($statement->getColumnMeta(4));
-// TODO v2 var_dump($statement->getColumnMeta(5));
+var_dump($statement->getColumnMeta(5));
 var_dump($statement->columnCount());
 
 $db = new PDO('duckdb::memory:');
@@ -318,7 +318,7 @@ var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 ?>
 --EXPECTF--
 string(1) "0"
-array(4) {
+array(5) {
   ["i"]=>
   int(1)
   ["b"]=>
@@ -327,8 +327,15 @@ array(4) {
   float(3.14)
   ["v"]=>
   string(5) "hello"
+  ["t"]=>
+  array(2) {
+    [0]=>
+    int(1)
+    [1]=>
+    string(1) "a"
+  }
 }
-array(4) {
+array(5) {
   ["i"]=>
   int(1)
   ["b"]=>
@@ -337,6 +344,13 @@ array(4) {
   float(3.14)
   ["v"]=>
   string(5) "hello"
+  ["t"]=>
+  array(2) {
+    [0]=>
+    int(1)
+    [1]=>
+    string(1) "a"
+  }
 }
 array(7) {
   ["native_type"]=>
@@ -406,8 +420,25 @@ array(7) {
   ["precision"]=>
   int(0)
 }
+array(7) {
+  ["native_type"]=>
+  string(6) "struct"
+  ["pdo_type"]=>
+  int(3)
+  ["duckdb:decl_type"]=>
+  string(23) "TUPLE(INTEGER, VARCHAR)"
+  ["flags"]=>
+  array(0) {
+  }
+  ["name"]=>
+  string(1) "t"
+  ["len"]=>
+  int(0)
+  ["precision"]=>
+  int(0)
+}
 bool(false)
-int(4)
+int(5)
 array(1) {
   [0]=>
   array(5) {
