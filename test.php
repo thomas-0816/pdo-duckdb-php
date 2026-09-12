@@ -801,7 +801,7 @@ $statement = $duckDb->prepare("INSERT INTO table1 VALUES (?, ?)");
 $statement->execute(['foo', 'bar']);
 try {
     $statement->execute(['foo']);
-} catch (PDOException $e) {
+} catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 $statement = $duckDb->query("SELECT * FROM table1");
@@ -816,7 +816,7 @@ $statement->execute();
 $statement->bindValue(1, 'foo1' . chr(0) . '2', PDO::PARAM_STR);
 try {
     $statement->execute();
-} catch (PDOException $e) {
+} catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 $statement = $db->query("SELECT * FROM t1");
