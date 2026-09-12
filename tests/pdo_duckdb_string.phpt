@@ -56,7 +56,7 @@ array(1) {
 Caught: SQLSTATE[HY000]: Parser Error: syntax error at or near "' '"
 
 LINE 1: SELECT 'Hello' ' ' 'World' AS greeting
-                       ^
+                       ^^^
 array(1) {
   [0]=>
   array(1) {

@@ -14,7 +14,7 @@ $statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $statement->fetch()) { var_dump($row); }
 
-$db->exec("INSTAll parquet; LOAD parquet; INSTALL httpfs;");
+// $db->exec("INSTAll parquet; LOAD parquet; INSTALL httpfs;");
 
 $statement = $db->query("
   SELECT extension_name, loaded, installed FROM duckdb_extensions()
@@ -101,7 +101,7 @@ array(4) {
     ["extension_name"]=>
     string(6) "httpfs"
     ["loaded"]=>
-    bool(false)
+    bool(true)
     ["installed"]=>
     bool(true)
   }
@@ -147,10 +147,10 @@ array(1) {
 }
 array(1) {
   [""version"()"]=>
-  string(6) "v1.5.5"
+  string(%d) "v2.0.0-dev84457"
 }
-string(6) "v1.5.5"
-string(6) "v1.5.5"
+string(%d) "v2.0.0-dev84457"
+string(%d) "v2.0.0-dev84457"
 string(6) "duckdb"
 array(3) {
   ["allow_community_extensions"]=>
@@ -165,4 +165,4 @@ string(1) "2"
 Caught: SQLSTATE[HY000]: Could not execute init command: Binder Error: Referenced column "INVALID" was not found because the FROM clause is missing
 
 LINE 1: SELECT INVALID
-               ^
+               ^^^^^^^

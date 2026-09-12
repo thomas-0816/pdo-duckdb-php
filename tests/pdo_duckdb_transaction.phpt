@@ -118,7 +118,7 @@ bool(true)
 Caught: SQLSTATE[HY000]: Binder Error: Referenced column "INVALID" was not found because the FROM clause is missing
 
 LINE 1: SELECT INVALID
-               ^
+               ^^^^^^^
 bool(true)
 bool(false)
-int(4)
+int(3)

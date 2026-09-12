@@ -90,18 +90,18 @@ array(1) {
 array(1) {
   [0]=>
   array(2) {
-    ["CAST('2969-01-01' AS "DATE")"]=>
+    ["CAST('2969-01-01' AS date)"]=>
     string(10) "2969-01-01"
-    ["CAST('0001-01-01' AS "DATE")"]=>
+    ["CAST('0001-01-01' AS date)"]=>
     string(10) "0001-01-01"
   }
 }
 array(1) {
   [0]=>
   array(2) {
-    ["CAST('2969-01-01' AS TIMESTAMP)"]=>
+    ["CAST('2969-01-01' AS datetime)"]=>
     string(19) "2969-01-01 00:00:00"
-    ["CAST('0001-01-01' AS TIMESTAMP)"]=>
+    ["CAST('0001-01-01' AS datetime)"]=>
     string(19) "0001-01-01 00:00:00"
   }
 }
@@ -117,20 +117,20 @@ array(1) {
 array(1) {
   [0]=>
   array(3) {
-    ["CAST('1992-09-20 11:30:00.123456789' AS "TIMESTAMP_NS")"]=>
+    ["CAST('1992-09-20 11:30:00.123456789' AS TIMESTAMP_NS)"]=>
     string(29) "1992-09-20 11:30:00.123456789"
-    ["CAST('1992-09-20 11:30:00.123456789' AS "TIMESTAMP_MS")"]=>
+    ["CAST('1992-09-20 11:30:00.123456789' AS TIMESTAMP_MS)"]=>
     string(23) "1992-09-20 11:30:00.123"
-    ["CAST('1992-09-20 11:30:00.123456789' AS "TIMESTAMP_S")"]=>
+    ["CAST('1992-09-20 11:30:00.123456789' AS TIMESTAMP_S)"]=>
     string(19) "1992-09-20 11:30:00"
   }
 }
 array(1) {
   [0]=>
   array(3) {
-    ["CAST('1992-09-20 11:30:00.123456789' AS "TIMESTAMP WITH TIME ZONE")"]=>
+    ["CAST('1992-09-20 11:30:00.123456789' AS TIMESTAMPTZ)"]=>
     string(29) "1992-09-20 11:30:00.123456+02"
-    ["CAST('1992-09-20 12:30:00.123456789+01:00' AS "TIMESTAMP WITH TIME ZONE")"]=>
+    ["CAST('1992-09-20 12:30:00.123456789+01:00' AS TIMESTAMPTZ)"]=>
     string(29) "1992-09-20 13:30:00.123456+02"
     ["timezone('America/Denver', CAST('2001-02-16 20:38:40' AS TIMESTAMP))"]=>
     string(22) "2001-02-17 04:38:40+01"
@@ -139,9 +139,9 @@ array(1) {
 array(1) {
   [0]=>
   array(3) {
-    ["CAST('1992-03-20 11:30:00.123456789' AS "TIMESTAMP WITH TIME ZONE")"]=>
+    ["CAST('1992-03-20 11:30:00.123456789' AS TIMESTAMPTZ)"]=>
     string(29) "1992-03-20 11:30:00.123456+01"
-    ["CAST('1992-03-20 12:30:00.123456789+01:00' AS "TIMESTAMP WITH TIME ZONE")"]=>
+    ["CAST('1992-03-20 12:30:00.123456789+01:00' AS TIMESTAMPTZ)"]=>
     string(29) "1992-03-20 12:30:00.123456+01"
     ["timezone('America/Denver', CAST('2001-08-16 20:38:40' AS TIMESTAMP))"]=>
     string(22) "2001-08-17 04:38:40+02"
@@ -170,28 +170,28 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["CAST('1992-09-20 11:30:00.123456' AS "TIME WITH TIME ZONE")"]=>
+    ["CAST('1992-09-20 11:30:00.123456' AS TIMETZ)"]=>
     string(18) "11:30:00.123456+02"
   }
 }
 array(1) {
   [0]=>
   array(1) {
-    ["CAST('1992-09-20 11:30:00.123456-02:00' AS "TIME WITH TIME ZONE")"]=>
+    ["CAST('1992-09-20 11:30:00.123456-02:00' AS TIMETZ)"]=>
     string(18) "13:30:00.123456+02"
   }
 }
 array(1) {
   [0]=>
   array(1) {
-    ["CAST('1992-09-20 11:30:00.123456+05:30' AS "TIME WITH TIME ZONE")"]=>
+    ["CAST('1992-09-20 11:30:00.123456+05:30' AS TIMETZ)"]=>
     string(18) "06:00:00.123456+02"
   }
 }
 array(1) {
   [0]=>
   array(1) {
-    ["CAST('15:30:00.123456789' AS "TIME_NS")"]=>
+    ["CAST('15:30:00.123456789' AS TIME_NS)"]=>
     string(18) "15:30:00.123456789"
   }
 }

@@ -481,7 +481,7 @@ array(1) {
     string(5) "hello"
   }
 }
-Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: cc, dd, ee
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following parameters: cc, dd, ee
 array(5) {
   [0]=>
   array(5) {
@@ -549,8 +549,8 @@ array(5) {
     string(4) "test"
   }
 }
-Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: cc, dd, ee
-Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 3, 4, 5
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following parameters: cc, dd, ee
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following parameters: 3, 4, 5
 array(1) {
   [0]=>
   array(1) {
@@ -722,9 +722,9 @@ array(2) {
   }
 }
 int(1)
-Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 1, 2
-Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 2
-Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 2
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following parameters: 1, 2
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following parameters: 2
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following parameters: 2
 array(3) {
   [0]=>
   array(2) {
@@ -756,7 +756,10 @@ array(1) {
   }
 }
 Caught: SQLSTATE[HY000]: Conversion Error: Could not convert string 'foo1' to INT32
-Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following prepared statement parameters: 2, 3
+
+LINE 1: INSERT INTO t1 VALUES (?, ?, ?)
+                               ^
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following parameters: 2, 3
 array(3) {
   [0]=>
   array(1) {

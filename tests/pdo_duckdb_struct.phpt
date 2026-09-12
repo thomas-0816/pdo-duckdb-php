@@ -290,7 +290,7 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["struct_extract(main.struct_pack("x space" := 1, y := 2, z := 3), 'x space')"]=>
+    ["struct_extract(struct_pack("x space" := 1, y := 2, z := 3), 'x space')"]=>
     int(1)
   }
 }
@@ -355,14 +355,14 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["(main.struct_pack(k1 := 1, k2 := 0) < main.struct_pack(k1 := 0, k2 := 1))"]=>
+    ["(struct_pack(k1 := 1, k2 := 0) < struct_pack(k1 := 0, k2 := 1))"]=>
     bool(false)
   }
 }
 array(1) {
   [0]=>
   array(1) {
-    ["(main.struct_pack(k1 := 1, k2 := 0) > main.struct_pack(k3 := 0, k1 := 0))"]=>
+    ["(struct_pack(k1 := 1, k2 := 0) > struct_pack(k3 := 0, k1 := 0))"]=>
     bool(true)
   }
 }
@@ -541,7 +541,7 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["struct_extract(main.struct_pack("x space" := 1, y := 2, z := 3), 'x space')"]=>
+    ["struct_extract(struct_pack("x space" := 1, y := 2, z := 3), 'x space')"]=>
     int(1)
   }
 }
@@ -606,14 +606,14 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["(main.struct_pack(k1 := 1, k2 := 0) < main.struct_pack(k1 := 0, k2 := 1))"]=>
+    ["(struct_pack(k1 := 1, k2 := 0) < struct_pack(k1 := 0, k2 := 1))"]=>
     bool(false)
   }
 }
 array(1) {
   [0]=>
   array(1) {
-    ["(main.struct_pack(k1 := 1, k2 := 0) > main.struct_pack(k3 := 0, k1 := 0))"]=>
+    ["(struct_pack(k1 := 1, k2 := 0) > struct_pack(k3 := 0, k1 := 0))"]=>
     bool(true)
   }
 }

@@ -72,16 +72,16 @@ array(1) {
     int(1)
     ["datepart('year', to_years(CAST(trunc(CAST(12 AS DOUBLE)) AS INTEGER)))"]=>
     int(12)
-    ["datepart('second', to_milliseconds(CAST(1234 AS DOUBLE)))"]=>
+    ["datepart('second', to_milliseconds(CAST(1_234 AS DOUBLE)))"]=>
     int(1)
-    ["datepart('microsecond', to_milliseconds(CAST(1234 AS DOUBLE)))"]=>
+    ["datepart('microsecond', to_milliseconds(CAST(1_234 AS DOUBLE)))"]=>
     int(1234000)
   }
 }
 array(1) {
   [0]=>
   array(3) {
-    ["(CAST('2000-01-01' AS "DATE") + to_years(CAST(trunc(CAST(1 AS DOUBLE)) AS INTEGER)))"]=>
+    ["(CAST('2000-01-01' AS DATE) + to_years(CAST(trunc(CAST(1 AS DOUBLE)) AS INTEGER)))"]=>
     string(19) "2001-01-01 00:00:00"
     ["(CAST('2000-01-01 01:33:30' AS TIMESTAMP) - CAST('1 month 13 hours' AS INTERVAL))"]=>
     string(19) "1999-11-30 12:33:30"

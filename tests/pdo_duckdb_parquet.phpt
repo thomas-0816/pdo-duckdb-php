@@ -134,7 +134,7 @@ array(3) {
 }
 array(2) {
   [0]=>
-  array(31) {
+  array(32) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["row_group_id"]=>
@@ -198,9 +198,21 @@ array(2) {
     NULL
     ["geo_types"]=>
     NULL
+    ["encoding_stats"]=>
+    array(1) {
+      [0]=>
+      array(3) {
+        ["page_type"]=>
+        string(9) "DATA_PAGE"
+        ["encoding"]=>
+        string(5) "PLAIN"
+        ["count"]=>
+        int(1)
+      }
+    }
   }
   [1]=>
-  array(31) {
+  array(32) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["row_group_id"]=>
@@ -264,6 +276,18 @@ array(2) {
     NULL
     ["geo_types"]=>
     NULL
+    ["encoding_stats"]=>
+    array(1) {
+      [0]=>
+      array(3) {
+        ["page_type"]=>
+        string(9) "DATA_PAGE"
+        ["encoding"]=>
+        string(5) "PLAIN"
+        ["count"]=>
+        int(1)
+      }
+    }
   }
 }
 array(1) {
@@ -272,7 +296,7 @@ array(1) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["created_by"]=>
-    string(40) "DuckDB version v1.5.5 (build d8cdaa33fd)"
+    string(%d) "DuckDB version v2.0.0-dev84457 (build 10de957379)"
     ["num_rows"]=>
     int(2)
     ["num_row_groups"]=>
@@ -284,9 +308,9 @@ array(1) {
     ["footer_signing_key_metadata"]=>
     NULL
     ["file_size_bytes"]=>
-    int(388)
+    int(415)
     ["footer_size"]=>
-    int(275)
+    int(302)
     ["column_orders"]=>
     array(2) {
       [0]=>

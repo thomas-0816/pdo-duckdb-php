@@ -60,7 +60,7 @@ array(3) {
 array(1) {
   [0]=>
   array(1) {
-    ["CAST('clubs' AS "ENUM"('spades', 'hearts', 'diamonds', 'clubs'))"]=>
+    ["CAST('clubs' AS ENUM('spades', 'hearts', 'diamonds', 'clubs'))"]=>
     string(5) "clubs"
   }
 }

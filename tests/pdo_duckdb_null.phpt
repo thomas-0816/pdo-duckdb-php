@@ -78,7 +78,7 @@ string(4) "enum"
 string(6) "struct"
 string(4) "list"
 string(7) "unknown"
-string(7) "integer"
+string(4) "null"
 string(5) "union"
 string(4) "uuid"
 string(3) "bit"
@@ -93,7 +93,7 @@ array(1) {
   array(37) {
     ["CAST(NULL AS BOOLEAN)"]=>
     NULL
-    ["CAST(NULL AS "TINYINT")"]=>
+    ["CAST(NULL AS tinyint)"]=>
     NULL
     ["CAST(NULL AS SMALLINT)"]=>
     NULL
@@ -101,43 +101,43 @@ array(1) {
     NULL
     ["CAST(NULL AS BIGINT)"]=>
     NULL
-    ["CAST(NULL AS "UTINYINT")"]=>
+    ["CAST(NULL AS utinyint)"]=>
     NULL
-    ["CAST(NULL AS "USMALLINT")"]=>
+    ["CAST(NULL AS usmallint)"]=>
     NULL
-    ["CAST(NULL AS "UINTEGER")"]=>
+    ["CAST(NULL AS uinteger)"]=>
     NULL
-    ["CAST(NULL AS "UBIGINT")"]=>
+    ["CAST(NULL AS ubigint)"]=>
     NULL
     ["CAST(NULL AS FLOAT)"]=>
     NULL
-    ["CAST(NULL AS "DOUBLE")"]=>
+    ["CAST(NULL AS double)"]=>
     NULL
     ["CAST(NULL AS TIMESTAMP)"]=>
     NULL
-    ["CAST(NULL AS "DATE")"]=>
+    ["CAST(NULL AS date)"]=>
     NULL
     ["CAST(NULL AS TIME)"]=>
     NULL
     ["CAST(NULL AS INTERVAL)"]=>
     NULL
-    ["CAST(NULL AS "HUGEINT")"]=>
+    ["CAST(NULL AS hugeint)"]=>
     NULL
-    ["CAST(NULL AS "UHUGEINT")"]=>
+    ["CAST(NULL AS uhugeint)"]=>
     NULL
     ["CAST(NULL AS VARCHAR)"]=>
     NULL
-    ["CAST(NULL AS "BLOB")"]=>
+    ["CAST(NULL AS blob)"]=>
     NULL
     ["CAST(NULL AS DECIMAL)"]=>
     NULL
-    ["CAST(NULL AS "TIMESTAMP_S")"]=>
+    ["CAST(NULL AS timestamp_s)"]=>
     NULL
-    ["CAST(NULL AS "TIMESTAMP_MS")"]=>
+    ["CAST(NULL AS timestamp_ms)"]=>
     NULL
-    ["CAST(NULL AS "TIMESTAMP_NS")"]=>
+    ["CAST(NULL AS timestamp_ns)"]=>
     NULL
-    ["CAST(NULL AS "ENUM"('a'))"]=>
+    ["CAST(NULL AS enum('a'))"]=>
     NULL
     ["CAST(NULL AS STRUCT(duck INTEGER))"]=>
     NULL
@@ -149,21 +149,21 @@ array(1) {
     NULL
     ["CAST(NULL AS UNION(str VARCHAR))"]=>
     NULL
-    ["CAST(NULL AS "UUID")"]=>
+    ["CAST(NULL AS uuid)"]=>
     NULL
-    ["CAST(NULL AS BIT(1))"]=>
+    ["CAST(NULL AS BIT)"]=>
     NULL
-    ["CAST(NULL AS "TIME WITH TIME ZONE")"]=>
+    ["CAST(NULL AS timetz)"]=>
     NULL
-    ["CAST(NULL AS "TIMESTAMP WITH TIME ZONE")"]=>
+    ["CAST(NULL AS timestamptz)"]=>
     NULL
-    ["CAST(NULL AS "TIME_NS")"]=>
+    ["CAST(NULL AS time_ns)"]=>
     NULL
-    ["CAST(NULL AS "GEOMETRY")"]=>
+    ["CAST(NULL AS GEOMETRY)"]=>
     NULL
-    ["CAST(NULL AS "VARIANT")"]=>
+    ["CAST(NULL AS VARIANT)"]=>
     NULL
-    ["CAST(NULL AS "BIGNUM")"]=>
+    ["CAST(NULL AS bignum)"]=>
     NULL
   }
 }
