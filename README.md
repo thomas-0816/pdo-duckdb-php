@@ -27,7 +27,7 @@ Support end: Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
 pie install thomas-0816/pdo-duckdb-php
 ```
 
-## Install and load on demand with PIE
+## Install and load on demand with 🥧 [PIE](https://github.com/php/pie)
 
 ```bash
 pie install --skip-enable-extension thomas-0816/pdo-duckdb-php
