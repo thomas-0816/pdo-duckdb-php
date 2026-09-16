@@ -30,34 +30,34 @@ pie install thomas-0816/pdo-duckdb-php
 ## Install and load on demand with PIE
 
 ```bash
-    pie install --skip-enable-extension thomas-0816/pdo-duckdb-php
-    php -d extension=pdo_duckdb -r 'print_r((new PDO("duckdb:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+pie install --skip-enable-extension thomas-0816/pdo-duckdb-php
+php -d extension=pdo_duckdb -r 'print_r((new PDO("duckdb:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 ```
 
 ## Install and setup with 🧟 [FrankenPHP](https://frankenphp.dev/) (Debian/Ubuntu)
 
 ```bash
-    sudo curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
-    echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
-        sudo tee -a /etc/apt/sources.list.d/static-php85.list
-    sudo apt-get update
-    sudo apt-get install php-zts-cli php-zts-pdo frankenphp pie-zts
-    sudo pie-zts install thomas-0816/pdo-duckdb-php
+sudo curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
+echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
+    sudo tee -a /etc/apt/sources.list.d/static-php85.list
+sudo apt-get update
+sudo apt-get install php-zts-cli php-zts-pdo frankenphp pie-zts
+sudo pie-zts install thomas-0816/pdo-duckdb-php
 
-    # test
-    frankenphp php-cli -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+# test
+frankenphp php-cli -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 ```
 
 ## Install and setup with Docker
 
 ```
-    FROM php:8.5-cli
-    RUN <<EOF
-        apt-get -y update && apt-get -y --no-install-recommends install unzip
-        curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
-        php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
-        php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-    EOF
+FROM php:8.5-cli
+RUN <<EOF
+    apt-get -y update && apt-get -y --no-install-recommends install unzip
+    curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
+    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
+    php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+EOF
 ```
 
 ## Usage examples
@@ -652,15 +652,15 @@ php-zts test.php
 ## Install with Swoole
 
 ```bash
-    echo "deb https://packages.sury.org/php/ noble main" >/etc/apt/sources.list.d/ondrej-php.list
-    curl -s https://packages.sury.org/php/apt.gpg >/etc/apt/trusted.gpg.d/php.gpg
-    sudo apt-get -y update
-    sudo apt-get -y --no-install-recommends install php8.5-cli php8.5-swoole
-    curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
-    sudo php /tmp/pie install thomas-0816/pdo-duckdb-php
-    # test
-    php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-    php test_swoole.php
+echo "deb https://packages.sury.org/php/ noble main" >/etc/apt/sources.list.d/ondrej-php.list
+curl -s https://packages.sury.org/php/apt.gpg >/etc/apt/trusted.gpg.d/php.gpg
+sudo apt-get -y update
+sudo apt-get -y --no-install-recommends install php8.5-cli php8.5-swoole
+curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
+sudo php /tmp/pie install thomas-0816/pdo-duckdb-php
+# test
+php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+php test_swoole.php
 ```
 
 ## Swoole example
