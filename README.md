@@ -31,7 +31,7 @@ pie install thomas-0816/pdo-duckdb-php
 
 ```bash
 pie install --skip-enable-extension thomas-0816/pdo-duckdb-php
-php -d extension=pdo_duckdb -r 'print_r((new PDO("duckdb:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+php -d extension=pdo_duckdb some_script.php
 ```
 
 ## Install and setup with 🧟 [FrankenPHP](https://frankenphp.dev/) (Debian/Ubuntu)
