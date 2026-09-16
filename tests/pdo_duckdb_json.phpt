@@ -160,7 +160,7 @@ array(1) {
       ["Host"]=>
       string(11) "httpbin.org"
       ["User-Agent"]=>
-      string(42) "duckdb/%s(linux_amd64) capi %s"
+      string(42) "duckdb/%s"
       ["X-Amzn-Trace-Id"]=>
       string(40) "Root=%s"
     }
