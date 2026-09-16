@@ -486,6 +486,30 @@ print_r(array_map('json_encode', $rows->fetchAll(PDO::FETCH_ASSOC)));
 #     {"train_number":"647","station_name":"Berlin-Spandau","delay_in_min":146,"hour":4,"departure_is_canceled":false}
 ```
 
+## Read private data using REST APIs
+
+```php
+$url = 'https://httpbin.org/headers';
+
+$db = new PDO('duckdb::memory:');
+
+$db->exec("CREATE SECRET http_auth (TYPE http, SCOPE '{$url}', BEARER_TOKEN 'some secret')");
+
+$rows = $db->query("SELECT * FROM read_json('{$url}')");
+print_r($rows->fetchAll(PDO::FETCH_ASSOC));
+
+# Array
+#     Array
+#         [headers] => Array
+#             [Accept] => */*
+#             [Authorization] => Bearer some secret
+#             [Host] => httpbin.org
+#             [User-Agent] => duckdb/v1.5.5(linux_amd64) capi d8cdaa33fd
+#             [X-Amzn-Trace-Id] => Root=1-6aab0271-2c027dfa07bc6def14ce4e72
+```
+
+See the documentation for [managing secrets](https://duckdb.org/docs/current/configuration/secrets_manager) and [read_json()](https://duckdb.org/docs/lts/data/json/loading_json).
+
 ## Community extensions
 
 open_prompt integrates LLMs into your SQL queries:
