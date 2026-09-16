@@ -16,6 +16,7 @@ jobs:
   composer-validate:
     name: "Validate using Composer"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -30,6 +31,7 @@ jobs:
   linux_macos:
     name: Linux, MacOS
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
@@ -81,6 +83,7 @@ jobs:
   windows-build:
     name: Windows
     runs-on: ${{ (matrix.php-version == '8.6' && 'windows-2025-vs2026') || 'windows-2022' }}
+    timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
@@ -120,6 +123,7 @@ jobs:
   asan:
     name: ASAN
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       ASAN_OPTIONS: exitcode=139:verify_asan_link_order=0:detect_odr_violation=0:detect_leaks=1
       UBSAN_OPTIONS: print_stacktrace=1
@@ -173,6 +177,7 @@ jobs:
   asan-swoole:
     name: ASAN Swoole
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       ASAN_OPTIONS: exitcode=139:verify_asan_link_order=0:detect_odr_violation=0:detect_leaks=1
       UBSAN_OPTIONS: print_stacktrace=1
@@ -235,6 +240,7 @@ jobs:
   valgrind:
     name: "Valgrind"
     runs-on: ubuntu-22.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -263,6 +269,7 @@ jobs:
   valgrind-swoole:
     name: "Valgrind Swoole"
     runs-on: ubuntu-22.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -293,6 +300,7 @@ jobs:
   zizmor:
     name: zizmor
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -306,6 +314,7 @@ jobs:
   intree:
     name: InTree
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -341,6 +350,7 @@ jobs:
   trueasync:
     name: TrueAsync
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -377,6 +387,7 @@ jobs:
   parallel:
     name: Parallel
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -405,6 +416,7 @@ jobs:
   frankenphp:
     name: "FrankenPHP"
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
