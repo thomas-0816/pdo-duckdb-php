@@ -48,6 +48,9 @@ jobs:
         thread-safety:
           - zts
           - nts
+        exclude:
+          - os: macos-14
+            php-version: 8.6
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
