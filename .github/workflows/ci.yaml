@@ -48,21 +48,29 @@ jobs:
         thread-safety:
           - zts
           - nts
+        variant:
+          - plain
+          - swoole
+        exclude:
+          - php-version: 8.6
+            variant: swoole
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }}
+      - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }} ${{ matrix.variant }}
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
+          extensions: ${{ matrix.variant == 'swoole' && 'swoole' || '' }}
         env:
           phpts: ${{ matrix.thread-safety }}
           verbose: true
       - name: Build & Test
         env:
           os: ${{ matrix.os }}
+          variant: ${{ matrix.variant }}
         run: |
           case "$os" in
             ubuntu-22.04)     libduckdb=static-libs-linux-amd64.zip; sudo timedatectl set-timezone "Europe/Berlin" ;;
@@ -80,61 +88,10 @@ jobs:
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-
-  swoole:
-    name: "Swoole"
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 5
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-22.04
-          - ubuntu-22.04-arm
-          - macos-15
-        php-version:
-          - 8.2
-          - 8.3
-          - 8.4
-          - 8.5
-        thread-safety:
-          - zts
-          - nts
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Setup PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
-        with:
-          php-version: ${{ matrix.php-version }}
-          coverage: none
-          extensions: swoole
-        env:
-          phpts: ${{ matrix.thread-safety }}
-          verbose: true
-      - name: Build & Test
-        env:
-          os: ${{ matrix.os }}
-        run: |
-          case "$os" in
-            ubuntu-22.04)     libduckdb=static-libs-linux-amd64.zip; sudo timedatectl set-timezone "Europe/Berlin" ;;
-            ubuntu-22.04-arm) libduckdb=static-libs-linux-arm64.zip; sudo timedatectl set-timezone "Europe/Berlin" ;;
-            macos-15)         libduckdb=static-libs-osx-arm64.zip; sudo systemsetup -settimezone "Europe/Berlin" ;;
-            *) echo "error os"; exit 1 ;;
-          esac
-          php -m | grep swoole
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
-          unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/${libduckdb}" -o ${libduckdb}
-          unzip -o ${libduckdb} -d ./
-          phpize
-          ./configure --with-pdo-duckdb
-          make
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
-          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-          php -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
+          if [ "$variant" = "swoole" ]; then
+            php -m | grep swoole
+            php -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
+          fi
 
   windows-build:
     name: Windows
@@ -231,9 +188,15 @@ jobs:
           /tmp/php-asan/bin/php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
 
   asan-swoole:
-    name: ASAN Swoole
+    name: ASAN Swoole (${{ matrix.thread-safety }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        thread-safety:
+          - nts
+          - zts
     env:
       ASAN_OPTIONS: exitcode=139:verify_asan_link_order=0:detect_odr_violation=0:detect_leaks=1
       UBSAN_OPTIONS: print_stacktrace=1
@@ -254,7 +217,7 @@ jobs:
           CC=clang CXX=clang++ \
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --enable-debug --disable-zts --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
+          ./configure --enable-debug ${{ matrix.thread-safety == 'zts' && '--enable-zts' || '--disable-zts' }} --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
           make -j$(nproc)
           make install
       - name: Build swoole extension with ASAN
@@ -267,70 +230,7 @@ jobs:
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           CXXFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --with-php-config=/tmp/php-asan/bin/php-config
-          make -j$(nproc)
-      - name: Build pdo_duckdb extension with ASAN
-        run: |
-          export PATH="/tmp/php-asan/bin:$PATH"
-          sudo timedatectl set-timezone "Europe/Berlin"
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
-          unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
-          unzip -o static-libs-linux-amd64.zip -d ./
-          phpize
-          CC=clang CXX=clang++ \
-          CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          CXXFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --with-pdo-duckdb --with-php-config=/tmp/php-asan/bin/php-config
-          make -j$(nproc)
-      - name: Run tests under ASAN
-        run: |
-          /tmp/php-asan/bin/php -d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep -E "duckdb|swoole"
-          export TEST_PHP_EXECUTABLE=/tmp/php-asan/bin/php
-          export TEST_PHP_ARGS="-d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so"
-          export NO_INTERACTION=1
-          /tmp/php-asan/bin/php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
-          /tmp/php-asan/bin/php -d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
-
-  asan-swoole-zts:
-    name: ASAN Swoole zts
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      ASAN_OPTIONS: exitcode=139:verify_asan_link_order=0:detect_odr_violation=0:detect_leaks=1
-      UBSAN_OPTIONS: print_stacktrace=1
-      USE_ZEND_ALLOC: 0
-      USE_TRACKED_ALLOC: 1
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Put the clang ASan runtime on the loader path
-        run: echo "LD_LIBRARY_PATH=$(clang -print-resource-dir)/lib/linux" >> "$GITHUB_ENV"
-      - name: Build PHP with ASAN and PDO
-        run: |
-          sudo apt-get update && sudo apt-get install -y llvm clang re2c bison autoconf unzip
-          git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git /tmp/php-src
-          cd /tmp/php-src
-          ./buildconf --force
-          CC=clang CXX=clang++ \
-          CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --enable-debug --enable-zts --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
-          make -j$(nproc)
-          make install
-      - name: Build swoole extension with ASAN
-        run: |
-          export PATH="/tmp/php-asan/bin:$PATH"
-          git clone --depth=1 --branch=v6.2.3 https://github.com/swoole/swoole-src.git /tmp/swoole-src
-          cd /tmp/swoole-src
-          phpize
-          CC=clang CXX=clang++ \
-          CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          CXXFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --with-php-config=/tmp/php-asan/bin/php-config --enable-swoole-thread
+          ./configure --with-php-config=/tmp/php-asan/bin/php-config ${{ matrix.thread-safety == 'zts' && '--enable-swoole-thread' || '' }}
           make -j$(nproc)
       - name: Build pdo_duckdb extension with ASAN
         run: |
