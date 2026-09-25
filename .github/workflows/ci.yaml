@@ -272,9 +272,18 @@ jobs:
           /tmp/php-asan/bin/php -d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
 
   valgrind:
-    name: "Valgrind"
+    name: Valgrind
     runs-on: ubuntu-22.04
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        thread-safety:
+          - nts
+          - zts
+        variant:
+          - plain
+          - swoole
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -284,9 +293,12 @@ jobs:
         with:
           php-version: 8.5
           coverage: none
+          extensions: ${{ matrix.variant == 'swoole' && 'swoole' || '' }}
         env:
-          phpts: nts
+          phpts: ${{ matrix.thread-safety }}
       - name: Build & Test
+        env:
+          variant: ${{ matrix.variant }}
         run: |
           sudo timedatectl set-timezone "Europe/Berlin"
           sudo apt-get update && sudo apt-get install -y valgrind
@@ -297,37 +309,7 @@ jobs:
           phpize
           ./configure --with-pdo-duckdb
           make
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
-
-  valgrind-swoole:
-    name: "Valgrind Swoole"
-    runs-on: ubuntu-22.04
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Setup PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
-        with:
-          php-version: 8.5
-          coverage: none
-          extensions: swoole
-        env:
-          phpts: nts
-      - name: Build & Test
-        run: |
-          php -m | grep swoole
-          sudo timedatectl set-timezone "Europe/Berlin"
-          sudo apt-get update && sudo apt-get install -y valgrind
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
-          unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
-          unzip -o static-libs-linux-amd64.zip -d ./
-          phpize
-          ./configure --with-pdo-duckdb
-          make
+          php -m | grep swoole || true
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
 
