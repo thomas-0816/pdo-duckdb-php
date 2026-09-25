@@ -22,7 +22,7 @@ jobs:
         os:
           - ubuntu-22.04
           - ubuntu-22.04-arm
-          - macos-14
+          - macos-15
         php-version:
           - 8.2
           - 8.3
@@ -52,7 +52,7 @@ jobs:
           case "$os" in
             ubuntu-22.04)     libduckdb=static-libs-linux-amd64.zip ;;
             ubuntu-22.04-arm) libduckdb=static-libs-linux-arm64.zip ;;
-            macos-14)         libduckdb=static-libs-osx-arm64.zip ;;
+            macos-15)         libduckdb=static-libs-osx-arm64.zip ;;
             *) echo "unmapped runner os"; exit 1 ;;
           esac
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
