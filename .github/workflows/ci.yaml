@@ -119,6 +119,8 @@ jobs:
         env:
           phpts: ${{ matrix.thread-safety }}
       - name: Build & Test
+        env:
+          os: ${{ matrix.os }}
         run: |
           case "$os" in
             ubuntu-22.04)     libduckdb=static-libs-linux-amd64.zip; sudo timedatectl set-timezone "Europe/Berlin" ;;
