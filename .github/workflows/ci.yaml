@@ -62,6 +62,7 @@ jobs:
           coverage: none
         env:
           phpts: ${{ matrix.thread-safety }}
+          verbose: true
       - name: Build & Test
         env:
           os: ${{ matrix.os }}
@@ -99,13 +100,9 @@ jobs:
           - 8.3
           - 8.4
           - 8.5
-          - 8.6
         thread-safety:
           - zts
           - nts
-        exclude:
-          - os: macos-14
-            php-version: 8.6
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -118,6 +115,7 @@ jobs:
           extensions: swoole
         env:
           phpts: ${{ matrix.thread-safety }}
+          verbose: true
       - name: Build & Test
         env:
           os: ${{ matrix.os }}
@@ -265,14 +263,14 @@ jobs:
       - name: Build swoole extension with ASAN
         run: |
           export PATH="/tmp/php-asan/bin:$PATH"
-          git clone --depth=1 --branch=v6.2.2 https://github.com/swoole/swoole-src.git /tmp/swoole-src
+          git clone --depth=1 --branch=v6.2.3 https://github.com/swoole/swoole-src.git /tmp/swoole-src
           cd /tmp/swoole-src
           phpize
           CC=clang CXX=clang++ \
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           CXXFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --with-php-config=/tmp/php-asan/bin/php-config
+          ./configure --with-php-config=/tmp/php-asan/bin/php-config --enable-swoole-thread
           make -j$(nproc)
       - name: Build pdo_duckdb extension with ASAN
         run: |
