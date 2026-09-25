@@ -159,6 +159,8 @@ jobs:
         # configure fails with "cannot run C compiled programs".
         run: echo "LD_LIBRARY_PATH=$(clang -print-resource-dir)/lib/linux" >> "$GITHUB_ENV"
       - name: Build PHP with ASAN and PDO
+        env:
+          thread_safety: ${{ matrix.thread-safety }}
         run: |
           sudo apt-get update && sudo apt-get install -y llvm clang re2c bison autoconf unzip
           git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git /tmp/php-src
@@ -167,7 +169,8 @@ jobs:
           CC=clang CXX=clang++ \
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --enable-debug ${{ matrix.thread-safety == 'zts' && '--enable-zts' || '--disable-zts' }} --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
+          if [ "$thread_safety" = zts ]; then zts_flag="--enable-zts"; else zts_flag="--disable-zts"; fi
+          ./configure --enable-debug ${zts_flag} --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
           make -j$(nproc)
           make install
       - name: Build extension with ASAN
@@ -215,6 +218,8 @@ jobs:
       - name: Put the clang ASan runtime on the loader path
         run: echo "LD_LIBRARY_PATH=$(clang -print-resource-dir)/lib/linux" >> "$GITHUB_ENV"
       - name: Build PHP with ASAN and PDO
+        env:
+          thread_safety: ${{ matrix.thread-safety }}
         run: |
           sudo apt-get update && sudo apt-get install -y llvm clang re2c bison autoconf unzip
           git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git /tmp/php-src
@@ -223,10 +228,13 @@ jobs:
           CC=clang CXX=clang++ \
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --enable-debug ${{ matrix.thread-safety == 'zts' && '--enable-zts' || '--disable-zts' }} --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
+          if [ "$thread_safety" = zts ]; then zts_flag="--enable-zts"; else zts_flag="--disable-zts"; fi
+          ./configure --enable-debug ${zts_flag} --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
           make -j$(nproc)
           make install
       - name: Build swoole extension with ASAN
+        env:
+          thread_safety: ${{ matrix.thread-safety }}
         run: |
           export PATH="/tmp/php-asan/bin:$PATH"
           git clone --depth=1 --branch=v6.2.3 https://github.com/swoole/swoole-src.git /tmp/swoole-src
@@ -236,7 +244,8 @@ jobs:
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           CXXFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --with-php-config=/tmp/php-asan/bin/php-config ${{ matrix.thread-safety == 'zts' && '--enable-swoole-thread' || '' }}
+          if [ "$thread_safety" = zts ]; then swoole_thread="--enable-swoole-thread"; else swoole_thread=""; fi
+          ./configure --with-php-config=/tmp/php-asan/bin/php-config ${swoole_thread}
           make -j$(nproc)
       - name: Build pdo_duckdb extension with ASAN
         run: |
