@@ -137,6 +137,12 @@ jobs:
     name: ASAN
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        thread-safety:
+          - nts
+          - zts
     env:
       ASAN_OPTIONS: exitcode=139:verify_asan_link_order=0:detect_odr_violation=0:detect_leaks=1
       UBSAN_OPTIONS: print_stacktrace=1
@@ -161,7 +167,7 @@ jobs:
           CC=clang CXX=clang++ \
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --enable-debug --disable-zts --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
+          ./configure --enable-debug ${{ matrix.thread-safety == 'zts' && '--enable-zts' || '--disable-zts' }} --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
           make -j$(nproc)
           make install
       - name: Build extension with ASAN
