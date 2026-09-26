@@ -24,7 +24,8 @@ RUN <<EOF
     apt-get install -y --no-install-recommends php-zts-swoole
     php -m | grep duckdb
     php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-    php /pdo-duckdb/test_swoole.php
+    # bug: https://github.com/swoole/swoole-src/issues/6254
+    # php /pdo-duckdb/test_swoole.php
     apt-get upgrade -y && apt-get clean
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
 EOF
