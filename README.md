@@ -15,11 +15,11 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
 
 Supported PHP versions (nts & zts): 8.2 8.3 8.4 8.5 8.6
 
-Supported operating systems: Ubuntu 22.04/24.04/26.04, Debian 12/13, Fedora 42/43, AmazonLinux, openSUSE 16, Arch, Alma, Rocky, Alpine, Wolfi OS, Windows Server 2022/2025 (x64), macOS 15-26 (arm64)
+Supported operating systems: Ubuntu 22+, Debian 12+, Fedora 42+, openSUSE 16+, AmazonLinux, Arch, Alma, Rocky, Alpine, Wolfi OS, Windows Server 2022/2025 (x64), macOS 15+ (arm64)
 
 Supported SAPIs: php-cli, php-fpm, FrankenPHP, TrueAsync, Swoole, mod_php
 
-Support end: Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
+Support end: Ubuntu 22.04 (April 2027), Debian 12 (April 2027), macOS 14 (August 2026)
 
 ## Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
@@ -511,7 +511,7 @@ print_r($rows->fetchAll(PDO::FETCH_ASSOC));
 #             [Accept] => */*
 #             [Authorization] => Bearer some secret
 #             [Host] => httpbin.org
-#             [User-Agent] => duckdb/v1.5.5(linux_amd64) capi d8cdaa33fd
+#             [User-Agent] => duckdb/v1.5.6(linux_amd64) capi
 #             [X-Amzn-Trace-Id] => Root=1-6aab0271-2c027dfa07bc6def14ce4e72
 ```
 
@@ -606,10 +606,10 @@ $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND => "
 git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
 cd pdo_duckdb
 
-wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip
+wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip
 unzip -o libduckdb-src.zip duckdb.hpp -d ./
 
-wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip
+wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip
 unzip -o static-libs-linux-amd64.zip -d ./
 
 phpize
@@ -631,10 +631,10 @@ php test.php
 git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
 cd pdo_duckdb
 
-wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip
+wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip
 unzip -o libduckdb-src.zip duckdb.hpp -d ./
 
-wget https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip
+wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip
 unzip -o static-libs-linux-amd64.zip -d ./
 
 phpize-zts

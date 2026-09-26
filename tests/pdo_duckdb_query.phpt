@@ -315,6 +315,29 @@ $statement->bindValue('v', $v_ref);
 $statement->execute();
 var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
+
+$db = new PDO('duckdb::memory:');
+$db->exec('create table t1 (i1 integer, v1 varchar)');
+$db->exec("insert into t1 values (1, 'foo'), (2, 'bar')");
+
+$i1 = $v1 = false;
+$stmt = $db->prepare('SELECT * FROM t1');
+$stmt->execute();
+$stmt->bindColumn(1, $i1);
+$stmt->bindColumn(2, $v1);
+while ($stmt->fetch(PDO::FETCH_BOUND)) {
+    var_dump([$i1, $v1]);
+}
+
+$i1 = $v1 = false;
+$stmt = $db->prepare('SELECT * FROM t1');
+$stmt->execute();
+$stmt->bindColumn('i1', $i1);
+$stmt->bindColumn('v1', $v1);
+while ($stmt->fetch(PDO::FETCH_BOUND)) {
+    var_dump([$i1, $v1]);
+}
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -802,4 +825,28 @@ array(1) {
     ["v"]=>
     string(5) "hello"
   }
+}
+array(2) {
+  [0]=>
+  string(1) "1"
+  [1]=>
+  string(3) "foo"
+}
+array(2) {
+  [0]=>
+  string(1) "2"
+  [1]=>
+  string(3) "bar"
+}
+array(2) {
+  [0]=>
+  string(1) "1"
+  [1]=>
+  string(3) "foo"
+}
+array(2) {
+  [0]=>
+  string(1) "2"
+  [1]=>
+  string(3) "bar"
 }
