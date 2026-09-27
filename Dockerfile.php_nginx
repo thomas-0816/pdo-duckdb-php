@@ -1,5 +1,5 @@
-# docker build --pull --no-cache -f Dockerfile.php_fpm -t pdo_duckdb_php_fpm .
-# docker run --rm -it pdo_duckdb_php_fpm
+# docker build --pull --no-cache -f Dockerfile.php_nginx -t pdo_duckdb_php_nginx .
+# docker run --rm -it pdo_duckdb_php_nginx
 
 # php 8.2
 FROM php:8.2-fpm
@@ -8,7 +8,7 @@ ENV LC_ALL="C.UTF-8"
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    apt-get -y --no-install-recommends install unzip libfcgi-bin
+    apt-get -y --no-install-recommends install unzip nginx libfcgi-bin
     curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
     php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
     php -m | grep duckdb
@@ -16,6 +16,14 @@ RUN <<EOF
     echo '<?php print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));' >/var/www/html/index.php
     php-fpm -D
     SCRIPT_FILENAME=/var/www/html/index.php REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep "\[n\] => 42"
+    cat > /etc/nginx/sites-enabled/default <<'EOP'
+        server {
+            listen 80; root /var/www/html; index index.php;
+            location ~ \.php$ { include snippets/fastcgi-php.conf; fastcgi_pass 127.0.0.1:9000; }
+        }
+    EOP
+    nginx
+    curl -s http://127.0.0.1/ | grep "\[n\] => 42"
     apt-get upgrade -y && apt-get clean
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
 EOF
@@ -27,7 +35,7 @@ ENV LC_ALL="C.UTF-8"
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    apt-get -y --no-install-recommends install unzip libfcgi-bin
+    apt-get -y --no-install-recommends install unzip nginx libfcgi-bin
     curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
     php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
     php -m | grep duckdb
@@ -35,6 +43,14 @@ RUN <<EOF
     echo '<?php print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));' >/var/www/html/index.php
     php-fpm -D
     SCRIPT_FILENAME=/var/www/html/index.php REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep "\[n\] => 42"
+    cat > /etc/nginx/sites-enabled/default <<'EOP'
+        server {
+            listen 80; root /var/www/html; index index.php;
+            location ~ \.php$ { include snippets/fastcgi-php.conf; fastcgi_pass 127.0.0.1:9000; }
+        }
+    EOP
+    nginx
+    curl -s http://127.0.0.1/ | grep "\[n\] => 42"
     apt-get upgrade -y && apt-get clean
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
 EOF
@@ -46,7 +62,7 @@ ENV LC_ALL="C.UTF-8"
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    apt-get -y --no-install-recommends install unzip libfcgi-bin
+    apt-get -y --no-install-recommends install unzip nginx libfcgi-bin
     curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
     php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
     php -m | grep duckdb
@@ -54,6 +70,14 @@ RUN <<EOF
     echo '<?php print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));' >/var/www/html/index.php
     php-fpm -D
     SCRIPT_FILENAME=/var/www/html/index.php REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep "\[n\] => 42"
+    cat > /etc/nginx/sites-enabled/default <<'EOP'
+        server {
+            listen 80; root /var/www/html; index index.php;
+            location ~ \.php$ { include snippets/fastcgi-php.conf; fastcgi_pass 127.0.0.1:9000; }
+        }
+    EOP
+    nginx
+    curl -s http://127.0.0.1/ | grep "\[n\] => 42"
     apt-get upgrade -y && apt-get clean
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
 EOF
@@ -65,7 +89,7 @@ ENV LC_ALL="C.UTF-8"
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    apt-get -y --no-install-recommends install unzip libfcgi-bin
+    apt-get -y --no-install-recommends install unzip nginx libfcgi-bin
     curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
     php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
     php -m | grep duckdb
@@ -73,6 +97,14 @@ RUN <<EOF
     echo '<?php print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));' >/var/www/html/index.php
     php-fpm -D
     SCRIPT_FILENAME=/var/www/html/index.php REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep "\[n\] => 42"
+    cat > /etc/nginx/sites-enabled/default <<'EOP'
+        server {
+            listen 80; root /var/www/html; index index.php;
+            location ~ \.php$ { include snippets/fastcgi-php.conf; fastcgi_pass 127.0.0.1:9000; }
+        }
+    EOP
+    nginx
+    curl -s http://127.0.0.1/ | grep "\[n\] => 42"
     apt-get upgrade -y && apt-get clean
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
 EOF

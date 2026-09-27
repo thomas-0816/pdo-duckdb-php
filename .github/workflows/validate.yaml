@@ -105,8 +105,8 @@ jobs:
           persist-credentials: false
       - name: Build container
         run: |
-          docker build --no-cache -f Dockerfile.swoole -t pdo_duckdb_swoole .
-          docker build --no-cache -f Dockerfile.swoole_zts -t pdo_duckdb_swoole_zts .
+          docker build --pull --no-cache -f Dockerfile.swoole -t pdo_duckdb_swoole .
+          docker build --pull --no-cache -f Dockerfile.swoole_zts -t pdo_duckdb_swoole_zts .
 
   trueasync:
     name: "TrueAsync"
@@ -117,7 +117,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.trueasync2 -t pdo_duckdb_trueasync .
+        run: docker build --pull --no-cache -f Dockerfile.trueasync2 -t pdo_duckdb_trueasync .
 
   wolfi:
     name: "Docker: Wolfi OS"
@@ -128,7 +128,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.wolfi -t pdo_duckdb_wolfi .
+        run: docker build --pull --no-cache -f Dockerfile.wolfi -t pdo_duckdb_wolfi .
 
   alpine:
     name: "Docker: Alpine"
@@ -139,7 +139,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.alpine -t pdo_duckdb_alpine .
+        run: docker build --pull --no-cache -f Dockerfile.alpine -t pdo_duckdb_alpine .
 
   fedora:
     name: "Docker: Fedora"
@@ -150,7 +150,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.fedora -t pdo_duckdb_fedora .
+        run: docker build --pull --no-cache -f Dockerfile.fedora -t pdo_duckdb_fedora .
 
   amazon:
     name: "Docker: Amazon Linux"
@@ -161,7 +161,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.amazon -t pdo_duckdb_amazon .
+        run: docker build --pull --no-cache -f Dockerfile.amazon -t pdo_duckdb_amazon .
 
   arch:
     name: "Docker: Arch Linux"
@@ -172,7 +172,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.arch -t pdo_duckdb_arch .
+        run: docker build --pull --no-cache -f Dockerfile.arch -t pdo_duckdb_arch .
 
   alma:
     name: "Docker: Alma Linux"
@@ -183,7 +183,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.alma -t pdo_duckdb_alma .
+        run: docker build --pull --no-cache -f Dockerfile.alma -t pdo_duckdb_alma .
 
   rocky:
     name: "Docker: Rocky Linux"
@@ -194,7 +194,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.rocky -t pdo_duckdb_rocky .
+        run: docker build --pull --no-cache -f Dockerfile.rocky -t pdo_duckdb_rocky .
 
   phpofficial:
     name: "Docker: php official"
@@ -207,8 +207,8 @@ jobs:
       - name: Build container
         run: docker build --pull --no-cache -f Dockerfile.php -t pdo_duckdb_php .
 
-  phpfpm:
-    name: "Docker: php fpm"
+  nginx:
+    name: "Docker: php nginx fpm"
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -216,7 +216,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --pull --no-cache -f Dockerfile.php_fpm -t pdo_duckdb_php_fpm .
+        run: docker build --pull --no-cache -f Dockerfile.php_nginx -t pdo_duckdb_php_nginx .
 
   apache:
     name: "Docker: php apache mod_php"
