@@ -18,14 +18,14 @@ RUN <<EOF
     echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
         tee -a /etc/apt/sources.list.d/static-php85.list
     apt-get update
-    apt-get install -y --no-install-recommends php-zts-cli php-zts-pdo pie-zts
-    # pie-zts crashes when swoole is installed
-    pie-zts install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
-    apt-get install -y --no-install-recommends php-zts-swoole
+    apt-get install -y --no-install-recommends php-zts-cli php-zts-pdo pie-zts php-zts-devel
+    apt-get install -y --no-install-recommends gcc make autoconf pkg-config libtool libssl-dev g++ git libcurl4-openssl-dev libzstd-dev libc-ares-dev
+    pie-zts install -v swoole/swoole --enable-swoole-curl --enable-swoole-thread --enable-cares --enable-zstd --enable-sockets
+    pie-zts install -v thomas-0816/pdo-duckdb-php
+    mv /etc/php-zts/conf.d/80-swoole.ini /etc/php-zts/conf.d/30-swoole.ini
     php -m | grep duckdb
     php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-    # bug: https://github.com/swoole/swoole-src/issues/6254
-    # php /pdo-duckdb/test_swoole.php
+    php /pdo-duckdb/test_swoole.php
     apt-get upgrade -y && apt-get clean
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
 EOF
