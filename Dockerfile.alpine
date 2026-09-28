@@ -1,7 +1,7 @@
 # docker build --no-cache -f Dockerfile.alpine -t pdo_duckdb_alpine .
 # docker run --rm -it pdo_duckdb_alpine
 
-FROM alpine:latest
+FROM alpine:latest AS php82
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 RUN <<EOF
@@ -15,7 +15,8 @@ RUN <<EOF
     php82 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 EOF
 
-FROM alpine:latest
+FROM alpine:latest AS php83
+COPY --from=php82 /etc/issue /etc/issue
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 RUN <<EOF
@@ -29,7 +30,8 @@ RUN <<EOF
     php83 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 EOF
 
-FROM alpine:latest
+FROM alpine:latest AS php84
+COPY --from=php83 /etc/issue /etc/issue
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 RUN <<EOF
@@ -43,7 +45,8 @@ RUN <<EOF
     php84 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 EOF
 
-FROM alpine:latest
+FROM alpine:latest AS php85
+COPY --from=php84 /etc/issue /etc/issue
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 RUN <<EOF
@@ -57,7 +60,8 @@ RUN <<EOF
     php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 EOF
 
-FROM alpine:latest
+FROM alpine:latest AS php86
+COPY --from=php85 /etc/issue /etc/issue
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 RUN <<EOF
