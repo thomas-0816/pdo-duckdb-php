@@ -48,6 +48,8 @@ jobs:
         env:
           os: ${{ matrix.os }}
         run: |
+          uname -a
+          php -v
           apt-get update && apt-get install -y --no-install-recommends libgcc-13-dev
           case "$os" in
             ubuntu-22.04)     libduckdb=static-libs-linux-amd64.zip ;;
