@@ -207,7 +207,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --pull --no-cache -f Dockerfile.php -t pdo_duckdb_php .
+        run: |
+          docker build --pull --no-cache -f Dockerfile.php -t pdo_duckdb_php .
+          docker build --pull --no-cache -f Dockerfile.php_alpine -t pdo_duckdb_php_alpine .
 
   nginx:
     name: "Docker: php nginx fpm"
