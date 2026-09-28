@@ -1,75 +1,32 @@
 # docker build --no-cache -f Dockerfile.alpine -t pdo_duckdb_alpine .
 # docker run --rm -it pdo_duckdb_alpine
 
-FROM alpine:latest AS php82
+FROM alpine:latest
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 RUN <<EOF
     set -euxo pipefail
     apk update
-    apk add --no-cache curl php82 php82-pdo php82-mbstring php82-iconv php82-openssl php82-phar tzdata libstdc++ --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
+    apk add --no-cache curl tzdata libstdc++
+    apk add --no-cache php82 php82-pdo php82-mbstring php82-iconv php82-openssl php82-phar --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
+    apk add --no-cache php83 php83-pdo php83-mbstring php83-iconv php83-openssl php83-phar
+    apk add --no-cache php84 php84-pdo php84-mbstring php84-iconv php84-openssl php84-phar
+    apk add --no-cache php85 php85-pdo php85-mbstring php85-iconv php85-openssl php85-phar
+    apk add --no-cache php86 php86-pdo php86-mbstring php86-iconv php86-openssl php86-phar --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
     ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
     curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
     php82 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
     php82 -m | grep duckdb
     php82 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-EOF
-
-FROM alpine:latest AS php83
-COPY --from=php82 /etc/issue /etc/issue
-ENV TERM="xterm-256color"
-ENV LC_ALL="C.UTF-8"
-RUN <<EOF
-    set -euxo pipefail
-    apk update
-    apk add --no-cache curl php83 php83-pdo php83-mbstring php83-iconv php83-openssl php83-phar tzdata libstdc++
-    ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
-    curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
     php83 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
     php83 -m | grep duckdb
     php83 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-EOF
-
-FROM alpine:latest AS php84
-COPY --from=php83 /etc/issue /etc/issue
-ENV TERM="xterm-256color"
-ENV LC_ALL="C.UTF-8"
-RUN <<EOF
-    set -euxo pipefail
-    apk update
-    apk add --no-cache curl php84 php84-pdo php84-mbstring php84-iconv php84-openssl php84-phar tzdata libstdc++
-    ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
-    curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
     php84 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
     php84 -m | grep duckdb
     php84 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-EOF
-
-FROM alpine:latest AS php85
-COPY --from=php84 /etc/issue /etc/issue
-ENV TERM="xterm-256color"
-ENV LC_ALL="C.UTF-8"
-RUN <<EOF
-    set -euxo pipefail
-    apk update
-    apk add --no-cache curl php85 php85-pdo php85-mbstring php85-iconv php85-openssl php85-phar tzdata libstdc++
-    ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
-    curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
-    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
-    php -m | grep duckdb
-    php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-EOF
-
-FROM alpine:latest AS php86
-COPY --from=php85 /etc/issue /etc/issue
-ENV TERM="xterm-256color"
-ENV LC_ALL="C.UTF-8"
-RUN <<EOF
-    set -euxo pipefail
-    apk update
-    apk add --no-cache curl php86 php86-pdo php86-mbstring php86-iconv php86-openssl php86-phar tzdata libstdc++ --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
-    ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
-    curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
+    php85 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
+    php85 -m | grep duckdb
+    php85 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
     php86 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
     php86 -m | grep duckdb
     php86 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
