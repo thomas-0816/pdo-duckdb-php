@@ -2,7 +2,7 @@
 # docker run --rm -it pdo_duckdb_php
 
 # php 8.2
-FROM php:8.2-cli
+FROM php:8.2-cli AS php82
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 RUN <<EOF
@@ -18,7 +18,8 @@ RUN <<EOF
 EOF
 
 # php 8.3
-FROM php:8.3-cli
+FROM php:8.3-cli AS php83
+COPY --from=php82 /etc/issue /etc/issue
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 RUN <<EOF
@@ -34,7 +35,8 @@ RUN <<EOF
 EOF
 
 # php 8.4
-FROM php:8.4-cli
+FROM php:8.4-cli AS php84
+COPY --from=php83 /etc/issue /etc/issue
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 RUN <<EOF
@@ -50,7 +52,8 @@ RUN <<EOF
 EOF
 
 # php 8.5
-FROM php:8.5-cli
+FROM php:8.5-cli AS php85
+COPY --from=php84 /etc/issue /etc/issue
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 RUN <<EOF
