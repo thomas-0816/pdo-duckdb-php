@@ -17,7 +17,7 @@ Supported PHP versions (nts & zts): 8.2 8.3 8.4 8.5 8.6
 
 Supported operating systems: Ubuntu 22+, Debian 12+, Fedora 42+, openSUSE 16+, AmazonLinux, Arch, Alma, Rocky, Alpine, Wolfi OS, Windows Server 2022/2025 (x64), macOS 15+ (arm64)
 
-Supported SAPIs: php-cli, php-fpm, FrankenPHP, TrueAsync, Swoole, mod_php
+Supported SAPIs: php-cli, php-fpm, mod_php, FrankenPHP, TrueAsync, Swoole
 
 Support end: macOS 14 (August 2026), Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
 
