@@ -19,7 +19,7 @@ Supported operating systems: Ubuntu 22+, Debian 12+, Fedora 42+, openSUSE 16+, A
 
 Supported SAPIs: php-cli, php-fpm, FrankenPHP, TrueAsync, Swoole, mod_php
 
-Support end: Ubuntu 22.04 (April 2027), Debian 12 (April 2027), macOS 14 (August 2026)
+Support end: macOS 14 (August 2026), Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
 
 ## Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
