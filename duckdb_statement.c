@@ -770,13 +770,12 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 				zend_string_release(str);
 				break;
 			}
-			default:
-				{
-					zend_string *str = zval_get_string(parameter);
-					state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(str), ZSTR_LEN(str));
-					zend_string_release(str);
-				}
+			default: {
+				zend_string *str = zval_get_string(parameter);
+				state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(str), ZSTR_LEN(str));
+				zend_string_release(str);
 				break;
+			}
 		}
 
 		if (state != DuckDBSuccess) {
