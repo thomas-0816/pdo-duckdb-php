@@ -23,7 +23,7 @@ if (PHP_PDO_DUCKDB != "no") {
 		EXTENSION("pdo_duckdb",
 			"pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp duckdb_swoole.cpp",
 			null,
-			"/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 /EHsc");
+			"/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 /EHsc /arch:AVX2");
 
 		ADD_FLAG("CFLAGS_PDO_DUCKDB", "/I " + DUCKDB_PATH + " /I " + DUCKDB_PATH + "\\include");
 		ADD_FLAG("LDFLAGS_PDO_DUCKDB", "/LIBPATH:" + DUCKDB_PATH);
