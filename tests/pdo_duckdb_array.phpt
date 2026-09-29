@@ -43,9 +43,9 @@ $statement = $db->query("SELECT * FROM y");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:');
-$db->exec('INSTALL vss; LOAD vss');
+// $db->exec('INSTALL vss; LOAD vss');
 $db->exec('CREATE TABLE table1 (id int primary key, embeddings float[3])');
-$db->exec("CREATE INDEX table1_hnsw ON table1 USING HNSW (embeddings) WITH (metric = 'cosine')");
+// $db->exec("CREATE INDEX table1_hnsw ON table1 USING HNSW (embeddings) WITH (metric = 'cosine')");
 $db->exec('INSERT INTO table1 VALUES (1, [1, 2, 3])');
 $db->exec('INSERT INTO table1 VALUES (2, [4, 5, 6])');
 $statement = $db->query('
