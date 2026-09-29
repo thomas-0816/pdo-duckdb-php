@@ -15,7 +15,8 @@ concurrency:
 jobs:
   composer-validate:
     name: "Validate using Composer"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -30,13 +31,14 @@ jobs:
   linux_macos:
     name: Linux, MacOS
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
         os:
           - ubuntu-22.04
           - ubuntu-22.04-arm
-          - macos-14
+          - macos-15
         php-version:
           - 8.2
           - 8.3
@@ -46,30 +48,38 @@ jobs:
         thread-safety:
           - zts
           - nts
+        variant:
+          - plain
+          - swoole
+        exclude:
+          - php-version: 8.6
+            variant: swoole
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }}
+      - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }} ${{ matrix.variant }}
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
+          extensions: ${{ matrix.variant == 'swoole' && 'swoole' || '' }}
         env:
           phpts: ${{ matrix.thread-safety }}
       - name: Build & Test
         env:
           os: ${{ matrix.os }}
+          variant: ${{ matrix.variant }}
         run: |
           case "$os" in
             ubuntu-22.04)     libduckdb=static-libs-linux-amd64.zip; sudo timedatectl set-timezone "Europe/Berlin" ;;
             ubuntu-22.04-arm) libduckdb=static-libs-linux-arm64.zip; sudo timedatectl set-timezone "Europe/Berlin" ;;
-            macos-14)         libduckdb=static-libs-osx-arm64.zip; sudo systemsetup -settimezone "Europe/Berlin" ;;
+            macos-15)         libduckdb=static-libs-osx-arm64.zip; sudo systemsetup -settimezone "Europe/Berlin" ;;
             *) echo "error os"; exit 1 ;;
           esac
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/${libduckdb}" -o ${libduckdb}
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/${libduckdb}" -o ${libduckdb}
           unzip -o ${libduckdb} -d ./
           phpize
           ./configure --with-pdo-duckdb
@@ -77,10 +87,15 @@ jobs:
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+          if [ "$variant" = "swoole" ]; then
+            php -m | grep swoole
+            php -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
+          fi
 
   windows-build:
     name: Windows
     runs-on: ${{ (matrix.php-version == '8.6' && 'windows-2025-vs2026') || 'windows-2022' }}
+    timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
@@ -100,10 +115,10 @@ jobs:
       - name: Download libduckdb
         shell: pwsh
         run: |
-          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip"
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip"
           Invoke-WebRequest -Uri $url -OutFile duckdb-src.zip
           Expand-Archive duckdb-src.zip -DestinationPath . -Force
-          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-windows-amd64.zip"
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-windows-amd64.zip"
           Invoke-WebRequest -Uri $url -OutFile duckdb.zip
           Expand-Archive duckdb.zip -DestinationPath . -Force
           Get-ChildItem -Path .
@@ -119,7 +134,14 @@ jobs:
 
   asan:
     name: ASAN
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        thread-safety:
+          - nts
+          - zts
     env:
       ASAN_OPTIONS: exitcode=139:verify_asan_link_order=0:detect_odr_violation=0:detect_leaks=1
       UBSAN_OPTIONS: print_stacktrace=1
@@ -136,6 +158,8 @@ jobs:
         # configure fails with "cannot run C compiled programs".
         run: echo "LD_LIBRARY_PATH=$(clang -print-resource-dir)/lib/linux" >> "$GITHUB_ENV"
       - name: Build PHP with ASAN and PDO
+        env:
+          zts_flag: ${{ matrix.thread-safety == 'zts' && '--enable-zts' || '--disable-zts' }}
         run: |
           sudo apt-get update && sudo apt-get install -y llvm clang re2c bison autoconf unzip
           git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git /tmp/php-src
@@ -144,16 +168,16 @@ jobs:
           CC=clang CXX=clang++ \
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --enable-debug --disable-zts --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
+          ./configure --enable-debug ${zts_flag} --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
           make -j$(nproc)
           make install
       - name: Build extension with ASAN
         run: |
           export PATH="/tmp/php-asan/bin:$PATH"
           sudo timedatectl set-timezone "Europe/Berlin"
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
           unzip -o static-libs-linux-amd64.zip -d ./
           phpize
           CC=clang CXX=clang++ \
@@ -171,8 +195,15 @@ jobs:
           /tmp/php-asan/bin/php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
 
   asan-swoole:
-    name: ASAN Swoole
-    runs-on: ubuntu-latest
+    name: ASAN Swoole (${{ matrix.thread-safety }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        thread-safety:
+          - nts
+          - zts
     env:
       ASAN_OPTIONS: exitcode=139:verify_asan_link_order=0:detect_odr_violation=0:detect_leaks=1
       UBSAN_OPTIONS: print_stacktrace=1
@@ -185,6 +216,8 @@ jobs:
       - name: Put the clang ASan runtime on the loader path
         run: echo "LD_LIBRARY_PATH=$(clang -print-resource-dir)/lib/linux" >> "$GITHUB_ENV"
       - name: Build PHP with ASAN and PDO
+        env:
+          zts_flag: ${{ matrix.thread-safety == 'zts' && '--enable-zts' || '--disable-zts' }}
         run: |
           sudo apt-get update && sudo apt-get install -y llvm clang re2c bison autoconf unzip
           git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git /tmp/php-src
@@ -193,28 +226,30 @@ jobs:
           CC=clang CXX=clang++ \
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --enable-debug --disable-zts --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
+          ./configure --enable-debug ${zts_flag} --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
           make -j$(nproc)
           make install
       - name: Build swoole extension with ASAN
+        env:
+          swoole_thread: ${{ matrix.thread-safety == 'zts' && '--enable-swoole-thread' || '' }}
         run: |
           export PATH="/tmp/php-asan/bin:$PATH"
-          git clone --depth=1 --branch=v6.2.2 https://github.com/swoole/swoole-src.git /tmp/swoole-src
+          git clone --depth=1 --branch=v6.2.3 https://github.com/swoole/swoole-src.git /tmp/swoole-src
           cd /tmp/swoole-src
           phpize
           CC=clang CXX=clang++ \
           CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           CXXFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
           LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --with-php-config=/tmp/php-asan/bin/php-config
+          ./configure --with-php-config=/tmp/php-asan/bin/php-config ${swoole_thread}
           make -j$(nproc)
       - name: Build pdo_duckdb extension with ASAN
         run: |
           export PATH="/tmp/php-asan/bin:$PATH"
           sudo timedatectl set-timezone "Europe/Berlin"
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
           unzip -o static-libs-linux-amd64.zip -d ./
           phpize
           CC=clang CXX=clang++ \
@@ -233,8 +268,18 @@ jobs:
           /tmp/php-asan/bin/php -d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
 
   valgrind:
-    name: "Valgrind"
+    name: Valgrind
     runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        thread-safety:
+          - nts
+          - zts
+        variant:
+          - plain
+          - swoole
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -244,55 +289,28 @@ jobs:
         with:
           php-version: 8.5
           coverage: none
+          extensions: ${{ matrix.variant == 'swoole' && 'swoole' || '' }}
         env:
-          phpts: nts
+          phpts: ${{ matrix.thread-safety }}
       - name: Build & Test
         run: |
           sudo timedatectl set-timezone "Europe/Berlin"
           sudo apt-get update && sudo apt-get install -y valgrind
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
           unzip -o static-libs-linux-amd64.zip -d ./
           phpize
           ./configure --with-pdo-duckdb
           make
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
-
-  valgrind-swoole:
-    name: "Valgrind Swoole"
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Setup PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
-        with:
-          php-version: 8.5
-          coverage: none
-          extensions: swoole
-        env:
-          phpts: nts
-      - name: Build & Test
-        run: |
-          php -m | grep swoole
-          sudo timedatectl set-timezone "Europe/Berlin"
-          sudo apt-get update && sudo apt-get install -y valgrind
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
-          unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
-          unzip -o static-libs-linux-amd64.zip -d ./
-          phpize
-          ./configure --with-pdo-duckdb
-          make
+          php -m | grep swoole || true
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
 
   zizmor:
     name: zizmor
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -305,7 +323,8 @@ jobs:
 
   intree:
     name: InTree
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -317,9 +336,9 @@ jobs:
           cd php-src/ext
           git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git
           cd pdo-duckdb-php
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
           unzip -o static-libs-linux-amd64.zip -d ./
           cd ../../
           ./buildconf --force
@@ -340,7 +359,8 @@ jobs:
 
   trueasync:
     name: TrueAsync
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -352,9 +372,9 @@ jobs:
           git clone --depth=1 --branch=main https://github.com/true-async/php-async ./php-src/ext/async
           git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git ./php-src/ext/pdo-duckdb-php
           cd php-src/ext/pdo-duckdb-php
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
           unzip -o static-libs-linux-amd64.zip -d ./
           cd ../../
           ./buildconf --force
@@ -376,7 +396,8 @@ jobs:
 
   parallel:
     name: Parallel
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -391,9 +412,9 @@ jobs:
       - name: Build PHP with pdo-duckdb-php parallel
         run: |
           sudo timedatectl set-timezone "Europe/Berlin"
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
           unzip -o static-libs-linux-amd64.zip -d ./
           phpize
           ./configure --with-pdo-duckdb
@@ -404,7 +425,8 @@ jobs:
 
   frankenphp:
     name: "FrankenPHP"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -417,9 +439,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install php-zts-cli php-zts-pdo php-zts-devel frankenphp apache2-utils
           sudo timedatectl set-timezone "Europe/Berlin"
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
           unzip -o static-libs-linux-amd64.zip -d ./
           phpize-zts
           ./configure --with-pdo-duckdb --with-php-config=php-config-zts

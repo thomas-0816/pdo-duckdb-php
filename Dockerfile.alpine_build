@@ -14,7 +14,10 @@ RUN <<EOF
         php83 php83-pdo php83-mbstring php83-dev \
         php84 php84-pdo php84-mbstring php84-dev \
         php85 php85-pdo php85-mbstring php85-dev
-    apk add --no-cache php86 php86-pdo php86-mbstring php86-dev duckdb-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
+    apk add --no-cache duckdb-dev \
+        php82 php82-pdo php82-mbstring php82-dev \
+        php86 php86-pdo php86-mbstring php86-dev \
+        --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
     ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git
 EOF
@@ -22,6 +25,29 @@ EOF
 WORKDIR /pdo-duckdb-php
 
 RUN <<EOF
+    make clean
+    cp /usr/lib/libduckdb_* ./
+    cp /usr/lib/libcore_functions_extension.a ./
+    cp /usr/lib/libjson_extension.a ./
+    cp /usr/lib/libicu_extension.a ./
+    cp /usr/include/duckdb.h ./
+    cp /usr/include/duckdb.hpp ./
+    phpize82
+    ./configure --with-pdo-duckdb --with-php-config=php-config82
+    make
+    php82 -dextension=modules/pdo_duckdb.so -m | grep duckdb
+    php82 -dextension=modules/pdo_duckdb.so -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php82 run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php_version=$(php-config82 --version | cut -d. -f1-2)
+    arch=$(uname -m)
+    case "$arch" in
+        x86_64|amd64)  arch_name=x86_64 ;;
+        aarch64|arm64) arch_name=arm64 ;;
+        x86)           arch_name=x86 ;;
+        *) echo "unsupported arch: $arch"; exit 1 ;;
+    esac
+    zip -j "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" modules/pdo_duckdb.so
+
     make clean
     cp /usr/lib/libduckdb_* ./
     cp /usr/lib/libcore_functions_extension.a ./

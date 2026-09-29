@@ -102,7 +102,7 @@ $threads = [];
 for ($i = 0; $i < 10; $i++) {
     $threads[] = new Swoole\Thread('/tmp/swoole_test.php' , $i, $authToken);
 }
-for ($i = 0; $i < 8; $i++) {
+for ($i = 0; $i < 10; $i++) {
     $threads[$i]->join();
 }
 $pdo->exec("CALL quack_stop('quack:127.0.0.1')");

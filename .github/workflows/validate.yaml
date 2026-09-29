@@ -13,15 +13,17 @@ jobs:
   linux_macos_windows:
     name: Linux, MacOS, Windows
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
         os:
+          - ubuntu-22.04
           - ubuntu-24.04
           - ubuntu-26.04
+          - ubuntu-22.04-arm
           - ubuntu-24.04-arm
           - ubuntu-26.04-arm
-          - macos-14
           - macos-15
           - macos-26
           - windows-2022
@@ -35,11 +37,6 @@ jobs:
         thread-safety:
           - zts
           - nts
-        exclude:
-          - php-version: 8.6
-            os: windows-2022
-          - php-version: 8.6
-            os: windows-2025
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -57,14 +54,13 @@ jobs:
         shell: bash
         env:
           os: ${{ matrix.os }}
-          BOX_REQUIREMENT_CHECKER: false
         run: |
           uname -a
           php -v
           if [ "$RUNNER_OS" = "Windows" ]; then
               pie install -v thomas-0816/pdo-duckdb-php
           else
-              sudo BOX_REQUIREMENT_CHECKER=false pie install -v thomas-0816/pdo-duckdb-php
+              sudo pie install -v thomas-0816/pdo-duckdb-php
           fi
           php -m | grep duckdb
           php <<'EOF'
@@ -81,7 +77,8 @@ jobs:
 
   frankenphp:
     name: "FrankenPHP"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -102,147 +99,170 @@ jobs:
 
   swoole:
     name: "Swoole"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.swoole -t pdo_duckdb_swoole .
-
-  swoole_zts:
-    name: "Swoole zts"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Build container
-        run: docker build --no-cache -f Dockerfile.swoole_zts -t pdo_duckdb_swoole_zts .
+        run: |
+          docker build --pull --no-cache -f Dockerfile.swoole -t pdo_duckdb_swoole .
+          docker build --pull --no-cache -f Dockerfile.swoole_zts -t pdo_duckdb_swoole_zts .
 
   trueasync:
     name: "TrueAsync"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.trueasync2 -t pdo_duckdb_trueasync .
+        run: docker build --pull --no-cache -f Dockerfile.trueasync2 -t pdo_duckdb_trueasync .
 
   wolfi:
     name: "Docker: Wolfi OS"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.wolfi -t pdo_duckdb_wolfi .
+        run: docker build --pull --no-cache -f Dockerfile.wolfi -t pdo_duckdb_wolfi .
 
   alpine:
     name: "Docker: Alpine"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.alpine -t pdo_duckdb_alpine .
+        run: docker build --pull --no-cache -f Dockerfile.alpine -t pdo_duckdb_alpine .
 
   fedora:
     name: "Docker: Fedora"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.fedora -t pdo_duckdb_fedora .
+        run: docker build --pull --no-cache -f Dockerfile.fedora -t pdo_duckdb_fedora .
 
   amazon:
     name: "Docker: Amazon Linux"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.amazon -t pdo_duckdb_amazon .
+        run: docker build --pull --no-cache -f Dockerfile.amazon -t pdo_duckdb_amazon .
 
   arch:
     name: "Docker: Arch Linux"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.arch -t pdo_duckdb_arch .
+        run: docker build --pull --no-cache -f Dockerfile.arch -t pdo_duckdb_arch .
 
   alma:
     name: "Docker: Alma Linux"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --no-cache -f Dockerfile.alma -t pdo_duckdb_alma .
+        run: docker build --pull --no-cache -f Dockerfile.alma -t pdo_duckdb_alma .
+
+  rocky:
+    name: "Docker: Rocky Linux"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build container
+        run: docker build --pull --no-cache -f Dockerfile.rocky -t pdo_duckdb_rocky .
 
   phpofficial:
     name: "Docker: php official"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --pull --no-cache -f Dockerfile.php -t pdo_duckdb_php .
+        run: |
+          docker build --pull --no-cache -f Dockerfile.php -t pdo_duckdb_php .
+          docker build --pull --no-cache -f Dockerfile.php_alpine -t pdo_duckdb_php_alpine .
 
-  debian12:
-    name: "Docker: Debian 12"
-    runs-on: ubuntu-latest
+  nginx:
+    name: "Docker: php nginx fpm"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --pull --no-cache -f Dockerfile.debian12 -t pdo_duckdb_debian12 .
+        run: docker build --pull --no-cache -f Dockerfile.php_nginx -t pdo_duckdb_php_nginx .
 
-  debian13:
-    name: "Docker: Debian 13"
-    runs-on: ubuntu-latest
+  apache:
+    name: "Docker: php apache mod_php"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --pull --no-cache -f Dockerfile.debian13 -t pdo_duckdb_debian13 .
+        run: docker build --pull --no-cache -f Dockerfile.php_apache -t pdo_duckdb_php_apache .
 
-  ubuntu24:
-    name: "Docker: Ubuntu 24.04"
-    runs-on: ubuntu-latest
+  debian:
+    name: "Docker: Debian"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --pull --no-cache -f Dockerfile.ubuntu24 -t pdo_duckdb_ubuntu24 .
+        run: |
+          docker build --pull --no-cache -f Dockerfile.debian12 -t pdo_duckdb_debian12 .
+          docker build --pull --no-cache -f Dockerfile.debian13 -t pdo_duckdb_debian13 .
 
-  ubuntu26:
-    name: "Docker: Ubuntu 26.04"
-    runs-on: ubuntu-latest
+  ubuntu:
+    name: "Docker: Ubuntu"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --pull --no-cache -f Dockerfile.ubuntu26 -t pdo_duckdb_ubuntu26 .
+        run: |
+          docker build --pull --no-cache -f Dockerfile.ubuntu24 -t pdo_duckdb_ubuntu24 .
+          docker build --pull --no-cache -f Dockerfile.ubuntu26 -t pdo_duckdb_ubuntu26 .
 
   opensuse:
     name: "Docker: openSUSE"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -252,7 +272,8 @@ jobs:
 
   clamav:
     name: "Docker: clamAV"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

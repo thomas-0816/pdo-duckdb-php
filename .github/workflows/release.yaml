@@ -22,7 +22,7 @@ jobs:
         os:
           - ubuntu-22.04
           - ubuntu-22.04-arm
-          - macos-14
+          - macos-15
         php-version:
           - 8.2
           - 8.3
@@ -48,16 +48,18 @@ jobs:
         env:
           os: ${{ matrix.os }}
         run: |
+          uname -a
+          php -v
           apt-get update && apt-get install -y --no-install-recommends libgcc-13-dev
           case "$os" in
             ubuntu-22.04)     libduckdb=static-libs-linux-amd64.zip ;;
             ubuntu-22.04-arm) libduckdb=static-libs-linux-arm64.zip ;;
-            macos-14)         libduckdb=static-libs-osx-arm64.zip ;;
+            macos-15)         libduckdb=static-libs-osx-arm64.zip ;;
             *) echo "unmapped runner os"; exit 1 ;;
           esac
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip" -o libduckdb-src.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
           unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.5/${libduckdb}" -o libduckdb.zip
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/${libduckdb}" -o libduckdb.zip
           unzip -o libduckdb.zip -d ./
       - name: Build and upload prebuilt binary
         uses: php/pie-ext-binary-builder@cbe134360897f23793f23c2edc7602261d205a25 # 0.0.4
@@ -115,10 +117,10 @@ jobs:
       - name: Download libduckdb
         shell: pwsh
         run: |
-          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-windows-amd64.zip"
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-windows-amd64.zip"
           Invoke-WebRequest -Uri $url -OutFile duckdb.zip
           Expand-Archive duckdb.zip -DestinationPath . -Force
-          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.5/libduckdb-src.zip"
+          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip"
           Invoke-WebRequest -Uri $url -OutFile duckdb-src.zip
           Expand-Archive duckdb-src.zip -DestinationPath . -Force
           Get-ChildItem -Path .
@@ -157,7 +159,7 @@ jobs:
 
   clamav:
     name: "Docker: clamAV"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [linux_macos, windows, linux_alpine]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -171,7 +173,7 @@ jobs:
 
   publish:
     name: "Publish: packagist"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [clamav]
     steps:
       - name: Publish release on Packagist

@@ -296,7 +296,7 @@ array(1) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["created_by"]=>
-    string(%d) "DuckDB version v2.0.0-dev84457 (build 10de957379)"
+    string(%d) "DuckDB version %s (build %s)"
     ["num_rows"]=>
     int(2)
     ["num_row_groups"]=>
