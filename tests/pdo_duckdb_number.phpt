@@ -6,7 +6,7 @@ pdo_duckdb
 <?php
 
 $db = new PDO('duckdb::memory:');
-$db->exec('SET null_on_division_by_zero=true');
+$db->exec('SET error_on_division_by_zero=false');
 $statement = $db->query("SELECT 0/0, 0//0"); // -nan, null
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
@@ -158,7 +158,7 @@ array(1) {
     float(1.23)
     ["CAST(0.001 AS DECIMAL(10, 3))"]=>
     float(0.001)
-    ["-(CAST(3.14 AS DECIMAL(4, 2)))"]=>
+    ["(-(CAST(3.14 AS DECIMAL(4, 2))))"]=>
     float(-3.14)
     ["CAST(0 AS DECIMAL(5, 2))"]=>
     float(0)
@@ -171,7 +171,7 @@ array(1) {
     float(1.23)
     ["CAST(0.001 AS DECIMAL(14, 4))"]=>
     float(0.001)
-    ["-(CAST(3.14 AS DECIMAL(15, 5)))"]=>
+    ["(-(CAST(3.14 AS DECIMAL(15, 5))))"]=>
     float(-3.14)
     ["CAST(0 AS DECIMAL(16, 6))"]=>
     float(0)
@@ -202,7 +202,7 @@ array(1) {
     string(19) ".311699786984687608"
     ["CAST(0.45971054587213542206239787480916869700 AS DECIMAL(38, 38))"]=>
     string(39) ".45971054587213539913392807288705646592"
-    ["-(CAST(0.311699786984687608 AS DECIMAL(18, 18)))"]=>
+    ["(-(CAST(0.311699786984687608 AS DECIMAL(18, 18))))"]=>
     string(20) "-.311699786984687608"
   }
 }
