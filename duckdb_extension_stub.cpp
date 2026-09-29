@@ -1,5 +1,42 @@
 #include "duckdb.hpp"
 
+#if DUCKDB_MAJOR_VERSION >= 2
+
+//! duckdb.hpp already carries duckdb_static_extension.h, so the descriptor layout and the registration entry point
+//! below come from there. The extensions themselves only export their describe functions.
+
+extern "C" {
+int32_t duckdb_extension_core_functions_describe(duckdb_extension_descriptor *descriptor);
+int32_t duckdb_extension_json_describe(duckdb_extension_descriptor *descriptor);
+int32_t duckdb_extension_httpfs_describe(duckdb_extension_descriptor *descriptor);
+int32_t duckdb_extension_inet_describe(duckdb_extension_descriptor *descriptor);
+int32_t duckdb_extension_parquet_describe(duckdb_extension_descriptor *descriptor);
+int32_t duckdb_extension_icu_describe(duckdb_extension_descriptor *descriptor);
+}
+
+namespace {
+
+//! Bundled extensions register themselves with the engine from a static initializer, so before main and therefore
+//! before any connection exists. The engine's own ExtensionHelper::RegisterLinkedExtensions then publishes whatever is
+//! in the registry onto every DBConfig, and DuckDB's constructor loads them through LoadAllExtensions. Order below is
+//! the load order, so json is registered before icu.
+struct StaticExtensionRegistrar {
+	StaticExtensionRegistrar() {
+		duckdb_register_static_extension(duckdb_extension_core_functions_describe);
+		duckdb_register_static_extension(duckdb_extension_json_describe);
+		duckdb_register_static_extension(duckdb_extension_httpfs_describe);
+		duckdb_register_static_extension(duckdb_extension_inet_describe);
+		duckdb_register_static_extension(duckdb_extension_parquet_describe);
+		duckdb_register_static_extension(duckdb_extension_icu_describe);
+	}
+};
+
+const StaticExtensionRegistrar static_extension_registrar;
+
+} // namespace
+
+#else
+
 namespace duckdb {
 
 class CoreFunctionsExtension : public Extension {
@@ -23,13 +60,6 @@ public:
 	std::string Version() const override;
 };
 
-class HttpfsExtension : public Extension {
-public:
-	void Load(ExtensionLoader &loader) override;
-	std::string Name() override;
-	std::string Version() const override;
-};
-
 class ParquetExtension : public Extension {
 public:
 	void Load(ExtensionLoader &loader) override;
@@ -37,33 +67,17 @@ public:
 	std::string Version() const override;
 };
 
-} // namespace duckdb
-
-namespace duckdb {
-
 class ExtensionHelper {
 public:
-#if DUCKDB_MAJOR_VERSION >= 2
-	static void RegisterLinkedExtensions(DBConfig &config);
-#else
 	static void LoadAllExtensions(DuckDB &db);
-#endif
 };
 
-#if DUCKDB_MAJOR_VERSION >= 2
-void ExtensionHelper::RegisterLinkedExtensions(DBConfig &config) {
-	config.linked_extensions.push_back(LinkedExtension {"core_functions", [](DuckDB &db) { db.LoadStaticExtension<CoreFunctionsExtension>(); }});
-	config.linked_extensions.push_back(LinkedExtension {"json", [](DuckDB &db) { db.LoadStaticExtension<JsonExtension>(); }});
-	config.linked_extensions.push_back(LinkedExtension {"httpfs", [](DuckDB &db) { db.LoadStaticExtension<HttpfsExtension>(); }});
-	config.linked_extensions.push_back(LinkedExtension {"parquet", [](DuckDB &db) { db.LoadStaticExtension<ParquetExtension>(); }});
-	config.linked_extensions.push_back(LinkedExtension {"icu", [](DuckDB &db) { db.LoadStaticExtension<IcuExtension>(); }});
-}
-#else
 void ExtensionHelper::LoadAllExtensions(DuckDB &db) {
 	db.LoadStaticExtension<CoreFunctionsExtension>();
 	db.LoadStaticExtension<JsonExtension>();
 	db.LoadStaticExtension<IcuExtension>();
 }
-#endif
 
 } // namespace duckdb
+
+#endif
