@@ -531,7 +531,6 @@ Client connect:
 $client = new PDO('duckdb::memory:', null, null, [
     PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;"
 ]);
-
 $client->exec('CREATE TABLE IF NOT EXISTS table1 (v VARCHAR, v2 VARCHAR)');
 $client->exec("INSERT INTO table1 VALUES ('foo', 'bar')");
 
@@ -770,9 +769,9 @@ Yes. DuckDB and all components are fully open-source under the MIT license.
     # sanity check to detect crashes
     php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
-    php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php run-tests.php --show-diff --show-clean -q
 
-    php-zts run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php-zts run-tests.php --show-diff --show-clean -q
 
     # test PHP 8.2-8.5
     docker build --no-cache -f Dockerfile -t pdo_duckdb .
