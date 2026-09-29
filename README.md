@@ -517,6 +517,30 @@ print_r($rows->fetchAll(PDO::FETCH_ASSOC));
 
 See the documentation for [managing secrets](https://duckdb.org/docs/current/configuration/secrets_manager) and [read_json()](https://duckdb.org/docs/lts/data/json/loading_json).
 
+## Client server mode (Quack Remote Protocol)
+
+Start the DuckDB server:
+
+```bash
+duckdb database.duckdb --cmd "CALL quack_serve('quack:127.0.0.1:9494', token='secret');"
+```
+
+Client connect:
+
+```php
+$client = new PDO('duckdb::memory:', null, null, [
+    PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;"
+]);
+
+$client->exec('CREATE TABLE IF NOT EXISTS table1 (v VARCHAR, v2 VARCHAR)');
+$client->exec("INSERT INTO table1 VALUES ('foo', 'bar')");
+
+$statement = $client->query('SELECT * FROM table1');
+print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+```
+
+For more information about the Quack Remote Protocol, see the [documentation](https://duckdb.org/docs/current/quack/overview).
+
 ## Community extensions
 
 open_prompt integrates LLMs into your SQL queries:
