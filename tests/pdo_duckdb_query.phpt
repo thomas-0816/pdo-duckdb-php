@@ -876,5 +876,5 @@ array(2) {
   string(3) "bar"
 }
 Caught: SQLSTATE[HY000]: could not encode parameter as JSON
-Caught: SQLSTATE[HY000]: parameter binding failed for parameter
+Caught: SQLSTATE[HY000]: parameter binding failed for parameter 1
 Caught: SQLSTATE[HY000]: parameter binding failed for parameter :foo
