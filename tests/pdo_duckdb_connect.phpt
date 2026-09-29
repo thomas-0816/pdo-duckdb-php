@@ -18,7 +18,7 @@ $db->exec("INSTAll parquet; LOAD parquet; INSTALL httpfs;");
 
 $statement = $db->query("
   SELECT extension_name, loaded, installed FROM duckdb_extensions()
-  WHERE extension_name not in ('autocomplete', 'core_functions', 'inet', 'excel', 'vss') and (installed = 1 OR loaded = 1)
+  WHERE extension_name not in ('autocomplete', 'core_functions', 'inet', 'excel', 'vss', 'quack') and (installed = 1 OR loaded = 1)
 ");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 

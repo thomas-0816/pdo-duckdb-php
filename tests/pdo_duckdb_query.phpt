@@ -338,6 +338,31 @@ while ($stmt->fetch(PDO::FETCH_BOUND)) {
     var_dump([$i1, $v1]);
 }
 
+$object = new stdClass();
+$object->myself = $object; // Circular reference
+
+$stmt = $db->prepare('SELECT ?');
+try {
+    $stmt->execute([$object]);
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$stmt->bindValue(1, $object, PDO::PARAM_LOB);
+try {
+    $stmt->execute();
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$stmt = $db->prepare('SELECT :foo');
+$stmt->bindValue('foo', $object, PDO::PARAM_LOB);
+try {
+    $stmt->execute();
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -850,3 +875,6 @@ array(2) {
   [1]=>
   string(3) "bar"
 }
+Caught: SQLSTATE[HY000]: could not encode parameter as JSON
+Caught: SQLSTATE[HY000]: parameter binding failed for parameter
+Caught: SQLSTATE[HY000]: parameter binding failed for parameter :foo

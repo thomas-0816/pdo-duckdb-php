@@ -773,7 +773,7 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 
 		if (state != DuckDBSuccess) {
 			zend_throw_exception_ex(php_pdo_get_exception(), 0,
-				"SQLSTATE[HY000]: parameter binding failed for parameter '%s'",
+				"SQLSTATE[HY000]: parameter binding failed for parameter %s",
 				param->name ? ZSTR_VAL(param->name) : "");
 			return 0;
 		}
