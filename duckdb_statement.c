@@ -743,7 +743,15 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 		} else if (Z_TYPE_P(parameter) == IS_TRUE || Z_TYPE_P(parameter) == IS_FALSE) {
 			state = duckdb_bind_boolean(S->stmt, idx, zend_is_true(parameter) ? 1 : 0);
 		} else if (Z_TYPE_P(parameter) == IS_LONG) {
-			state = duckdb_bind_int64(S->stmt, idx, (int64_t)zval_get_long(parameter));
+			int64_t val = (int64_t) zval_get_long(parameter);
+			duckdb_type param_type = duckdb_param_type(S->stmt, idx);
+			if (param_type == DUCKDB_TYPE_INTEGER && val >= INT32_MIN && val <= INT32_MAX) {
+				state = duckdb_bind_int32(S->stmt, idx, (int32_t) val);
+			} else if (param_type == DUCKDB_TYPE_UINTEGER && val >= 0 && val <= (int64_t) UINT32_MAX) {
+				state = duckdb_bind_uint32(S->stmt, idx, (uint32_t) val);
+			} else {
+				state = duckdb_bind_int64(S->stmt, idx, val);
+			}
 		} else if (Z_TYPE_P(parameter) == IS_DOUBLE) {
 			state = duckdb_bind_double(S->stmt, idx, zval_get_double(parameter));
 		} else switch (PDO_PARAM_TYPE(param->param_type)) {
