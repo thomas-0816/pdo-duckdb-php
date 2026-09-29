@@ -34,7 +34,7 @@ PHP_ADD_EXTENSION_DEP(pdo_duckdb, pdo)
 PHP_ADD_MAKEFILE_FRAGMENT
 
 dnl Bundle extensions, loaded in duckdb_extension_stub.cpp
-PDO_DUCKDB_ARCHIVE_FLAGS="-Wl,$ext_srcdir/libduckdb_static.a -Wl,$ext_srcdir/libcore_functions_extension.a -Wl,$ext_srcdir/libicu_extension.a -Wl,$ext_srcdir/libjson_extension.a"
+PDO_DUCKDB_ARCHIVE_FLAGS="-Wl,$ext_srcdir/libduckdb_static.a -Wl,$ext_srcdir/libcore_functions_extension.a -Wl,$ext_srcdir/libicu_extension.a -Wl,$ext_srcdir/libjson_extension.a -Wl,$ext_srcdir/libinet_extension.a"
 PDO_DUCKDB_ARCHIVE_FLAGS_V2="$PDO_DUCKDB_ARCHIVE_FLAGS -Wl,$ext_srcdir/libhttpfs_extension.a -Wl,$ext_srcdir/libparquet_extension.a"
 PDO_DUCKDB_ARCHIVE_FLAGS=$PDO_DUCKDB_ARCHIVE_FLAGS_V2
 PDO_DUCKDB_ARCHIVE_FLAGS_DARWIN="-Wl,-force_load,$ext_srcdir/libduckdb_static.a -Wl,-force_load,$ext_srcdir/libcore_functions_extension.a -Wl,-force_load,$ext_srcdir/libicu_extension.a -Wl,-force_load,$ext_srcdir/libjson_extension.a"
@@ -53,7 +53,7 @@ case $host_os in
     dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic
     dnl IFUNC resolvers. The GCC driver adds -lgcc_s but not -lgcc for -shared
     dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
-    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive $PDO_DUCKDB_ARCHIVE_FLAGS -Wl,--no-whole-archive -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,-ldl -Wl,--as-needed"
+    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive $PDO_DUCKDB_ARCHIVE_FLAGS -Wl,--no-whole-archive -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,-ldl -Wl,-lcurl -Wl,--as-needed"
     ;;
 esac
 PHP_SUBST(PDO_DUCKDB_SHARED_LIBADD)
