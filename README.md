@@ -609,8 +609,8 @@ cd pdo_duckdb
 wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip
 unzip -o libduckdb-src.zip duckdb.hpp -d ./
 
-wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip
-unzip -o static-libs-linux-amd64.zip -d ./
+wget https://artifacts.duckdb.org/v2.0-cyanoptera/duckdb-static-libs-linux-amd64.tar.gz
+tar xvzf duckdb-static-libs-linux-amd64.tar.gz
 
 phpize
 ./configure --with-pdo-duckdb
