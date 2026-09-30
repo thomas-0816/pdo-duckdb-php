@@ -727,7 +727,7 @@ Swoole\Coroutine\run(function() {
             $waitGroup->add();
             $pdo = new PDO('duckdb::memory:');
             // $pdo = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
-            $pdo->exec("select sleep_ms(1000)");
+            $pdo->exec('select sleep_ms(1000)');
             echo '.';
             $waitGroup->done();
         });
@@ -735,6 +735,33 @@ Swoole\Coroutine\run(function() {
     $waitGroup->wait(10);
 });
 echo microtime(true) - $start, PHP_EOL; // 1 second
+```
+
+Client server mode (Quack Remote Protocol):
+
+```bash
+# start the DuckDB server
+duckdb database.duckdb --cmd "
+    CALL quack_serve('quack:127.0.0.1:9494', token='secret');
+    CREATE TABLE IF NOT EXISTS table1 (v VARCHAR, v2 VARCHAR);
+"
+```
+
+```php
+# run the clients
+Swoole\Coroutine\run(function() {
+    $sql = "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;";
+    $waitGroup = new Swoole\Coroutine\WaitGroup();
+    for ($i = 0; $i < 8; $i++) {
+        Swoole\Coroutine::create(function () use ($waitGroup, $sql) {
+            $waitGroup->add();
+            $client = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND => $sql]);
+            $client->exec("INSERT INTO table1 VALUES ('foo', 'bar')");
+            $waitGroup->done();
+        });
+    }
+    $waitGroup->wait(10);
+});
 ```
 
 [Learn more](https://duckdb.org/docs/current/connect/concurrency) about concurrency in DuckDB.
