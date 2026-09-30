@@ -362,9 +362,9 @@ Start MariaDB container, create and fill "orders" table:
 ```bash
 docker run --rm -it -p 3306:3306 -e MARIADB_ROOT_PASSWORD=secret -e MARIADB_DATABASE=testdb mariadb:12
 mysql -h 127.0.0.1 -u root -psecret testdb -e "
-    CREATE TABLE orders (id integer primary key, customer integer, amount decimal(12, 2), origin varchar(255));
-    INSERT INTO orders VALUES (1, 42, 123.42, 'shop');
-    INSERT INTO orders VALUES (2, 21, 12.21, 'offline');
+    CREATE TABLE orders (id integer primary key, customer integer, origin varchar(255));
+    INSERT INTO orders VALUES (1, 42, 'shop');
+    INSERT INTO orders VALUES (2, 21, 'offline');
 "
 ```
 
@@ -382,13 +382,11 @@ print_r($rows);
 # Array
 #     [0] => Array
 #         [id] => 1
-#         [customerId] => 42
-#         [amount] => 123.42
+#         [customer] => 42
 #         [origin] => shop
 #     [1] => Array
 #         [id] => 2
-#         [customerId] => 21
-#         [amount] => 12.21
+#         [customer] => 21
 #         [origin] => offline
 ```
 
@@ -399,9 +397,9 @@ Start PostgreSQL container, create and fill "orders" table:
 ```bash
 docker run --rm -it -p 5432:5432 -e POSTGRES_PASSWORD=secret postgres:18
 PGPASSWORD=secret psql -h 127.0.0.1 -U postgres -c "
-    CREATE TABLE orders (id integer primary key, customer integer, amount decimal(12, 2), origin varchar(255));
-    INSERT INTO orders VALUES (1, 42, 123.42, 'shop');
-    INSERT INTO orders VALUES (2, 21, 12.21, 'offline');
+    CREATE TABLE orders (id integer primary key, customer integer, origin varchar(255));
+    INSERT INTO orders VALUES (1, 42, 'shop');
+    INSERT INTO orders VALUES (2, 21, 'offline');
 "
 ```
 
@@ -419,13 +417,11 @@ print_r($rows);
 # Array
 #     [0] => Array
 #         [id] => 1
-#         [customerId] => 42
-#         [amount] => 123.42
+#         [customer] => 42
 #         [origin] => shop
 #     [1] => Array
 #         [id] => 2
-#         [customerId] => 21
-#         [amount] => 12.21
+#         [customer] => 21
 #         [origin] => offline
 ```
 
@@ -557,7 +553,8 @@ Client connect:
 
 ```php
 $client = new PDO('duckdb::memory:', null, null, [
-    PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;"
+    PDO::DUCKDB_ATTR_INIT_COMMAND =>
+        "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;"
 ]);
 $client->exec('CREATE TABLE IF NOT EXISTS table1 (v VARCHAR, v2 VARCHAR)');
 $client->exec("INSERT INTO table1 VALUES ('foo', 'bar')");
@@ -579,7 +576,7 @@ $db = new PDO('duckdb::memory:');
 $db->exec('INSTALL open_prompt FROM community');
 $db->exec('LOAD open_prompt');
 $db->exec("SET VARIABLE openprompt_api_url = 'http://127.0.0.1:8080/v1/chat/completions'");
-$db->exec('create table customers (id integer primary key, first_name varchar, last_name varchar, birth_date date)');
+$db->exec('create table customers (id integer primary key, name varchar, birth_date date)');
 $result = $db->query("
     SELECT open_prompt('write duckdb sql, no markdown, find customers older than 30, schema: ' || group_concat(sql))
     FROM duckdb_tables()")->fetch(PDO::FETCH_COLUMN);
@@ -648,7 +645,9 @@ A complete list is available in the DuckDB documentation: [Securing DuckDB](http
 Alternatively, you can run SQL statements when the connection is estabilshed using PDO::DUCKDB_ATTR_INIT_COMMAND:
 
 ```php
-$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND => "SET threads = 2; SET memory_limit = '4GB';"]);
+$db = new PDO('duckdb::memory:', null, null, [
+    PDO::DUCKDB_ATTR_INIT_COMMAND =>
+        "SET threads = 2; SET memory_limit = '4GB';"]);
 ```
 
 ## Compile NTS
@@ -743,24 +742,23 @@ Client server mode (Quack Remote Protocol):
 # start the DuckDB server
 duckdb database.duckdb --cmd "
     CALL quack_serve('quack:127.0.0.1:9494', token='secret');
-    CREATE TABLE IF NOT EXISTS table1 (v VARCHAR, v2 VARCHAR);
-"
+    CREATE TABLE IF NOT EXISTS table1 (v VARCHAR, v2 VARCHAR);"
 ```
 
 ```php
 # run the clients
 Swoole\Coroutine\run(function() {
-    $sql = "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;";
-    $waitGroup = new Swoole\Coroutine\WaitGroup();
-    for ($i = 0; $i < 8; $i++) {
-        Swoole\Coroutine::create(function () use ($waitGroup, $sql) {
-            $waitGroup->add();
-            $client = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND => $sql]);
-            $client->exec("INSERT INTO table1 VALUES ('foo', 'bar')");
-            $waitGroup->done();
-        });
-    }
-    $waitGroup->wait(10);
+  $sql = "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;";
+  $waitGroup = new Swoole\Coroutine\WaitGroup();
+  for ($i = 0; $i < 8; $i++) {
+    Swoole\Coroutine::create(function () use ($waitGroup, $sql) {
+      $waitGroup->add();
+      $client = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND => $sql]);
+      $client->exec("INSERT INTO table1 VALUES ('foo', 'bar')");
+      $waitGroup->done();
+    });
+  }
+  $waitGroup->wait(10);
 });
 ```
 
@@ -821,18 +819,11 @@ Yes. DuckDB and all components are fully open-source under the MIT license.
 ## Development
 
 ```bash
-    # sanity check to detect crashes
-    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+# sanity check to detect crashes
+php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
-    php run-tests.php --show-diff --show-clean -q
-
-    php-zts run-tests.php --show-diff --show-clean -q
-
-    # test PHP 8.2-8.5
-    docker build --no-cache -f Dockerfile -t pdo_duckdb .
-    docker run --rm -it pdo_duckdb
-
-    make EXTRA_CFLAGS="-Wall -Wextra -Wno-unused-parameter" EXTRA_CXXFLAGS="-Wall -Wextra -Wno-unused-parameter"
+php run-tests.php --show-diff --show-clean -q
+php-zts run-tests.php --show-diff --show-clean -q
 ```
 
 ## Laravel / Symfony
