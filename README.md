@@ -429,6 +429,34 @@ print_r($rows);
 #         [origin] => offline
 ```
 
+## Bulk data insertion
+
+Inserting many rows one by one is slow, use a single query to perform bulk data insertion.
+
+```php
+$data = [];
+for ($i = 0; $i < 1_000_000; $i++) {
+    $data[] = ['i1' => $i, 'v1' => 'foo' . $i];
+}
+
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE TABLE t1 (i1 integer, v1 varchar)');
+$db->exec("INSERT INTO t1 SELECT value->>'i1', value->>'v1' FROM json_each('" . json_encode($data) . "')");
+echo $db->query('SELECT count(*) from t1')->fetchColumn(); // 1000000
+```
+
+```php
+$data = [];
+for ($i = 0; $i < 1_000_000; $i++) {
+    $data[] = [$i, 'foo' . $i];
+}
+
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE TABLE t1 (i1 integer, v1 varchar)');
+$db->exec("INSERT INTO t1 SELECT value->>0, value->>1 FROM json_each('" . json_encode($data) . "')");
+echo $db->query('SELECT count(*) from t1')->fetchColumn(); // 1000000
+```
+
 ## Read public data using HTTPs, JSON, CSV and Parquet
 
 Query weather data:
