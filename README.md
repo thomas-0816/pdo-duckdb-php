@@ -541,7 +541,7 @@ print_r($rows->fetchAll(PDO::FETCH_ASSOC));
 
 See the documentation for [managing secrets](https://duckdb.org/docs/current/configuration/secrets_manager) and [read_json()](https://duckdb.org/docs/lts/data/json/loading_json).
 
-## Client server mode (Quack Remote Protocol)
+## Client-server mode (Quack Remote Protocol)
 
 Start the DuckDB server:
 
@@ -736,7 +736,7 @@ Swoole\Coroutine\run(function() {
 echo microtime(true) - $start, PHP_EOL; // 1 second
 ```
 
-Client server mode (Quack Remote Protocol):
+Client-server mode (Quack Remote Protocol):
 
 ```bash
 # start the DuckDB server
