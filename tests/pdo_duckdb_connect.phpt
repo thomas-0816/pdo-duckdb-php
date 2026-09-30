@@ -96,7 +96,7 @@ $client2 = new PDO('duckdb::memory:', null, null, [
 ]);
 var_dump($client2->query('SELECT * FROM table1')->fetchAll(PDO::FETCH_ASSOC));
 
-$server->unprepared("CALL quack_stop('quack:127.0.0.1:9494')");
+$server->exec("CALL quack_stop('quack:127.0.0.1:9494')");
 
 // TODO v2 ATTACH ':memory:' AS memory_compressed (COMPRESS)
 
