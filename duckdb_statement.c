@@ -722,7 +722,7 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 			state = duckdb_bind_null(S->stmt, idx);
 		} else if (Z_TYPE_P(parameter) == IS_ARRAY || Z_TYPE_P(parameter) == IS_OBJECT) {
 			smart_str buf = {0};
-			if (php_json_encode(&buf, parameter, 0) == SUCCESS && buf.s) {
+			if (php_json_encode(&buf, parameter, PHP_JSON_THROW_ON_ERROR) == SUCCESS && buf.s) {
 				smart_str_0(&buf);
 				state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s));
 			} else {
