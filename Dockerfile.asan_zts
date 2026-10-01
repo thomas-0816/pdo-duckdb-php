@@ -1,5 +1,5 @@
-# docker build --no-cache --progress=plain -f Dockerfile.asan -t pdo_duckdb_asan .
-# docker run --rm -it pdo_duckdb_asan
+# docker build --no-cache --progress=plain -f Dockerfile.asan_zts -t pdo_duckdb_asan_zts .
+# docker run --rm -it pdo_duckdb_asan_zts
 
 FROM ubuntu:24.04
 
@@ -67,4 +67,5 @@ RUN <<EOF
     export TEST_PHP_ARGS="-d extension=pdo_duckdb.so"
     export NO_INTERACTION=1
     php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
+    php -d extension=pdo_duckdb.so test.php
 EOF

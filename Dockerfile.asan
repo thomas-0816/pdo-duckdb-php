@@ -67,4 +67,5 @@ RUN <<EOF
     export TEST_PHP_ARGS="-d extension=pdo_duckdb.so"
     export NO_INTERACTION=1
     php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
+    php -d extension=pdo_duckdb.so test.php
 EOF

@@ -83,4 +83,5 @@ RUN <<EOF
     export NO_INTERACTION=1
     php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
     php -d extension=swoole.so -d extension=pdo_duckdb.so test_swoole.php
+    php -d extension=swoole.so -d extension=pdo_duckdb.so test.php
 EOF
