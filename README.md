@@ -60,6 +60,17 @@ RUN <<EOF
 EOF
 ```
 
+## Upgrading from DuckDB v1 to v2
+
+To keep v1 behavior, these settings are required:
+
+```php
+$duckDb = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => [
+    'error_on_division_by_zero' => false,
+    'default_transaction_invalidation_policy' => 'SYNTACTIC_ERRORS_DO_NOT_INVALIDATE',
+]]);
+```
+
 ## Usage examples
 
 ```php
