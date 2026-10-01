@@ -8,8 +8,10 @@
 extern "C" {
 int32_t duckdb_extension_core_functions_describe(duckdb_extension_descriptor *descriptor);
 int32_t duckdb_extension_json_describe(duckdb_extension_descriptor *descriptor);
+#ifndef PDO_DUCKDB_NO_HTTPFS
 int32_t duckdb_extension_httpfs_describe(duckdb_extension_descriptor *descriptor);
 int32_t duckdb_extension_inet_describe(duckdb_extension_descriptor *descriptor);
+#endif
 int32_t duckdb_extension_parquet_describe(duckdb_extension_descriptor *descriptor);
 int32_t duckdb_extension_icu_describe(duckdb_extension_descriptor *descriptor);
 }
@@ -24,8 +26,10 @@ struct StaticExtensionRegistrar {
 	StaticExtensionRegistrar() {
 		duckdb_register_static_extension(duckdb_extension_core_functions_describe);
 		duckdb_register_static_extension(duckdb_extension_json_describe);
+#ifndef PDO_DUCKDB_NO_HTTPFS
 		duckdb_register_static_extension(duckdb_extension_httpfs_describe);
 		duckdb_register_static_extension(duckdb_extension_inet_describe);
+#endif
 		duckdb_register_static_extension(duckdb_extension_parquet_describe);
 		duckdb_register_static_extension(duckdb_extension_icu_describe);
 	}

@@ -18,14 +18,27 @@ if (PHP_PDO_DUCKDB != "no") {
 	// their duckdb_extension_*_describe entry points, which is what pulls the
 	// per-extension objects out of the archives; MSVC resolves .libs on demand,
 	// so no /WHOLEARCHIVE is needed here.
+	// httpfs and inet are not part of the Windows build, so the stub does not
+	// register them there (PDO_DUCKDB_NO_HTTPFS).
 	EXTENSION("pdo_duckdb",
 		"pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp duckdb_extension_stub.cpp duckdb_swoole.cpp",
 		null,
-		"/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 /EHsc /arch:AVX2 /bigobj /std:c++17");
+		"/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 /EHsc /arch:AVX2 /bigobj /std:c++17 /DPDO_DUCKDB_NO_HTTPFS");
+
+	// The DuckDB libraries are compiled against the static CRT (/MT), so this
+	// extension has to be too. Linking them into a /MD extension fails with
+	// LNK2038 on RuntimeLibrary and then LNK2005 on libcpmt.lib vs msvcprt.lib
+	// duplicates; /IGNORE:2038 silences the first but not the second. This has
+	// to go into the global CFLAGS rather than the extension ones, which are
+	// emitted ahead of it, so that /MT is the last runtime flag on the command
+	// line and overrides the /MD from toolset_setup_build_mode().
+	ADD_FLAG("CFLAGS", "/MT");
 
 	ADD_FLAG("CFLAGS_PDO_DUCKDB", "/I " + DUCKDB_PATH + " /DDUCKDB_STATIC_BUILD");
 	ADD_FLAG("LDFLAGS_PDO_DUCKDB", "/LIBPATH:" + DUCKDB_PATH);
-	ADD_FLAG("LIBS_PDO_DUCKDB", "duckdb_static.lib core_functions_extension.lib json_extension.lib icu_extension.lib ws2_32.lib");
+	// rstrtmgr.lib provides the Rm* restart manager calls duckdb makes when it
+	// reports why a file lock is held; ws2_32.lib is already in the default LIBS.
+	ADD_FLAG("LIBS_PDO_DUCKDB", "duckdb_static.lib core_functions_extension.lib json_extension.lib icu_extension.lib parquet_extension.lib rstrtmgr.lib");
 
 	ADD_EXTENSION_DEP("pdo_duckdb", "pdo");
 	AC_DEFINE("HAVE_DUCKDB", 1, "Have DuckDB library");
