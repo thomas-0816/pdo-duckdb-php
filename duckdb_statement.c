@@ -722,7 +722,7 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 			state = duckdb_bind_null(S->stmt, idx);
 		} else if (Z_TYPE_P(parameter) == IS_ARRAY || Z_TYPE_P(parameter) == IS_OBJECT) {
 			smart_str buf = {0};
-			if (php_json_encode(&buf, parameter, 0) == SUCCESS && buf.s) {
+			if (php_json_encode(&buf, parameter, PHP_JSON_THROW_ON_ERROR) == SUCCESS && buf.s) {
 				smart_str_0(&buf);
 				state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(buf.s), ZSTR_LEN(buf.s));
 			} else {
@@ -743,7 +743,15 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 		} else if (Z_TYPE_P(parameter) == IS_TRUE || Z_TYPE_P(parameter) == IS_FALSE) {
 			state = duckdb_bind_boolean(S->stmt, idx, zend_is_true(parameter) ? 1 : 0);
 		} else if (Z_TYPE_P(parameter) == IS_LONG) {
-			state = duckdb_bind_int64(S->stmt, idx, (int64_t)zval_get_long(parameter));
+			int64_t val = (int64_t) zval_get_long(parameter);
+			duckdb_type param_type = duckdb_param_type(S->stmt, idx);
+			if (param_type == DUCKDB_TYPE_INTEGER && val >= INT32_MIN && val <= INT32_MAX) {
+				state = duckdb_bind_int32(S->stmt, idx, (int32_t) val);
+			} else if (param_type == DUCKDB_TYPE_UINTEGER && val >= 0 && val <= (int64_t) UINT32_MAX) {
+				state = duckdb_bind_uint32(S->stmt, idx, (uint32_t) val);
+			} else {
+				state = duckdb_bind_int64(S->stmt, idx, val);
+			}
 		} else if (Z_TYPE_P(parameter) == IS_DOUBLE) {
 			state = duckdb_bind_double(S->stmt, idx, zval_get_double(parameter));
 		} else switch (PDO_PARAM_TYPE(param->param_type)) {
@@ -762,19 +770,20 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 				zend_string_release(str);
 				break;
 			}
-			default:
-				{
-					zend_string *str = zval_get_string(parameter);
-					state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(str), ZSTR_LEN(str));
-					zend_string_release(str);
-				}
+			default: {
+				zend_string *str = zval_get_string(parameter);
+				state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(str), ZSTR_LEN(str));
+				zend_string_release(str);
 				break;
+			}
 		}
 
 		if (state != DuckDBSuccess) {
-			zend_throw_exception_ex(php_pdo_get_exception(), 0,
-				"SQLSTATE[HY000]: parameter binding failed for parameter '%s'",
-				param->name ? ZSTR_VAL(param->name) : "");
+			if (param->name) {
+				zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: parameter binding failed for parameter %s", ZSTR_VAL(param->name));
+			} else {
+				zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: parameter binding failed for parameter %zu", idx);
+			}
 			return 0;
 		}
 	}
@@ -796,7 +805,11 @@ static int duckdb_stmt_cursor_closer(pdo_stmt_t *stmt)
 			S->result_set = 0;
 		}
 	}
-	stmt->column_count = 0;
+	/* Drop the described columns through the PDO API. Zeroing column_count
+	 * directly would leave stmt->columns and its name zend_strings alive;
+	 * php_pdo_stmt_set_column_count()/php_pdo_free_statement() release the
+	 * names by iterating up to column_count, so those would leak. */
+	php_pdo_stmt_set_column_count(stmt, 0);
 	return 1;
 }
 

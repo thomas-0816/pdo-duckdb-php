@@ -54,18 +54,19 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 		if (Z_TYPE_P(params) == IS_ARRAY) {
 			zval new_params;
 			ZVAL_ARR(&new_params, zend_array_dup(Z_ARRVAL_P(params)));
-
 			zval *entry;
-
 			ZEND_HASH_FOREACH_VAL(Z_ARRVAL(new_params), entry) {
 				if (Z_TYPE_P(entry) == IS_ARRAY || Z_TYPE_P(entry) == IS_OBJECT) {
 					smart_str buf = {0};
-					if (php_json_encode(&buf, entry, 0) == SUCCESS && buf.s) {
+					if (php_json_encode(&buf, entry, PHP_JSON_THROW_ON_ERROR) == SUCCESS && buf.s) {
 						smart_str_0(&buf);
 						zval_ptr_dtor(entry);
 						ZVAL_STR(entry, buf.s);
 					} else {
 						smart_str_free(&buf);
+						zval_ptr_dtor(&new_params);
+						zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: could not encode parameter as JSON");
+						RETURN_THROWS();
 					}
 				}
 			} ZEND_HASH_FOREACH_END();
