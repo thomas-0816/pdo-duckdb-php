@@ -805,7 +805,11 @@ static int duckdb_stmt_cursor_closer(pdo_stmt_t *stmt)
 			S->result_set = 0;
 		}
 	}
-	stmt->column_count = 0;
+	/* Drop the described columns through the PDO API. Zeroing column_count
+	 * directly would leave stmt->columns and its name zend_strings alive;
+	 * php_pdo_stmt_set_column_count()/php_pdo_free_statement() release the
+	 * names by iterating up to column_count, so those would leak. */
+	php_pdo_stmt_set_column_count(stmt, 0);
 	return 1;
 }
 

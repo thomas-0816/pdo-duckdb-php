@@ -92,7 +92,7 @@ jobs:
             php -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
           fi
 
-  windows-build:
+  windows:
     name: Windows
     runs-on: ${{ (matrix.php-version == '8.6' && 'windows-2025-vs2026') || 'windows-2022' }}
     timeout-minutes: 5
@@ -136,136 +136,27 @@ jobs:
     name: ASAN
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        thread-safety:
-          - nts
-          - zts
-    env:
-      ASAN_OPTIONS: exitcode=139:verify_asan_link_order=0:detect_odr_violation=0:detect_leaks=1
-      UBSAN_OPTIONS: print_stacktrace=1
-      USE_ZEND_ALLOC: 0
-      USE_TRACKED_ALLOC: 1
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Put the clang ASan runtime on the loader path
-        # -shared-libasan binaries (the configure C-compiler probe, the built
-        # php, the extension) need libclang_rt.asan_*.so at runtime; it lives in
-        # clang's resource dir, not a default loader path. Without this, php-src
-        # configure fails with "cannot run C compiled programs".
-        run: echo "LD_LIBRARY_PATH=$(clang -print-resource-dir)/lib/linux" >> "$GITHUB_ENV"
-      - name: Build PHP with ASAN and PDO
-        env:
-          zts_flag: ${{ matrix.thread-safety == 'zts' && '--enable-zts' || '--disable-zts' }}
+      - name: Build container
         run: |
-          sudo apt-get update && sudo apt-get install -y llvm clang re2c bison autoconf unzip
-          git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git /tmp/php-src
-          cd /tmp/php-src
-          ./buildconf --force
-          CC=clang CXX=clang++ \
-          CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --enable-debug ${zts_flag} --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
-          make -j$(nproc)
-          make install
-      - name: Build extension with ASAN
-        run: |
-          export PATH="/tmp/php-asan/bin:$PATH"
-          sudo timedatectl set-timezone "Europe/Berlin"
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
-          unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
-          unzip -o static-libs-linux-amd64.zip -d ./
-          phpize
-          CC=clang CXX=clang++ \
-          CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          CXXFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --with-pdo-duckdb --with-php-config=/tmp/php-asan/bin/php-config
-          make -j$(nproc)
-      - name: Run tests under ASAN
-        run: |
-          /tmp/php-asan/bin/php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-          export TEST_PHP_EXECUTABLE=/tmp/php-asan/bin/php
-          export TEST_PHP_ARGS="-d extension=$(pwd)/modules/pdo_duckdb.so"
-          export NO_INTERACTION=1
-          /tmp/php-asan/bin/php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
+          docker build --pull --no-cache -f Dockerfile.asan -t pdo_duckdb_asan .
+          docker build --pull --no-cache -f Dockerfile.asan_zts -t pdo_duckdb_asan_zts .
 
   asan-swoole:
-    name: ASAN Swoole (${{ matrix.thread-safety }})
+    name: ASAN Swoole
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        thread-safety:
-          - nts
-          - zts
-    env:
-      ASAN_OPTIONS: exitcode=139:verify_asan_link_order=0:detect_odr_violation=0:detect_leaks=1
-      UBSAN_OPTIONS: print_stacktrace=1
-      USE_ZEND_ALLOC: 0
-      USE_TRACKED_ALLOC: 1
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Put the clang ASan runtime on the loader path
-        run: echo "LD_LIBRARY_PATH=$(clang -print-resource-dir)/lib/linux" >> "$GITHUB_ENV"
-      - name: Build PHP with ASAN and PDO
-        env:
-          zts_flag: ${{ matrix.thread-safety == 'zts' && '--enable-zts' || '--disable-zts' }}
+      - name: Build container
         run: |
-          sudo apt-get update && sudo apt-get install -y llvm clang re2c bison autoconf unzip
-          git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git /tmp/php-src
-          cd /tmp/php-src
-          ./buildconf --force
-          CC=clang CXX=clang++ \
-          CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --enable-debug ${zts_flag} --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-asan
-          make -j$(nproc)
-          make install
-      - name: Build swoole extension with ASAN
-        env:
-          swoole_thread: ${{ matrix.thread-safety == 'zts' && '--enable-swoole-thread' || '' }}
-        run: |
-          export PATH="/tmp/php-asan/bin:$PATH"
-          git clone --depth=1 --branch=v6.2.3 https://github.com/swoole/swoole-src.git /tmp/swoole-src
-          cd /tmp/swoole-src
-          phpize
-          CC=clang CXX=clang++ \
-          CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          CXXFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --with-php-config=/tmp/php-asan/bin/php-config ${swoole_thread}
-          make -j$(nproc)
-      - name: Build pdo_duckdb extension with ASAN
-        run: |
-          export PATH="/tmp/php-asan/bin:$PATH"
-          sudo timedatectl set-timezone "Europe/Berlin"
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
-          unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
-          unzip -o static-libs-linux-amd64.zip -d ./
-          phpize
-          CC=clang CXX=clang++ \
-          CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          CXXFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC" \
-          LDFLAGS="-fsanitize=address,undefined -shared-libasan" \
-          ./configure --with-pdo-duckdb --with-php-config=/tmp/php-asan/bin/php-config
-          make -j$(nproc)
-      - name: Run tests under ASAN
-        run: |
-          /tmp/php-asan/bin/php -d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep -E "duckdb|swoole"
-          export TEST_PHP_EXECUTABLE=/tmp/php-asan/bin/php
-          export TEST_PHP_ARGS="-d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so"
-          export NO_INTERACTION=1
-          /tmp/php-asan/bin/php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
-          /tmp/php-asan/bin/php -d extension=/tmp/swoole-src/modules/swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
+          docker build --pull --no-cache -f Dockerfile.asan_swoole -t pdo_duckdb_asan_swoole .
+          docker build --pull --no-cache -f Dockerfile.asan_swoole_zts -t pdo_duckdb_asan_swoole_zts .
 
   valgrind:
     name: Valgrind

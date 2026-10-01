@@ -1,0 +1,86 @@
+# docker build --progress=plain -f Dockerfile.asan_swoole_zts -t pdo_duckdb_asan_swoole_zts .
+# docker run --rm -it pdo_duckdb_asan_swoole_zts
+
+FROM ubuntu:24.04
+
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+
+ENV ASAN_OPTIONS="exitcode=139:verify_asan_link_order=0:detect_odr_violation=0:detect_leaks=1"
+ENV UBSAN_OPTIONS="print_stacktrace=1"
+ENV USE_ZEND_ALLOC="0"
+ENV USE_TRACKED_ALLOC="1"
+ENV CC="clang"
+ENV CXX="clang++"
+ENV CFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC"
+ENV CXXFLAGS="-fsanitize=address,undefined -fno-sanitize=function,vptr -shared-libasan -DZEND_TRACK_ARENA_ALLOC"
+ENV LDFLAGS="-fsanitize=address,undefined -shared-libasan"
+
+SHELL ["/bin/bash", "-c"]
+
+# docker builder prune
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get -y --no-install-recommends install git apt-transport-https curl ca-certificates llvm clang re2c bison autoconf unzip build-essential tzdata \
+        libclang-rt-dev pkg-config libssl-dev libcurl4-openssl-dev libzstd-dev libc-ares-dev
+    ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+EOF
+
+RUN <<EOF
+    set -euxo pipefail
+    git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git /tmp/php-src
+    cd /tmp/php-src
+    # -shared-libasan binaries (the configure C-compiler probe, the built
+    # php, the extension) need libclang_rt.asan_*.so at runtime; it lives in
+    # clang's resource dir, not a default loader path. Without this, php-src
+    # configure fails with "cannot run C compiled programs".
+    export LD_LIBRARY_PATH=$(clang -print-resource-dir)/lib/linux
+    ./buildconf --force
+    ./configure --enable-debug --enable-zts --disable-all --enable-cli --with-curl --enable-sockets --enable-pdo --prefix=/tmp/php-asan
+    make -j$(nproc)
+    make install
+EOF
+
+RUN <<EOF
+    set -euxo pipefail
+    export LD_LIBRARY_PATH=$(clang -print-resource-dir)/lib/linux
+    export PATH="/tmp/php-asan/bin:$PATH"
+    git clone --depth=1 --branch=v6.2.3 https://github.com/swoole/swoole-src.git
+    cd /swoole-src
+    phpize
+    ./configure --enable-swoole-curl --enable-cares --enable-zstd --enable-sockets --enable-swoole-thread
+    make -j$(nproc)
+    make install
+    php -d extension=swoole.so -m | grep swoole
+    php -d extension=swoole.so --ri swoole
+EOF
+
+COPY ./ ./pdo-duckdb-php
+
+RUN <<EOF
+    set -euxo pipefail
+    # -shared-libasan binaries (the configure C-compiler probe, the built
+    # php, the extension) need libclang_rt.asan_*.so at runtime; it lives in
+    # clang's resource dir, not a default loader path. Without this, php-src
+    # configure fails with "cannot run C compiled programs".
+    export LD_LIBRARY_PATH=$(clang -print-resource-dir)/lib/linux
+    export PATH="/tmp/php-asan/bin:$PATH"
+
+    cd pdo-duckdb-php
+    make clean || true
+    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
+    unzip -o libduckdb-src.zip duckdb.hpp -d ./
+    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
+    unzip -o static-libs-linux-amd64.zip -d ./
+    phpize
+    ./configure --with-pdo-duckdb --with-php-config=/tmp/php-asan/bin/php-config
+    make -j$(nproc)
+    make install
+    php -d extension=pdo_duckdb.so -m | grep duckdb
+
+    export TEST_PHP_ARGS="-d extension=swoole.so -d extension=pdo_duckdb.so"
+    export NO_INTERACTION=1
+    php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
+    php -d extension=swoole.so -d extension=pdo_duckdb.so test_swoole.php
+EOF
