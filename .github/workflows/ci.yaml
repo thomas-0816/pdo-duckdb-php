@@ -73,8 +73,8 @@ jobs:
         run: |
           case "$os" in
             ubuntu-22.04)     libduckdb=duckdb-static-libs-linux-amd64.tar.gz; sudo timedatectl set-timezone "Europe/Berlin" ;;
-            ubuntu-22.04-arm) libduckdb=duckdb-static-libs-linux-ard64.tar.gz; sudo timedatectl set-timezone "Europe/Berlin" ;;
-            macos-15)         libduckdb=duckdb-static-libs-osx-ard64.tar.gz; sudo systemsetup -settimezone "Europe/Berlin" ;;
+            ubuntu-22.04-arm) libduckdb=duckdb-static-libs-linux-arm64.tar.gz; sudo timedatectl set-timezone "Europe/Berlin" ;;
+            macos-15)         libduckdb=duckdb-static-libs-osx-arm64.tar.gz; sudo systemsetup -settimezone "Europe/Berlin" ;;
             *) echo "error os"; exit 1 ;;
           esac
           curl -fsSL "https://artifacts.duckdb.org/v2.0-cyanoptera/${libduckdb}" -o ${libduckdb}
