@@ -57,6 +57,12 @@ static inline char* zstr_strip_zerobytes(zend_string *str)
 	const char *src = ZSTR_VAL(str);
 	size_t len = ZSTR_LEN(str);
 	char *dst = emalloc(len + 1);
+
+	if (memchr(src, '\0', len) == NULL) {
+		memcpy(dst, src, len + 1);
+		return dst;
+	}
+
 	size_t j = 0;
 
 	for (size_t i = 0; i < len; i++) {
