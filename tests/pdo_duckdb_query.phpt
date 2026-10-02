@@ -905,7 +905,7 @@ array(2) {
   [1]=>
   string(3) "bar"
 }
-Caught: SQLSTATE[HY000]: could not encode parameter as JSON
+Caught: SQLSTATE[HY000]: could not encode parameter 1 as JSON
 Caught: SQLSTATE[HY000]: could not encode parameter as JSON
 Caught: SQLSTATE[HY000]: could not encode parameter as JSON
 array(3) {

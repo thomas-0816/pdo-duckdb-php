@@ -57,8 +57,10 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 		if (Z_TYPE_P(params) == IS_ARRAY) {
 			zval new_params;
 			ZVAL_ARR(&new_params, zend_array_dup(Z_ARRVAL_P(params)));
+			int position = 0;
 			zval *entry;
 			ZEND_HASH_FOREACH_VAL(Z_ARRVAL(new_params), entry) {
+				position++;
 				if (Z_TYPE_P(entry) == IS_ARRAY || Z_TYPE_P(entry) == IS_OBJECT) {
 					smart_str buf = {0};
 					if (php_json_encode(&buf, entry, PHP_JSON_THROW_ON_ERROR) == SUCCESS && buf.s) {
@@ -68,7 +70,7 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 					} else {
 						smart_str_free(&buf);
 						zval_ptr_dtor(&new_params);
-						zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: could not encode parameter as JSON");
+						zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: could not encode parameter %d as JSON", position);
 						RETURN_THROWS();
 					}
 				}
@@ -103,13 +105,13 @@ static void pdo_duckdb_stmt_bind_value_override(INTERNAL_FUNCTION_PARAMETERS)
 
 	if (ZEND_NUM_ARGS() >= 2) {
 		zval *value = ZEND_CALL_ARG(execute_data, 2);
-		zval *type_arg = ZEND_NUM_ARGS() >= 3 ? ZEND_CALL_ARG(execute_data, 3) : NULL;
 		if (Z_TYPE_P(value) == IS_ARRAY || Z_TYPE_P(value) == IS_OBJECT) {
 			smart_str buf = {0};
 			if (php_json_encode(&buf, value, PHP_JSON_THROW_ON_ERROR) == SUCCESS && buf.s) {
 				smart_str_0(&buf);
 				zval_ptr_dtor(value);
 				ZVAL_STR(value, buf.s);
+				zval *type_arg = ZEND_NUM_ARGS() >= 3 ? ZEND_CALL_ARG(execute_data, 3) : NULL;
 				if (type_arg != NULL) {
 					ZVAL_LONG(type_arg, PDO_PARAM_STR);
 				}
@@ -137,7 +139,6 @@ static void pdo_duckdb_stmt_bind_param_override(INTERNAL_FUNCTION_PARAMETERS)
 
 	if (ZEND_NUM_ARGS() >= 2) {
 		zval *value = ZEND_CALL_ARG(execute_data, 2);
-		zval *type_arg = ZEND_NUM_ARGS() >= 3 ? ZEND_CALL_ARG(execute_data, 3) : NULL;
 		zval *ref = Z_ISREF_P(value) ? Z_REFVAL_P(value) : value;
 		if (Z_TYPE_P(ref) == IS_ARRAY || Z_TYPE_P(ref) == IS_OBJECT) {
 			smart_str buf = {0};
@@ -145,6 +146,7 @@ static void pdo_duckdb_stmt_bind_param_override(INTERNAL_FUNCTION_PARAMETERS)
 				smart_str_0(&buf);
 				zval_ptr_dtor(ref);
 				ZVAL_STR(ref, buf.s);
+				zval *type_arg = ZEND_NUM_ARGS() >= 3 ? ZEND_CALL_ARG(execute_data, 3) : NULL;
 				if (type_arg != NULL) {
 					ZVAL_LONG(type_arg, PDO_PARAM_STR);
 				}
