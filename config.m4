@@ -34,8 +34,8 @@ PHP_ADD_EXTENSION_DEP(pdo_duckdb, pdo)
 PHP_ADD_MAKEFILE_FRAGMENT
 
 dnl Bundle extensions, loaded in duckdb_extension_stub.cpp
-PDO_DUCKDB_ARCHIVE_FLAGS="-Wl,$ext_srcdir/libduckdb_static.a -Wl,$ext_srcdir/libcore_functions_extension.a -Wl,$ext_srcdir/libicu_extension.a -Wl,$ext_srcdir/libjson_extension.a"
-PDO_DUCKDB_ARCHIVE_FLAGS_DARWIN="-Wl,-force_load,$ext_srcdir/libduckdb_static.a -Wl,-force_load,$ext_srcdir/libcore_functions_extension.a -Wl,-force_load,$ext_srcdir/libicu_extension.a -Wl,-force_load,$ext_srcdir/libjson_extension.a"
+PDO_DUCKDB_ARCHIVE_FLAGS="$PDO_DUCKDB_ARCHIVE_FLAGS -Wl,$ext_srcdir/libduckdb_static.a -Wl,$ext_srcdir/libcore_functions_extension.a -Wl,$ext_srcdir/libicu_extension.a -Wl,$ext_srcdir/libjson_extension.a"
+PDO_DUCKDB_ARCHIVE_FLAGS_DARWIN="$PDO_DUCKDB_ARCHIVE_FLAGS -Wl,-force_load,$ext_srcdir/libduckdb_static.a -Wl,-force_load,$ext_srcdir/libcore_functions_extension.a -Wl,-force_load,$ext_srcdir/libicu_extension.a -Wl,-force_load,$ext_srcdir/libjson_extension.a"
 
 dnl Link duckdb with appropriate linker flags based on platform
 case $host_os in
