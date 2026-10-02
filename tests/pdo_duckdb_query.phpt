@@ -348,19 +348,49 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
-$stmt->bindValue(1, $object, PDO::PARAM_LOB);
 try {
-    $stmt->execute();
+    $stmt->bindValue(1, $object, PDO::PARAM_LOB);
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
 $stmt = $db->prepare('SELECT :foo');
-$stmt->bindValue('foo', $object, PDO::PARAM_LOB);
 try {
-    $stmt->execute();
+    $stmt->bindValue('foo', $object, PDO::PARAM_LOB);
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$object = new stdClass();
+$object->key = 'value';
+
+$statement = $db->prepare('SELECT ?::json, ?::json, ?::json');
+$statement->bindValue(1, ['a', 1]);
+$statement->bindValue(2, ['key' => 'value']);
+$statement->bindValue(3, $object);
+$statement->execute();
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
+$statement = $db->prepare('SELECT :data::json, :object::json');
+$statement->bindValue('data', ['key' => 'value']);
+$statement->bindValue('object', $object);
+$statement->execute();
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
+$value = ['a', 1];
+$value2 = ['foo' => 'bar'];
+$statement = $db->prepare('SELECT ?::json, ?::json');
+$statement->bindParam(1, $value);
+$statement->bindParam(2, $value2);
+$statement->execute();
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
+try {
+    $recursive = [1];
+    $recursive[] = &$recursive;
+    $db->prepare('SELECT ?')->bindValue(1, $recursive);
+} catch (Exception $e) {
+    echo 'Caught: ', $e->getMessage(), PHP_EOL;
 }
 
 ?>
@@ -876,5 +906,51 @@ array(2) {
   string(3) "bar"
 }
 Caught: SQLSTATE[HY000]: could not encode parameter as JSON
-Caught: SQLSTATE[HY000]: parameter binding failed for parameter 1
-Caught: SQLSTATE[HY000]: parameter binding failed for parameter :foo
+Caught: SQLSTATE[HY000]: could not encode parameter as JSON
+Caught: SQLSTATE[HY000]: could not encode parameter as JSON
+array(3) {
+  ["CAST($1 AS "json")"]=>
+  array(2) {
+    [0]=>
+    string(1) "a"
+    [1]=>
+    int(1)
+  }
+  ["CAST($2 AS "json")"]=>
+  array(1) {
+    ["key"]=>
+    string(5) "value"
+  }
+  ["CAST($3 AS "json")"]=>
+  array(1) {
+    ["key"]=>
+    string(5) "value"
+  }
+}
+array(2) {
+  ["CAST($data AS "json")"]=>
+  array(1) {
+    ["key"]=>
+    string(5) "value"
+  }
+  ["CAST($object AS "json")"]=>
+  array(1) {
+    ["key"]=>
+    string(5) "value"
+  }
+}
+array(2) {
+  ["CAST($1 AS "json")"]=>
+  array(2) {
+    [0]=>
+    string(1) "a"
+    [1]=>
+    int(1)
+  }
+  ["CAST($2 AS "json")"]=>
+  array(1) {
+    ["foo"]=>
+    string(3) "bar"
+  }
+}
+Caught: SQLSTATE[HY000]: could not encode parameter as JSON

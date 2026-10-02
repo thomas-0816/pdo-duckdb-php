@@ -138,8 +138,8 @@ extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector ve
 #endif
 
 #if DUCKDB_MAJOR_VERSION >= 2
-extern "C" inline int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector vec, idx_t row,
-                                          duckdb_vector *out_vec, duckdb_logical_type *out_type) {
+extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector vec, idx_t row,
+                                         duckdb_vector *out_vec, duckdb_logical_type *out_type) {
 	(void)conn;
 	try {
 		auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
@@ -163,13 +163,13 @@ extern "C" inline int duckdb_variant_to_vector(duckdb_connection conn, duckdb_ve
 }
 #endif
 
-extern "C" inline void duckdb_free_vector(duckdb_vector vec) {
+extern "C" void duckdb_free_vector(duckdb_vector vec) {
 	if (vec) {
 		delete reinterpret_cast<duckdb::Vector *>(vec);
 	}
 }
 
-extern "C" inline char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, idx_t row) {
+extern "C" char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, idx_t row) {
 	if (!vec) return NULL;
 
 	try {
@@ -193,7 +193,7 @@ extern "C" inline char *duckdb_get_string(duckdb_connection conn, duckdb_vector 
 	}
 }
 
-extern "C" inline char *duckdb_logical_type_to_string(duckdb_logical_type logical_type) {
+extern "C" char *duckdb_logical_type_to_string(duckdb_logical_type logical_type) {
 	if (!logical_type) return NULL;
 
 	try {
