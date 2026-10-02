@@ -118,18 +118,6 @@ static void pdo_duckdb_stmt_bind_value_override(INTERNAL_FUNCTION_PARAMETERS)
 				zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: could not encode parameter as JSON");
 				RETURN_THROWS();
 			}
-		} else if (Z_TYPE_P(value) == IS_RESOURCE) {
-			zend_string *str = NULL;
-			php_stream *stream = NULL;
-			php_stream_from_zval_no_verify(stream, value);
-			if (stream) {
-				str = php_stream_copy_to_mem(stream, PHP_STREAM_COPY_ALL, 0);
-			}
-			zval_ptr_dtor(value);
-			ZVAL_STR(value, str ? str : ZSTR_EMPTY_ALLOC());
-			if (type_arg != NULL) {
-				ZVAL_LONG(type_arg, PDO_PARAM_LOB);
-			}
 		}
 	}
 
@@ -164,18 +152,6 @@ static void pdo_duckdb_stmt_bind_param_override(INTERNAL_FUNCTION_PARAMETERS)
 				smart_str_free(&buf);
 				zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: could not encode parameter as JSON");
 				RETURN_THROWS();
-			}
-		} else if (Z_TYPE_P(ref) == IS_RESOURCE) {
-			zend_string *str = NULL;
-			php_stream *stream = NULL;
-			php_stream_from_zval_no_verify(stream, ref);
-			if (stream) {
-				str = php_stream_copy_to_mem(stream, PHP_STREAM_COPY_ALL, 0);
-			}
-			zval_ptr_dtor(ref);
-			ZVAL_STR(ref, str ? str : ZSTR_EMPTY_ALLOC());
-			if (type_arg != NULL) {
-				ZVAL_LONG(type_arg, PDO_PARAM_LOB);
 			}
 		}
 	}
