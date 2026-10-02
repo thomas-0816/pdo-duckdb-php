@@ -12,8 +12,23 @@ PHP_CHECK_PDO_INCLUDES
 
 PHP_ADD_INCLUDE($ext_srcdir)
 
+PDO_DUCKDB_ARCH_FLAGS=""
+case "$host_os" in
+  linux*)
+    case "$host_cpu" in
+      x86_64|amd64)   PDO_DUCKDB_ARCH_FLAGS="-march=x86-64-v3" ;;
+      aarch64|arm64)  PDO_DUCKDB_ARCH_FLAGS="-march=armv8-a" ;;
+    esac
+    ;;
+  darwin*)
+    case "$host_cpu" in
+      aarch64|arm64) PDO_DUCKDB_ARCH_FLAGS="-Xarch_arm64 -mcpu=apple-m1" ;;
+    esac
+    ;;
+esac
+
 PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp duckdb_extension_stub.cpp duckdb_swoole.cpp duckdb_backtrace_stub.cpp,
-    $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1, 1)
+    $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 $PDO_DUCKDB_ARCH_FLAGS, 1)
 
 PHP_ADD_EXTENSION_DEP(pdo_duckdb, pdo)
 PHP_ADD_MAKEFILE_FRAGMENT
