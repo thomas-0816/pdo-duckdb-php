@@ -19,7 +19,7 @@ extern struct pdo_stmt_methods duckdb_stmt_methods;
 
 /* Strip null bytes and replace :name with $name for DuckDB compatibility.
    DuckDB uses $style named parameters, not :style. */
-static char* zstr_prepare(zend_string *str)
+static inline char* zstr_prepare(zend_string *str)
 {
 	const char *src = ZSTR_VAL(str);
 	size_t len = ZSTR_LEN(str);
@@ -46,6 +46,24 @@ static char* zstr_prepare(zend_string *str)
 		} else {
 			dst[j++] = src[i];
 		}
+	}
+	dst[j] = '\0';
+	return dst;
+}
+
+/* strip zero bytes */
+static inline char* zstr_strip_zerobytes(zend_string *str)
+{
+	const char *src = ZSTR_VAL(str);
+	size_t len = ZSTR_LEN(str);
+	char *dst = emalloc(len + 1);
+	size_t j = 0;
+
+	for (size_t i = 0; i < len; i++) {
+		if (src[i] == '\0') {
+			continue;
+		}
+		dst[j++] = src[i];
 	}
 	dst[j] = '\0';
 	return dst;
@@ -193,7 +211,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	if (driver_options && Z_TYPE_P(driver_options) == IS_ARRAY) {
 		init_zval = zend_hash_index_find(Z_ARRVAL_P(driver_options), PDO_DUCKDB_ATTR_INIT_COMMAND);
 		if (init_zval && Z_TYPE_P(init_zval) == IS_STRING) {
-			char *prepared_init = zstr_prepare(Z_STR_P(init_zval));
+			char *prepared_init = zstr_strip_zerobytes(Z_STR_P(init_zval));
 			size_t prev = init_command ? strlen(init_command) : 0;
 			init_command = erealloc(init_command, prev + strlen(prepared_init) + 1);
 			strcpy(init_command + prev, prepared_init);
@@ -280,7 +298,7 @@ static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	duckdb_result result;
-	char *prepared_sql = zstr_prepare((zend_string *)sql);
+	char *prepared_sql = zstr_strip_zerobytes((zend_string *)sql);
 	duckdb_state state;
 	if (H->thread_lock) {
 		state = pdo_duckdb_swoole_query(H->thread_lock, H->conn, prepared_sql, &result);

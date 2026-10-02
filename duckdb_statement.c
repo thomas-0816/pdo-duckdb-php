@@ -15,7 +15,7 @@
 #include "Zend/zend_smart_str.h"
 
 /* Helper: fetch the next data chunk (handles both streaming and non-streaming) */
-static int fetch_next_chunk(pdo_duckdb_stmt *S)
+static inline int fetch_next_chunk(pdo_duckdb_stmt *S)
 {
 	duckdb_result *res = &S->result;
 
@@ -116,7 +116,7 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 
 /* Convert a zval to a string representation for use as a MAP key.
    Arrays are serialized by joining their elements with ", ". */
-static zend_string *zval_to_map_key(zval *zv)
+static inline zend_string *zval_to_map_key(zval *zv)
 {
 	if (Z_TYPE_P(zv) != IS_ARRAY) {
 		return zval_get_string(zv);
@@ -154,7 +154,7 @@ static zend_string *zval_to_map_key(zval *zv)
 /* Recursively convert a value from a DuckDB vector to a PHP zval.
    The logical_type is used to determine the type and to access child types
    for nested/complex types (struct, list, map). */
-void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_logical_type logical_type, idx_t row_idx, zval *result)
+inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, duckdb_logical_type logical_type, idx_t row_idx, zval *result)
 {
 	duckdb_type col_type = duckdb_get_type_id(logical_type);
 	uint64_t *validity = duckdb_vector_get_validity(vec);
@@ -710,8 +710,14 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 			/* param->paramno is 0-based in PDO, but DuckDB expects 1-based index */
 			idx = param->paramno + 1;
 		} else {
-			idx = duckdb_resolve_named_param(S->stmt, ZSTR_VAL(param->name));
-			if (idx == 0) {
+			/* Inline named parameter resolution */
+			const char *name = ZSTR_VAL(param->name);
+			const char *bare = name;
+			while (*bare == ':' || *bare == '$') {
+				bare++;
+			}
+			duckdb_state pstate = duckdb_bind_parameter_index(S->stmt, &idx, bare);
+			if (pstate != DuckDBSuccess || idx == 0) {
 				zend_throw_exception_ex(php_pdo_get_exception(), 0,
 					"SQLSTATE[HY000]: could not resolve named parameter '%s'", ZSTR_VAL(param->name));
 				return 0;
