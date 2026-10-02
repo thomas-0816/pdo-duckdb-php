@@ -5,6 +5,7 @@
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
+#include "main/php_streams.h"
 #include "ext/json/php_json.h"
 #include "Zend/zend_exceptions.h"
 #include "Zend/zend_smart_str.h"
@@ -27,8 +28,10 @@ static pdo_driver_t pdo_duckdb_driver = {
 	duckdb_handle_factory
 };
 
-/* Store original PDOStatement::execute handler (written once in MINIT, read-only after) */
+/* Store original PDOStatement::{execute,bindValue,bindParam} handlers (written once in MINIT, read-only after) */
 static zif_handler original_pdo_stmt_execute;
+static zif_handler original_pdo_stmt_bind_value;
+static zif_handler original_pdo_stmt_bind_param;
 
 /* Override PDOStatement::execute to convert PHP arrays to JSON strings,
    validate that the number of input parameters matches the prepared statement,
@@ -87,6 +90,99 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 	}
 }
 
+/* Override PDOStatement::bindValue to convert PHP arrays to JSON strings. */
+static void pdo_duckdb_stmt_bind_value_override(INTERNAL_FUNCTION_PARAMETERS)
+{
+	pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(ZEND_THIS);
+
+	if (!pdo_stmt->driver_data ||
+	    pdo_stmt->methods != &duckdb_stmt_methods) {
+		original_pdo_stmt_bind_value(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+		return;
+	}
+
+	if (ZEND_NUM_ARGS() >= 2) {
+		zval *value = ZEND_CALL_ARG(execute_data, 2);
+		zval *type_arg = ZEND_NUM_ARGS() >= 3 ? ZEND_CALL_ARG(execute_data, 3) : NULL;
+		if (Z_TYPE_P(value) == IS_ARRAY || Z_TYPE_P(value) == IS_OBJECT) {
+			smart_str buf = {0};
+			if (php_json_encode(&buf, value, PHP_JSON_THROW_ON_ERROR) == SUCCESS && buf.s) {
+				smart_str_0(&buf);
+				zval_ptr_dtor(value);
+				ZVAL_STR(value, buf.s);
+				if (type_arg != NULL) {
+					ZVAL_LONG(type_arg, PDO_PARAM_STR);
+				}
+			} else {
+				smart_str_free(&buf);
+				zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: could not encode parameter as JSON");
+				RETURN_THROWS();
+			}
+		} else if (Z_TYPE_P(value) == IS_RESOURCE) {
+			zend_string *str = NULL;
+			php_stream *stream = NULL;
+			php_stream_from_zval_no_verify(stream, value);
+			if (stream) {
+				str = php_stream_copy_to_mem(stream, PHP_STREAM_COPY_ALL, 0);
+			}
+			zval_ptr_dtor(value);
+			ZVAL_STR(value, str ? str : ZSTR_EMPTY_ALLOC());
+			if (type_arg != NULL) {
+				ZVAL_LONG(type_arg, PDO_PARAM_LOB);
+			}
+		}
+	}
+
+	original_pdo_stmt_bind_value(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+}
+
+/* Override PDOStatement::bindParam to convert PHP arrays to JSON strings. */
+static void pdo_duckdb_stmt_bind_param_override(INTERNAL_FUNCTION_PARAMETERS)
+{
+	pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(ZEND_THIS);
+
+	if (!pdo_stmt->driver_data ||
+	    pdo_stmt->methods != &duckdb_stmt_methods) {
+		original_pdo_stmt_bind_param(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+		return;
+	}
+
+	if (ZEND_NUM_ARGS() >= 2) {
+		zval *value = ZEND_CALL_ARG(execute_data, 2);
+		zval *type_arg = ZEND_NUM_ARGS() >= 3 ? ZEND_CALL_ARG(execute_data, 3) : NULL;
+		zval *ref = Z_ISREF_P(value) ? Z_REFVAL_P(value) : value;
+		if (Z_TYPE_P(ref) == IS_ARRAY || Z_TYPE_P(ref) == IS_OBJECT) {
+			smart_str buf = {0};
+			if (php_json_encode(&buf, ref, PHP_JSON_THROW_ON_ERROR) == SUCCESS && buf.s) {
+				smart_str_0(&buf);
+				zval_ptr_dtor(ref);
+				ZVAL_STR(ref, buf.s);
+				if (type_arg != NULL) {
+					ZVAL_LONG(type_arg, PDO_PARAM_STR);
+				}
+			} else {
+				smart_str_free(&buf);
+				zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: could not encode parameter as JSON");
+				RETURN_THROWS();
+			}
+		} else if (Z_TYPE_P(ref) == IS_RESOURCE) {
+			zend_string *str = NULL;
+			php_stream *stream = NULL;
+			php_stream_from_zval_no_verify(stream, ref);
+			if (stream) {
+				str = php_stream_copy_to_mem(stream, PHP_STREAM_COPY_ALL, 0);
+			}
+			zval_ptr_dtor(ref);
+			ZVAL_STR(ref, str ? str : ZSTR_EMPTY_ALLOC());
+			if (type_arg != NULL) {
+				ZVAL_LONG(type_arg, PDO_PARAM_LOB);
+			}
+		}
+	}
+
+	original_pdo_stmt_bind_param(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+}
+
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(pdo_duckdb)
 {
@@ -115,7 +211,7 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_CONFIG", sizeof("DUCKDB_ATTR_CONFIG") - 1, (zend_long)PDO_DUCKDB_ATTR_CONFIG);
 	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_INIT_COMMAND", sizeof("DUCKDB_ATTR_INIT_COMMAND") - 1, (zend_long)PDO_DUCKDB_ATTR_INIT_COMMAND);
 
-	/* Override PDOStatement::execute once at module init (single-threaded).
+	/* Override PDOStatement::{execute,bindValue,bindParam} once at module init (single-threaded).
 	   This replaces the global handler for ALL PDO drivers, but our wrapper
 	   calls the saved original handler which dispatches correctly. */
 	zend_class_entry *pdo_stmt_ce = zend_hash_str_find_ptr(CG(class_table), "pdostatement", sizeof("pdostatement") - 1);
@@ -124,6 +220,16 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 		if (func) {
 			original_pdo_stmt_execute = func->internal_function.handler;
 			func->internal_function.handler = (zif_handler)pdo_duckdb_stmt_execute_override;
+		}
+		func = zend_hash_str_find_ptr(&pdo_stmt_ce->function_table, "bindvalue", sizeof("bindvalue") - 1);
+		if (func) {
+			original_pdo_stmt_bind_value = func->internal_function.handler;
+			func->internal_function.handler = (zif_handler)pdo_duckdb_stmt_bind_value_override;
+		}
+		func = zend_hash_str_find_ptr(&pdo_stmt_ce->function_table, "bindparam", sizeof("bindparam") - 1);
+		if (func) {
+			original_pdo_stmt_bind_param = func->internal_function.handler;
+			func->internal_function.handler = (zif_handler)pdo_duckdb_stmt_bind_param_override;
 		}
 	}
 
