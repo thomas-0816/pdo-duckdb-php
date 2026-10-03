@@ -41,9 +41,6 @@ dnl Link duckdb with appropriate linker flags based on platform
 case $host_os in
   darwin*)
     dnl macOS: use -force_load to force all symbols into the .so (equivalent to --whole-archive).
-    dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic
-    dnl IFUNC resolvers. The GCC driver adds -lgcc_s but not -lgcc for -shared
-    dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
     PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_ARCHIVE_FLAGS_DARWIN -lstdc++ -lc -Wl,-undefined,dynamic_lookup -Wl,-exported_symbols_list,$ext_srcdir/macos_exported_symbols"
     ;;
   *)
