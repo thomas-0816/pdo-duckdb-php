@@ -6,7 +6,7 @@
     run:
     rm -rf /tmp/db.duckdb && cat bulk_insertion.php && echo && time php8.5 bulk_insertion.php && ls -lisah /tmp/db.duckdb
 
-    Test results: Ubuntu 24.04, Kernel 6.17, AMD 7840U, DDR5 6400 MT/s, 8.5.11, DuckDB 1.5.6
+    Test results: Ubuntu 24.04, Kernel 7.0, AMD 7840U, DDR5 6400 MT/s, 8.5.11, DuckDB 1.5.6
     0.64s for the bulk insertion
     0.881s total time for running PHP (data generation, create table, insert, select)
 
