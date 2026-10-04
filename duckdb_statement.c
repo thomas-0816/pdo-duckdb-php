@@ -673,28 +673,6 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 	return SUCCESS;
 }
 
-/* Convert a PHP string (e.g. "101010") to a duckdb_bit struct for binding.
-   The returned duckdb_bit.data must be freed with duckdb_free() when no longer needed. */
-
-/* Resolve a named parameter to a DuckDB 1-based positional index.
- * Returns 0 on failure. */
-static idx_t duckdb_resolve_named_param(duckdb_prepared_statement stmt, const char *name)
-{
-	/* DuckDB stores parameter names internally without any prefix — the $ is
-	   SQL syntax, not part of the name. Strip leading ':' or '$' before looking up. */
-	const char *bare = name;
-	while (*bare == ':' || *bare == '$') {
-		bare++;
-	}
-
-	idx_t idx;
-	duckdb_state state = duckdb_bind_parameter_index(stmt, &idx, bare);
-	if (state != DuckDBSuccess) {
-		return 0;
-	}
-	return idx;
-}
-
 /* ---------------- parameter hook (binding before execution) ---------------- */
 static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data *param,
                                    enum pdo_param_event event_type)
