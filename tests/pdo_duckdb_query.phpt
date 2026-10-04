@@ -393,6 +393,25 @@ try {
     echo 'Caught: ', $e->getMessage(), PHP_EOL;
 }
 
+try {
+  $db = new PDO('duckdb::memory:');
+  $stmt = $db->prepare('SELECT :value');
+  $stmt->execute(['value' => 42]);
+  $stmt->fetchColumn();
+  $stmt->execute(['invalid' => 'x']);
+} catch (Exception $e) {
+    echo 'Caught: ', $e->getMessage(), PHP_EOL;
+}
+try {
+  $db = new PDO('duckdb::memory:');
+  $stmt = $db->prepare('SELECT $value');
+  $stmt->execute(['value' => 42]);
+  $stmt->fetchColumn();
+  $stmt->execute(['invalid' => 'x']);
+} catch (Exception $e) {
+    echo 'Caught: ', $e->getMessage(), PHP_EOL;
+}
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -954,3 +973,5 @@ array(2) {
   }
 }
 Caught: SQLSTATE[HY000]: could not encode parameter as JSON
+Caught: SQLSTATE[HY000]: could not resolve named parameter ':invalid'
+Caught: SQLSTATE[HY000]: could not resolve named parameter ':invalid'
