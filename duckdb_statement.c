@@ -263,9 +263,9 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 		case DUCKDB_TYPE_FLOAT: {
 			float val = ((float *)duckdb_vector_get_data(vec))[row_idx];
 			if (isnan(val)) {
-				ZVAL_DOUBLE(result, NAN);
+				ZVAL_DOUBLE(result, (double)NAN);
 			} else if (isinf(val)) {
-				ZVAL_DOUBLE(result, val > 0 ? INFINITY : -INFINITY);
+				ZVAL_DOUBLE(result, val > 0 ? (double)INFINITY : -(double)INFINITY);
 			} else {
 				char buf[32];
 				snprintf(buf, sizeof(buf), "%.7g", (double)val);
@@ -276,9 +276,9 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 		case DUCKDB_TYPE_DOUBLE: {
 			double val = ((double *)duckdb_vector_get_data(vec))[row_idx];
 			if (isnan(val)) {
-				ZVAL_DOUBLE(result, NAN);
+				ZVAL_DOUBLE(result, (double)NAN);
 			} else if (isinf(val)) {
-				ZVAL_DOUBLE(result, val > 0 ? INFINITY : -INFINITY);
+				ZVAL_DOUBLE(result, val > 0 ? (double)INFINITY : -(double)INFINITY);
 			} else {
 				ZVAL_DOUBLE(result, val);
 			}
