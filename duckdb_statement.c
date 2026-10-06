@@ -613,7 +613,7 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 	}
 	duckdb_free(alias);
 
-	switch (type) {
+	switch ((unsigned) type) {
 		case DUCKDB_TYPE_BOOLEAN: type_str = "boolean"; pdo_type = PDO_PARAM_BOOL; break;
 		case DUCKDB_TYPE_TINYINT: type_str = "tinyint"; pdo_type = PDO_PARAM_INT; break;
 		case DUCKDB_TYPE_SMALLINT: type_str = "smallint"; pdo_type = PDO_PARAM_INT; break;

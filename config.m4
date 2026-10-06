@@ -7,6 +7,7 @@ PHP_REQUIRE_CXX()
 
 PHP_CXX_COMPILE_STDCXX(17, mandatory, PDO_DUCKDB_CXX_STD)
 CXXFLAGS="$CXXFLAGS $PDO_DUCKDB_CXX_STD -Wall -Wextra -Werror -Wno-unused-parameter -Wsuggest-override -Wnon-virtual-dtor -Wdouble-promotion"
+CFLAGS="$CFLAGS -Wall -Wextra -Werror -Wno-unused-parameter -Wdouble-promotion"
 
 PHP_CHECK_PDO_INCLUDES
 
