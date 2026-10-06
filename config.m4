@@ -6,7 +6,7 @@ PHP_ARG_WITH(pdo-duckdb, for DuckDB support,
 PHP_REQUIRE_CXX()
 
 PHP_CXX_COMPILE_STDCXX(17, mandatory, PDO_DUCKDB_CXX_STD)
-CXXFLAGS="$CXXFLAGS $PDO_DUCKDB_CXX_STD"
+CXXFLAGS="$CXXFLAGS $PDO_DUCKDB_CXX_STD -Wall -Wextra -Werror -Wno-unused-parameter -Wsuggest-override -Wnon-virtual-dtor -Wdouble-promotion -Wno-missing-field-initializers"
 
 PHP_CHECK_PDO_INCLUDES
 
@@ -28,7 +28,7 @@ case "$host_os" in
 esac
 
 PHP_NEW_EXTENSION(pdo_duckdb, pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp duckdb_extension_stub.cpp duckdb_swoole.cpp duckdb_backtrace_stub.cpp,
-    $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 $PDO_DUCKDB_ARCH_FLAGS, 1)
+    $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 $PDO_DUCKDB_ARCH_FLAGS -g0, 1)
 
 PHP_ADD_EXTENSION_DEP(pdo_duckdb, pdo)
 PHP_ADD_MAKEFILE_FRAGMENT
