@@ -10,11 +10,11 @@ PHP_CXX_COMPILE_STDCXX(17, mandatory, PDO_DUCKDB_CXX_STD)
 dnl TODO: -ftrivial-auto-var-init=zero needs GCC 12+ / clang 12+ (Ubuntu 22.04 is GCC 11)
 case "$host_os" in
   darwin*)
-    CFLAGS="$CFLAGS -Wall -Wextra -Werror -Wno-unused-parameter -Wdouble-promotion -fvisibility=hidden -fstack-protector-strong -fno-omit-frame-pointer"
+    CFLAGS="$CFLAGS -Wall -Wextra -Werror -Wno-unused-parameter -fvisibility=hidden -fstack-protector-strong -fno-omit-frame-pointer"
     CXXFLAGS="$CXXFLAGS $PDO_DUCKDB_CXX_STD -Wall -Wextra -Werror -Wno-unused-parameter -Wsuggest-override -Wnon-virtual-dtor -Wdouble-promotion -fvisibility=hidden -fvisibility-inlines-hidden -fstack-protector-strong -fno-omit-frame-pointer"
     ;;
   *)
-    CFLAGS="$CFLAGS -Wall -Wextra -Werror -Wno-unused-parameter -Wdouble-promotion -fvisibility=hidden -fstack-protector-strong -fno-omit-frame-pointer -fstack-clash-protection"
+    CFLAGS="$CFLAGS -Wall -Wextra -Werror -Wno-unused-parameter -fvisibility=hidden -fstack-protector-strong -fno-omit-frame-pointer -fstack-clash-protection"
     CXXFLAGS="$CXXFLAGS $PDO_DUCKDB_CXX_STD -Wall -Wextra -Werror -Wno-unused-parameter -Wsuggest-override -Wnon-virtual-dtor -Wdouble-promotion -fvisibility=hidden -fvisibility-inlines-hidden -fstack-protector-strong -fno-omit-frame-pointer -fstack-clash-protection"
     ;;
 esac
