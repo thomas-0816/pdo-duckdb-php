@@ -6,8 +6,9 @@ PHP_ARG_WITH(pdo-duckdb, for DuckDB support,
 PHP_REQUIRE_CXX()
 
 PHP_CXX_COMPILE_STDCXX(17, mandatory, PDO_DUCKDB_CXX_STD)
-CXXFLAGS="$CXXFLAGS $PDO_DUCKDB_CXX_STD -Wall -Wextra -Werror -Wno-unused-parameter -Wsuggest-override -Wnon-virtual-dtor -Wdouble-promotion"
-CFLAGS="$CFLAGS -Wall -Wextra -Werror -Wno-unused-parameter -Wdouble-promotion"
+dnl TODO: -ftrivial-auto-var-init=zero needs GCC 12+ / clang 12+ (Ubuntu 22.04 is GCC 11)
+CXXFLAGS="$CXXFLAGS $PDO_DUCKDB_CXX_STD -Wall -Wextra -Werror -Wno-unused-parameter -Wsuggest-override -Wnon-virtual-dtor -Wdouble-promotion -fvisibility=hidden -fvisibility-inlines-hidden -fstack-protector-strong -fstack-clash-protection -fno-omit-frame-pointer"
+CFLAGS="$CFLAGS -Wall -Wextra -Werror -Wno-unused-parameter -Wdouble-promotion -fvisibility=hidden -fstack-protector-strong -fstack-clash-protection -fno-omit-frame-pointer"
 
 PHP_CHECK_PDO_INCLUDES
 
@@ -49,7 +50,7 @@ case $host_os in
     dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic
     dnl IFUNC resolvers. The GCC driver adds -lgcc_s but not -lgcc for -shared
     dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
-    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive $PDO_DUCKDB_ARCHIVE_FLAGS -Wl,--no-whole-archive -Wl,-Bsymbolic-functions -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,-ldl -Wl,--as-needed -Wl,-z,relro,-z,now -Wl,-z,noexecstack"
+    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive $PDO_DUCKDB_ARCHIVE_FLAGS -Wl,--no-whole-archive -Wl,-Bsymbolic-functions -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,-ldl -Wl,--as-needed -Wl,-z,relro,-z,now -Wl,-z,noexecstack -Wl,--exclude-libs,ALL"
     ;;
 esac
 PHP_SUBST(PDO_DUCKDB_SHARED_LIBADD)
@@ -61,7 +62,7 @@ if test "$ext_shared" = "no"; then
       LIBS="$LIBS $PDO_DUCKDB_ARCHIVE_FLAGS_DARWIN -lstdc++ -lc -Wl,-bind_at_load -Wl,-undefined,dynamic_lookup"
       ;;
     *)
-      LIBS="$LIBS -Wl,--whole-archive $PDO_DUCKDB_ARCHIVE_FLAGS -Wl,--no-whole-archive -Wl,-Bsymbolic-functions -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,-ldl -Wl,--as-needed -Wl,-z,relro,-z,now -Wl,-z,noexecstack"
+      LIBS="$LIBS -Wl,--whole-archive $PDO_DUCKDB_ARCHIVE_FLAGS -Wl,--no-whole-archive -Wl,-Bsymbolic-functions -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,-ldl -Wl,--as-needed -Wl,-z,relro,-z,now -Wl,-z,noexecstack -Wl,--exclude-libs,ALL"
       ;;
   esac
 fi
