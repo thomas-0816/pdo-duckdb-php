@@ -42,14 +42,14 @@ dnl Link duckdb with appropriate linker flags based on platform
 case $host_os in
   darwin*)
     dnl macOS: use -force_load to force all symbols into the .so (equivalent to --whole-archive).
-    PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_ARCHIVE_FLAGS_DARWIN -lstdc++ -lc -Wl,-undefined,dynamic_lookup -Wl,-exported_symbols_list,$ext_srcdir/macos_exported_symbols"
+    PDO_DUCKDB_SHARED_LIBADD="$PDO_DUCKDB_ARCHIVE_FLAGS_DARWIN -lstdc++ -lc -Wl,-bind_at_load -Wl,-undefined,dynamic_lookup -Wl,-exported_symbols_list,$ext_srcdir/macos_exported_symbols"
     ;;
   *)
     dnl Linux/other: use --whole-archive to force all symbols into the .so.
     dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic
     dnl IFUNC resolvers. The GCC driver adds -lgcc_s but not -lgcc for -shared
     dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
-    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive $PDO_DUCKDB_ARCHIVE_FLAGS -Wl,--no-whole-archive -Wl,-Bsymbolic-functions -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,-ldl -Wl,--as-needed"
+    PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive $PDO_DUCKDB_ARCHIVE_FLAGS -Wl,--no-whole-archive -Wl,-Bsymbolic-functions -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,-ldl -Wl,--as-needed -Wl,-z,relro,-z,now -Wl,-z,noexecstack"
     ;;
 esac
 PHP_SUBST(PDO_DUCKDB_SHARED_LIBADD)
@@ -58,10 +58,10 @@ dnl For static builds, add DuckDB libraries directly to LIBS
 if test "$ext_shared" = "no"; then
   case $host_os in
     darwin*)
-      LIBS="$LIBS $PDO_DUCKDB_ARCHIVE_FLAGS_DARWIN -lstdc++ -lc -Wl,-undefined,dynamic_lookup"
+      LIBS="$LIBS $PDO_DUCKDB_ARCHIVE_FLAGS_DARWIN -lstdc++ -lc -Wl,-bind_at_load -Wl,-undefined,dynamic_lookup"
       ;;
     *)
-      LIBS="$LIBS -Wl,--whole-archive $PDO_DUCKDB_ARCHIVE_FLAGS -Wl,--no-whole-archive -Wl,-Bsymbolic-functions -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,-ldl -Wl,--as-needed"
+      LIBS="$LIBS -Wl,--whole-archive $PDO_DUCKDB_ARCHIVE_FLAGS -Wl,--no-whole-archive -Wl,-Bsymbolic-functions -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,-ldl -Wl,--as-needed -Wl,-z,relro,-z,now -Wl,-z,noexecstack"
       ;;
   esac
 fi
