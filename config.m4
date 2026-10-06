@@ -6,18 +6,8 @@ PHP_ARG_WITH(pdo-duckdb, for DuckDB support,
 PHP_REQUIRE_CXX()
 
 PHP_CXX_COMPILE_STDCXX(17, mandatory, PDO_DUCKDB_CXX_STD)
-
-dnl TODO: -ftrivial-auto-var-init=zero needs GCC 12+ / clang 12+ (Ubuntu 22.04 is GCC 11)
-case "$host_os" in
-  darwin*)
-    CFLAGS="$CFLAGS -Wall -Wextra -Werror -Wno-unused-parameter -fvisibility=hidden -fstack-protector-strong -fno-omit-frame-pointer"
-    CXXFLAGS="$CXXFLAGS $PDO_DUCKDB_CXX_STD -Wall -Wextra -Werror -Wno-unused-parameter -Wsuggest-override -Wnon-virtual-dtor -Wdouble-promotion -fvisibility=hidden -fvisibility-inlines-hidden -fstack-protector-strong -fno-omit-frame-pointer"
-    ;;
-  *)
-    CFLAGS="$CFLAGS -Wall -Wextra -Werror -Wno-unused-parameter -fvisibility=hidden -fstack-protector-strong -fno-omit-frame-pointer -fstack-clash-protection"
-    CXXFLAGS="$CXXFLAGS $PDO_DUCKDB_CXX_STD -Wall -Wextra -Werror -Wno-unused-parameter -Wsuggest-override -Wnon-virtual-dtor -Wdouble-promotion -fvisibility=hidden -fvisibility-inlines-hidden -fstack-protector-strong -fno-omit-frame-pointer -fstack-clash-protection"
-    ;;
-esac
+CFLAGS="$CFLAGS -Wall -Wextra -Wno-unused-parameter -fvisibility=hidden"
+CXXFLAGS="$CXXFLAGS $PDO_DUCKDB_CXX_STD -Wall -Wextra -Wno-unused-parameter -Wsuggest-override -Wnon-virtual-dtor -Wdouble-promotion -fvisibility=hidden"
 
 PHP_CHECK_PDO_INCLUDES
 
@@ -27,7 +17,7 @@ PDO_DUCKDB_ARCH_FLAGS=""
 case "$host_os" in
   linux*)
     case "$host_cpu" in
-      x86_64|amd64)   PDO_DUCKDB_ARCH_FLAGS="-march=x86-64-v3" ;;
+      x86_64|amd64)   PDO_DUCKDB_ARCH_FLAGS="-march=x86-64-v3 -mtune=generic" ;;
       aarch64|arm64)  PDO_DUCKDB_ARCH_FLAGS="-march=armv8-a" ;;
     esac
     ;;
