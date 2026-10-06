@@ -6,7 +6,7 @@ PHP_ARG_WITH(pdo-duckdb, for DuckDB support,
 PHP_REQUIRE_CXX()
 
 PHP_CXX_COMPILE_STDCXX(17, mandatory, PDO_DUCKDB_CXX_STD)
-CXXFLAGS="$CXXFLAGS $PDO_DUCKDB_CXX_STD -Wall -Wextra -Werror -Wno-unused-parameter -Wsuggest-override -Wnon-virtual-dtor -Wdouble-promotion -Wno-missing-field-initializers"
+CXXFLAGS="$CXXFLAGS $PDO_DUCKDB_CXX_STD -Wall -Wextra -Werror -Wno-unused-parameter -Wsuggest-override -Wnon-virtual-dtor -Wdouble-promotion"
 
 PHP_CHECK_PDO_INCLUDES
 
