@@ -18,7 +18,7 @@ case "$host_os" in
   linux*)
     case "$host_cpu" in
       x86_64|amd64)   PDO_DUCKDB_ARCH_FLAGS="-march=x86-64-v3 -mtune=generic" ;;
-      aarch64|arm64)  PDO_DUCKDB_ARCH_FLAGS="-march=armv8-a" ;;
+      aarch64|arm64)  PDO_DUCKDB_ARCH_FLAGS="-march=armv8-a -mtune=generic" ;;
     esac
     ;;
   darwin*)
