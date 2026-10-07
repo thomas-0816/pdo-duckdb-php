@@ -731,7 +731,9 @@ Swoole\Coroutine\run(function() {
         Swoole\Coroutine::create(function () use ($waitGroup) {
             $waitGroup->add();
             $pdo = new PDO('duckdb::memory:');
-            // $pdo = new PDO('duckdb:/tmp/test.db', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
+            // $pdo = new PDO('duckdb:/tmp/test.db', null, null, [
+            //     PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]); # SWOOLE_PROCESS
+            // $pdo = new PDO('duckdb:/tmp/test.db'); # SWOOLE_THREAD
             $pdo->exec('select sleep_ms(1000)');
             echo '.';
             $waitGroup->done();
