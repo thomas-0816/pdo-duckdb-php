@@ -86,8 +86,7 @@ echo '5x sleep 0.5s took ', round(microtime(true) - $start, 2), 's', PHP_EOL;
 
 
 // run write in parallel using threads and Quack protocol, on-disk
-@unlink('/tmp/test.duckdb');
-$pdo = new PDO('duckdb:/tmp/test.duckdb');
+$pdo = new PDO('duckdb:/tmp/test2.duckdb');
 $pdo->exec('create table orders (user_id integer primary key)');
 $result = $pdo->query("CALL quack_serve('quack:127.0.0.1:9494')")->fetch(PDO::FETCH_ASSOC);
 $authToken = $result['auth_token'];
@@ -114,11 +113,11 @@ Swoole\Coroutine\run(function() {
     file_put_contents('/tmp/swoole_test.php', <<<'END'
     <?php
         $args = Swoole\Thread::getArguments();
-        $pdo = new PDO('duckdb:/tmp/test.duckdb', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
+        $pdo = new PDO('duckdb:/tmp/test3.duckdb', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
         $args[1][] = json_encode($pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN));
     END);
     @unlink('/tmp/test.duckdb');
-    $pdo = new PDO('duckdb:/tmp/test.duckdb');
+    $pdo = new PDO('duckdb:/tmp/test3.duckdb');
     $pdo->exec('create table orders (user_id integer primary key)');
     $threads = [];
     $coroutines = [];
