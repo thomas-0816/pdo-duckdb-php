@@ -70,15 +70,14 @@ echo json_encode($pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN
 
 
 // run read and write in parallel using coroutines to write and threads to read, on-disk
-@unlink('/tmp/test.duckdb');
-$pdo = new PDO('duckdb:/tmp/test.duckdb');
+$pdo = new PDO('duckdb:/tmp/test2.duckdb');
 $pdo->exec('create table orders (user_id integer primary key)');
 $threads = [];
 $coroutines = [];
 for ($i = 0; $i < 10; $i++) {
     $threads[] = Async\spawn_thread(function() {
         Async\delay(rand(5, 20));
-        $pdo = new PDO('duckdb:/tmp/test.duckdb', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
+        $pdo = new PDO('duckdb:/tmp/test2.duckdb', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
         return json_encode($pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN));
     });
     $coroutines[] = Async\spawn(function() use ($i, $pdo) {
