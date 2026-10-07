@@ -37,6 +37,10 @@ enum {
 	PDO_DUCKDB_ATTR_INIT_COMMAND
 };
 
+/* duckdb instance cache: reopening the same database file reuses the existing instance
+   instead of opening the file twice. :memory: databases are never cached */
+extern duckdb_instance_cache pdo_duckdb_instance_cache;
+
 /* Connection data – one per PDO handle */
 typedef struct _pdo_duckdb_db_handle {
 	duckdb_database    db;                /* main database object */
@@ -84,7 +88,7 @@ extern "C" {
 int pdo_duckdb_swoole_loaded(void);              /* 1 iff Swoole loaded before this extension */
 void *pdo_duckdb_thread_lock_new(void);          /* new busy-flag lock, or NULL when Swoole unavailable */
 /* DuckDB calls serialized through `lock` via Swoole's async thread pool. */
-duckdb_state pdo_duckdb_swoole_open_ext(void *lock, const char *path, duckdb_database *out_database, duckdb_config config, char **out_error);
+duckdb_state pdo_duckdb_swoole_get_or_create_from_cache(void *lock, duckdb_instance_cache instance_cache, const char *path, duckdb_database *out_database, duckdb_config config, char **out_error);
 duckdb_state pdo_duckdb_swoole_connect(void *lock, duckdb_database database, duckdb_connection *out_connection);
 duckdb_state pdo_duckdb_swoole_prepare(void *lock, duckdb_connection connection, const char *query, duckdb_prepared_statement *out_statement);
 duckdb_state pdo_duckdb_swoole_execute_prepared(void *lock, duckdb_connection connection, duckdb_prepared_statement statement, duckdb_result *out_result);

@@ -28,6 +28,9 @@ static pdo_driver_t pdo_duckdb_driver = {
 	duckdb_handle_factory
 };
 
+/* Process-wide DuckDB instance cache — see php_pdo_duckdb.h */
+duckdb_instance_cache pdo_duckdb_instance_cache = NULL;
+
 /* Store original PDOStatement::{execute,bindValue,bindParam} handlers (written once in MINIT, read-only after) */
 static zif_handler original_pdo_stmt_execute;
 static zif_handler original_pdo_stmt_bind_value;
@@ -184,6 +187,8 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 		return FAILURE;
 	}
 
+	pdo_duckdb_instance_cache = duckdb_create_instance_cache();
+
 	/* Register driver-specific class constants */
 	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_UNBUFFERED", sizeof("DUCKDB_ATTR_UNBUFFERED") - 1, (zend_long)PDO_DUCKDB_ATTR_UNBUFFERED);
 	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_CONFIG", sizeof("DUCKDB_ATTR_CONFIG") - 1, (zend_long)PDO_DUCKDB_ATTR_CONFIG);
@@ -228,6 +233,7 @@ PHP_MSHUTDOWN_FUNCTION(pdo_duckdb)
 	(void)type; (void)module_number;
 
 	php_pdo_unregister_driver(&pdo_duckdb_driver);
+	duckdb_destroy_instance_cache(&pdo_duckdb_instance_cache);
 	return SUCCESS;
 }
 /* }}} */

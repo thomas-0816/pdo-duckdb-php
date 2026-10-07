@@ -105,10 +105,10 @@ void *pdo_duckdb_thread_lock_new(void) {
 #endif
 }
 
-duckdb_state pdo_duckdb_swoole_open_ext(
-    void *lock, const char *path, duckdb_database *out_database, duckdb_config config, char **out_error) {
+duckdb_state pdo_duckdb_swoole_get_or_create_from_cache(
+    void *lock, duckdb_instance_cache instance_cache, const char *path, duckdb_database *out_database, duckdb_config config, char **out_error) {
     duckdb_state state = DuckDBError;
-    swoole_run(lock, [&]() { state = duckdb_open_ext(path, out_database, config, out_error); });
+    swoole_run(lock, [&]() { state = duckdb_get_or_create_from_cache(instance_cache, path, out_database, config, out_error); });
     return state;
 }
 

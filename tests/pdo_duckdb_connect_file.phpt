@@ -34,6 +34,20 @@ try {
     echo "Caught: " . trim($e->getMessage()) . "\n";
 }
 
+$tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '.db';
+
+$db = new PDO('duckdb:' . $tmpFile);
+$db->exec('CREATE TABLE t1 (i1 integer, v1 varchar)');
+$db->exec("INSERT INTO t1 values (1, 'asd')");
+
+$db2 = new PDO('duckdb:' . $tmpFile);
+var_dump($db2->query('SELECT count(*) from t1')->fetchColumn(0));
+$db2->exec('CREATE TABLE t2 (i1 integer, v1 varchar)');
+$db2->exec("INSERT INTO t2 values (1, 'asd')");
+
+$db = new PDO('duckdb:' . $tmpFile);
+var_dump($db->query('SELECT count(*) from t2')->fetchColumn(0));
+
 // TODO v2 ATTACH 'my_file.db' AS mmaped_db (IO_MODE 'MMAP');
 // TODO v2 ATTACH 'my_file.db' AS mmaped_db (IO_MODE 'DIRECT_IO');
 
@@ -61,3 +75,5 @@ array(4) {
 }
 Caught: SQLSTATE[HY000]: Could not open DuckDB database: %s
 Caught: SQLSTATE[HY000]: Could not open DuckDB database: %s
+int(1)
+int(1)

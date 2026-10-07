@@ -167,9 +167,9 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	}
 
 	if (H->thread_lock) {
-		state = pdo_duckdb_swoole_open_ext(H->thread_lock, (strcmp(dbname, ":memory:") == 0) ? NULL : dbname, &H->db, config, &err);
+		state = pdo_duckdb_swoole_get_or_create_from_cache(H->thread_lock, pdo_duckdb_instance_cache, (strcmp(dbname, ":memory:") == 0) ? NULL : dbname, &H->db, config, &err);
 	} else {
-		state = duckdb_open_ext((strcmp(dbname, ":memory:") == 0) ? NULL : dbname, &H->db, config, &err);
+		state = duckdb_get_or_create_from_cache(pdo_duckdb_instance_cache, (strcmp(dbname, ":memory:") == 0) ? NULL : dbname, &H->db, config, &err);
 	}
 
 	if (config) {
