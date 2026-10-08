@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  linux:
-    name: Linux
+  setup:
+    name: setup
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
