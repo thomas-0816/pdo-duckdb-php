@@ -131,8 +131,10 @@ jobs:
           arch: x64
           args: --with-pdo-duckdb
           test-workers: 1
+      - name: Build extension
         shell: bash
         run: |
+          env
           pie install -v swoole/swoole:v6.3.0-rc1 --enable-swoole-curl --enable-swoole-thread --enable-cares --enable-zstd --enable-brotli --enable-sockets
           php -m
           ls -lisaR
