@@ -65,8 +65,10 @@ if (! class_exists(Swoole\Thread::class)) {
     return;
 }
 
+
 // run in parallel using threads, in-memory
-file_put_contents('/tmp/swoole_test.php', '<?php
+$tmpPhpFile = tempnam(sys_get_temp_dir(), 'swoole') . '.php';
+file_put_contents($tmpPhpFile, '<?php
     $args = Swoole\Thread::getArguments();
     $db = new PDO("duckdb::memory:");
     $rows = $db->query("select sleep_ms(500 + $args[0])");
@@ -76,7 +78,7 @@ $start = microtime(true);
 $threads = [];
 $list = new Swoole\Thread\ArrayList();
 for ($i = 0; $i < 8; $i++) {
-    $threads[] = new Swoole\Thread('/tmp/swoole_test.php' , $i, $list);
+    $threads[] = new Swoole\Thread($tmpPhpFile, $i, $list);
 }
 for ($i = 0; $i < 8; $i++) {
     $threads[$i]->join();
@@ -86,11 +88,13 @@ echo '5x sleep 0.5s took ', round(microtime(true) - $start, 2), 's', PHP_EOL;
 
 
 // run write in parallel using threads and Quack protocol, on-disk
-$pdo = new PDO('duckdb:/tmp/test2.duckdb');
+$tmpDbFile = tempnam(sys_get_temp_dir(), 'swoole') . '.php';
+$pdo = new PDO('duckdb:' . $tmpDbFile);
 $pdo->exec('create table orders (user_id integer primary key)');
 $result = $pdo->query("CALL quack_serve('quack:127.0.0.1:9494')")->fetch(PDO::FETCH_ASSOC);
 $authToken = $result['auth_token'];
-file_put_contents('/tmp/swoole_test.php', <<<'END'
+$tmpPhpFile = tempnam(sys_get_temp_dir(), 'swoole') . '.php';
+file_put_contents($tmpPhpFile, <<<'END'
 <?php
     $args = Swoole\Thread::getArguments();
     $pdo = new PDO('duckdb::memory:');
@@ -99,7 +103,7 @@ file_put_contents('/tmp/swoole_test.php', <<<'END'
 END);
 $threads = [];
 for ($i = 0; $i < 10; $i++) {
-    $threads[] = new Swoole\Thread('/tmp/swoole_test.php' , $i, $authToken);
+    $threads[] = new Swoole\Thread($tmpPhpFile, $i, $authToken);
 }
 for ($i = 0; $i < 10; $i++) {
     $threads[$i]->join();
@@ -110,14 +114,15 @@ echo json_encode($pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN
 
 // run read and write in parallel using coroutines to write and threads to read, on-disk
 Swoole\Coroutine\run(function() {
-    file_put_contents('/tmp/swoole_test.php', <<<'END'
+    $tmpPhpFile = tempnam(sys_get_temp_dir(), 'swoole') . '.php';
+    $tmpDbFile = tempnam(sys_get_temp_dir(), 'swoole') . '.php';
+    file_put_contents($tmpPhpFile, <<<"END"
     <?php
-        $args = Swoole\Thread::getArguments();
-        $pdo = new PDO('duckdb:/tmp/test3.duckdb', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
-        $args[1][] = json_encode($pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN));
+        \$args = Swoole\Thread::getArguments();
+        \$pdo = new PDO('duckdb:{$tmpDbFile}', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
+        \$args[1][] = json_encode(\$pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN));
     END);
-    @unlink('/tmp/test.duckdb');
-    $pdo = new PDO('duckdb:/tmp/test3.duckdb');
+    $pdo = new PDO('duckdb:' . $tmpDbFile);
     $pdo->exec('create table orders (user_id integer primary key)');
     $threads = [];
     $coroutines = [];
@@ -130,7 +135,7 @@ Swoole\Coroutine\run(function() {
             $pdo->exec("INSERT INTO orders (user_id) VALUES ($i)");
             $wg->done();
         });
-        $threads[] = new Swoole\Thread('/tmp/swoole_test.php' , $i, $list);
+        $threads[] = new Swoole\Thread($tmpPhpFile, $i, $list);
     }
     $wg->wait(10);
     for ($i = 0; $i < 10; $i++) {
