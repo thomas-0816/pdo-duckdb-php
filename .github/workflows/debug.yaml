@@ -58,7 +58,7 @@ jobs:
           php -i
           composer --version
           pie --version
-          if [ "$RUNNER_OS" != "Windows" ]; then
+          if [ "$RUNNER_OS" = "Linux" ]; then
               free
               cat /proc/cpuinfo
           fi
