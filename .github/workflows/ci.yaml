@@ -130,11 +130,18 @@ jobs:
           arch: x64
           args: --with-pdo-duckdb
           test-workers: 1
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+          tools: pie
+          extensions: swoole-alpha
+        env:
+          phpts: ${{ matrix.thread-safety }}
       - name: Build extension
         shell: bash
         run: |
-          env
-          pie install -v swoole/swoole:v6.3.0-rc1 --enable-swoole-curl --enable-swoole-thread --enable-cares --enable-zstd --enable-brotli --enable-sockets
           php -m
           ls -lisaR
           unzip php_pdo_duckdb-*.zip
