@@ -36,6 +36,12 @@ jobs:
         thread-safety:
           - zts
           - nts
+        variant:
+          - plain
+          - swoole
+        exclude:
+          - php-version: 8.6
+            variant: swoole
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -46,18 +52,25 @@ jobs:
           php-version: ${{ matrix.php-version }}
           coverage: none
           tools: composer, pie
+          extensions: ${{ matrix.variant == 'swoole' && 'swoole' || '' }}
         env:
           phpts: ${{ matrix.thread-safety }}
+          verbose: true
       - name: Debug PHP
         shell: bash
         env:
           os: ${{ matrix.os }}
+          variant: ${{ matrix.variant }}
         run: |
           uname -a
           php -v
           php -i
           composer --version
           pie --version
+          php -m
+          if [ "$variant" = "swoole" ]; then
+              php -m | grep swoole
+          fi
           if [ "$RUNNER_OS" = "Linux" ]; then
               free
               cat /proc/cpuinfo
