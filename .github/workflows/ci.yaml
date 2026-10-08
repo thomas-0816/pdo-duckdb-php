@@ -114,24 +114,32 @@ jobs:
         with:
           persist-credentials: false
       - name: Download libduckdb
-        shell: pwsh
+        shell: bash
         run: |
-          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip"
-          Invoke-WebRequest -Uri $url -OutFile duckdb-src.zip
-          Expand-Archive duckdb-src.zip -DestinationPath . -Force
-          $url = "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-windows-amd64.zip"
-          Invoke-WebRequest -Uri $url -OutFile duckdb.zip
-          Expand-Archive duckdb.zip -DestinationPath . -Force
-          Get-ChildItem -Path .
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
+          unzip -o libduckdb-src.zip duckdb.hpp -d ./
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-windows-amd64.zip" -o libduckdb-windows-amd64.zip
+          unzip -o libduckdb-windows-amd64.zip -d ./
+          ls -lisa
           tzutil /s "W. Europe Standard Time"
       - name: Build extension
         uses: php/php-windows-builder/extension@29352c0ef9e8ce65264ea9e287881a6f7758a953 # 1.9.0
         with:
-          php-version: ${{ matrix.php-version }}
+          php-version: ${{ matrix.php-version }} ${{ matrix.ts }}
           ts: ${{ matrix.ts }}
+          coverage: none
           arch: x64
           args: --with-pdo-duckdb
           test-workers: 1
+        shell: bash
+        run: |
+          pie install -v swoole/swoole:v6.3.0-rc1 --enable-swoole-curl --enable-swoole-thread --enable-cares --enable-zstd --enable-brotli --enable-sockets
+          php -m
+          ls -lisaR
+          unzip php_pdo_duckdb-*.zip
+          ls -lisaR
+          php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+          php /pdo-duckdb/test_swoole.php
 
   asan:
     name: ASAN
