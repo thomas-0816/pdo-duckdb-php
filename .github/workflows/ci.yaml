@@ -138,7 +138,7 @@ jobs:
           tools: pie
           extensions: swoole-alpha
         env:
-          phpts: ${{ matrix.thread-safety }}
+          phpts: ${{ matrix.ts }}
       - name: Build extension
         shell: bash
         run: |
