@@ -52,8 +52,6 @@ jobs:
           phpts: ${{ matrix.thread-safety }}
       - name: Install and test the extension
         shell: bash
-        env:
-          os: ${{ matrix.os }}
         run: |
           uname -a
           php -v

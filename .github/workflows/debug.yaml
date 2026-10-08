@@ -50,11 +50,15 @@ jobs:
           phpts: ${{ matrix.thread-safety }}
       - name: Debug PHP
         shell: bash
+        env:
+          os: ${{ matrix.os }}
         run: |
           uname -a
           php -v
           php -i
           composer --version
           pie --version
-          free
-          cat /proc/cpuinfo
+          if [ "$RUNNER_OS" != "Windows" ]; then
+              free
+              cat /proc/cpuinfo
+          fi
