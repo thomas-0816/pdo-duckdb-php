@@ -88,6 +88,7 @@ jobs:
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
           if [ "$variant" = "swoole" ]; then
+            php -m
             php -m | grep swoole
             php -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
           fi
