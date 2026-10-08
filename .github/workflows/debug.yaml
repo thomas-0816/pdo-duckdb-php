@@ -24,6 +24,9 @@ jobs:
           - ubuntu-26.04
           - ubuntu-26.04-arm
           - macos-15
+          - macos-26
+          - windows-2022
+          - windows-2025
         php-version:
           - 8.2
           - 8.3
