@@ -143,11 +143,16 @@ jobs:
         shell: bash
         run: |
           php -m
-          ls -lisaR
-          unzip php_pdo_duckdb-*.zip
-          ls -lisaR
-          php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-          php /pdo-duckdb/test_swoole.php
+          cp ./build/*/x64/Release/php_pdo_duckdb.dll ./
+          echo '1'
+          php -dextension=$(pwd)/php_pdo_duckdb.dll -m
+          echo '2'
+          php -dextension=php_pdo_duckdb.dll -m
+          echo '3'
+          php -dextension=php_pdo_duckdb -m
+          echo '4'
+          php -dextension=$(pwd)/php_pdo_duckdb.dll -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+          php -dextension=$(pwd)/php_pdo_duckdb.dll /pdo-duckdb/test_swoole.php
 
   asan:
     name: ASAN
