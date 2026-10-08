@@ -143,7 +143,7 @@ jobs:
         shell: bash
         run: |
           php -m | grep swoole
-          cp ./build/*/x64/Release/php_pdo_duckdb.dll ./
+          cp ./build/*/x64/Release*/php_pdo_duckdb.dll ./
           php -dextension=$(pwd)/php_pdo_duckdb.dll -m | grep pdo_duckdb
           php -dextension=$(pwd)/php_pdo_duckdb.dll -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
           php -dextension=$(pwd)/php_pdo_duckdb.dll test_swoole.php
