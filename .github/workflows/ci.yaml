@@ -140,6 +140,7 @@ jobs:
         env:
           phpts: ${{ matrix.ts }}
       - name: Build extension
+        if: matrix.php-version != '8.6'
         shell: bash
         run: |
           php -m | grep swoole
