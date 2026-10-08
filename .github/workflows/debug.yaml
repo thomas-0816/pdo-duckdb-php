@@ -42,10 +42,6 @@ jobs:
         exclude:
           - php-version: 8.6
             variant: swoole
-          - os: windows-2022
-            variant: swoole
-          - os: windows-2025
-            variant: swoole
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -56,7 +52,7 @@ jobs:
           php-version: ${{ matrix.php-version }}
           coverage: none
           tools: composer, pie
-          extensions: ${{ matrix.variant == 'swoole' && 'swoole' || '' }}
+          extensions: ${{ matrix.variant == 'swoole' && (startsWith(matrix.os, 'windows') && 'swoole-alpha' || 'swoole') || '' }}
         env:
           phpts: ${{ matrix.thread-safety }}
           verbose: true
