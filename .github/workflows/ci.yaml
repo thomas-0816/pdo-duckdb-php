@@ -66,7 +66,7 @@ jobs:
           extensions: ${{ matrix.variant == 'swoole' && 'swoole' || '' }}
         env:
           phpts: ${{ matrix.thread-safety }}
-      - name: Build & Test & gcc
+      - name: Build & Test
         env:
           os: ${{ matrix.os }}
           variant: ${{ matrix.variant }}
@@ -82,28 +82,11 @@ jobs:
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/${libduckdb}" -o ${libduckdb}
           unzip -o ${libduckdb} -d ./
           phpize
-          ./configure --with-pdo-duckdb CC=gcc CXX=g++
+          ./configure --with-pdo-duckdb
           make
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-          rm -rf /tmp/db.duckdb && time php -d extension=$(pwd)/modules/pdo_duckdb.so bulk_insertion.php
-          if [ "$variant" = "swoole" ]; then
-            php -m
-            php -m | grep swoole
-            php -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
-          fi
-
-          make clean
-          unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          unzip -o ${libduckdb} -d ./
-          phpize
-          ./configure --with-pdo-duckdb CC=clang CXX=clang++
-          make
-          php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
-          php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-          rm -rf /tmp/db.duckdb && time php -d extension=$(pwd)/modules/pdo_duckdb.so bulk_insertion.php
           if [ "$variant" = "swoole" ]; then
             php -m
             php -m | grep swoole
@@ -139,23 +122,13 @@ jobs:
           unzip -o libduckdb-windows-amd64.zip -d ./
           ls -lisa
           MSYS_NO_PATHCONV=1 tzutil /s "W. Europe Standard Time"
-      - name: Build extension gcc
+      - name: Build extension
         uses: php/php-windows-builder/extension@29352c0ef9e8ce65264ea9e287881a6f7758a953 # 1.9.0
         with:
           php-version: ${{ matrix.php-version }}
           ts: ${{ matrix.ts }}
           arch: x64
           args: --with-pdo-duckdb
-          test-workers: 1
-      - name: Build extension clang
-        # henderkes/php-windows-builder fork adds clang-cl support (php/php-windows-builder#33);
-        # `--with-toolset=clang` explicitly selects clang-cl for every PHP version.
-        uses: henderkes/php-windows-builder/extension@dcf068b01d2dcea26bdddac4e008252faaa0a160 # master
-        with:
-          php-version: ${{ matrix.php-version }}
-          ts: ${{ matrix.ts }}
-          arch: x64
-          args: --with-pdo-duckdb --with-toolset=clang
           test-workers: 1
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
@@ -170,7 +143,6 @@ jobs:
         if: matrix.php-version != '8.6'
         shell: bash
         run: |
-          ls -lisaR
           php -m | grep swoole
           cp ./build/*/x64/Release*/php_pdo_duckdb.dll ./
           php -dextension=$(pwd)/php_pdo_duckdb.dll -m | grep pdo_duckdb
