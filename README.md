@@ -669,7 +669,8 @@ wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux
 unzip -o static-libs-linux-amd64.zip -d ./
 
 phpize
-./configure --with-pdo-duckdb
+./configure --with-pdo-duckdb CC=gcc CXX=g++
+# ./configure --with-pdo-duckdb CC=clang CXX=clang++
 make
 NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
@@ -694,7 +695,8 @@ wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux
 unzip -o static-libs-linux-amd64.zip -d ./
 
 phpize-zts
-./configure --with-pdo-duckdb --with-php-config=php-config-zts
+./configure --with-pdo-duckdb --with-php-config=php-config-zts CC=gcc CXX=g++
+# ./configure --with-pdo-duckdb --with-php-config=php-config-zts CC=clang CXX=clang++
 make
 NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
