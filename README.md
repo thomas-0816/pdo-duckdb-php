@@ -119,8 +119,6 @@ __Apache Parquet__: very fast and efficient column based storage file format con
 Each column is split into several column groups. Depending on the query, the file can be read partially by certain columns groups.\
 Different compression or dictionary algorithms can be applied to each column. Also supports encryption.
 
-__Note__: You can read and save Parquet files on local file systems or directly on [S3 object storage](https://duckdb.org/docs/lts/core_extensions/httpfs/s3api).
-
 ## Read CSV files with SQL
 
 ```php
@@ -368,7 +366,7 @@ mysql -h 127.0.0.1 -u root -psecret testdb -e "
 "
 ```
 
-Use DuckDB [MySQL extension](https://duckdb.org/docs/lts/core_extensions/mysql) to copy "orders" table from MariaDB to a parquet file:
+Use DuckDB [MySQL extension](https://duckdb.org/docs/current/core_extensions/mysql) to copy "orders" table from MariaDB to a parquet file:
 
 ```php
 $db = new PDO('duckdb::memory:');
@@ -403,7 +401,7 @@ PGPASSWORD=secret psql -h 127.0.0.1 -U postgres -c "
 "
 ```
 
-Use DuckDB [PostgreSQL extension](https://duckdb.org/docs/lts/core_extensions/postgres) to copy "orders" table from PostgreSQL to a parquet file:
+Use DuckDB [PostgreSQL extension](https://duckdb.org/docs/current/core_extensions/postgres) to copy "orders" table from PostgreSQL to a parquet file:
 
 ```php
 $db = new PDO('duckdb::memory:');
@@ -539,7 +537,7 @@ print_r($rows->fetchAll(PDO::FETCH_ASSOC));
 #             [X-Amzn-Trace-Id] => Root=1-6aab0271-2c027dfa07bc6def14ce4e72
 ```
 
-See the documentation for [managing secrets](https://duckdb.org/docs/current/configuration/secrets_manager) and [read_json()](https://duckdb.org/docs/lts/data/json/loading_json).
+See the documentation for [managing secrets](https://duckdb.org/docs/current/configuration/secrets_manager) and [read_json()](https://duckdb.org/docs/current/data/json/loading_json).
 
 ## Read data from S3, write data to S3
 
@@ -612,7 +610,7 @@ echo $result, PHP_EOL;
 # SELECT * FROM customers WHERE age(birth_date) > 30;
 ```
 
-More extensions: [List of Core Extensions](https://duckdb.org/docs/lts/core_extensions/overview), [List of Community Extensions](https://duckdb.org/community_extensions/list_of_extensions)
+More extensions: [List of Core Extensions](https://duckdb.org/docs/current/core_extensions/overview), [List of Community Extensions](https://duckdb.org/community_extensions/list_of_extensions)
 
 __Note__: Community extensions are third party projects, NOT maintained or reviewed by the DuckDB team.
 
@@ -673,7 +671,7 @@ SET force_compression='uncompressed';
 SET fsync_mode = 'none';
 ```
 
-A complete list is available in the DuckDB documentation: [Securing DuckDB](https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview).
+A complete list is available in the DuckDB documentation: [Securing DuckDB](https://duckdb.org/docs/current/operations_manual/securing_duckdb/overview).
 
 Alternatively, you can run SQL statements when the connection is estabilshed using PDO::DUCKDB_ATTR_INIT_COMMAND:
 
