@@ -555,7 +555,8 @@ Use DuckDB [httpfs](https://duckdb.org/docs/current/core_extensions/httpfs/s3api
 ```php
 $db = new PDO('duckdb::memory:');
 // set credentials
-$db->exec("CREATE SECRET rustfs (TYPE s3, ENDPOINT '127.0.0.1:9000', USE_SSL false, URL_STYLE 'path', KEY_ID 'access-key', SECRET 'secret-key')");
+$db->exec("CREATE SECRET rustfs (TYPE s3, ENDPOINT '127.0.0.1:9000', USE_SSL false,
+    URL_STYLE 'path', KEY_ID 'access-key', SECRET 'secret-key')");
 // write data to S3
 $db->exec("COPY ( select 'bar' as foo ) TO 's3://my-bucket/numbers.parquet' (FORMAT parquet)");
 // read data from S3
