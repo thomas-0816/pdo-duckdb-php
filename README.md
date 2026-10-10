@@ -360,7 +360,7 @@ var_export($statement->fetch(PDO::FETCH_NUM));
 Start MariaDB container, create and fill "orders" table:
 
 ```bash
-docker run --rm -it -p 3306:3306 -e MARIADB_ROOT_PASSWORD=secret -e MARIADB_DATABASE=testdb mariadb:12
+docker run --rm -p 3306:3306 -e MARIADB_ROOT_PASSWORD=secret -e MARIADB_DATABASE=testdb mariadb:12
 mysql -h 127.0.0.1 -u root -psecret testdb -e "
     CREATE TABLE orders (id integer primary key, customer integer, origin varchar(255));
     INSERT INTO orders VALUES (1, 42, 'shop');
@@ -395,7 +395,7 @@ print_r($rows);
 Start PostgreSQL container, create and fill "orders" table:
 
 ```bash
-docker run --rm -it -p 5432:5432 -e POSTGRES_PASSWORD=secret postgres:18
+docker run --rm -p 5432:5432 -e POSTGRES_PASSWORD=secret postgres:18
 PGPASSWORD=secret psql -h 127.0.0.1 -U postgres -c "
     CREATE TABLE orders (id integer primary key, customer integer, origin varchar(255));
     INSERT INTO orders VALUES (1, 42, 'shop');
@@ -540,6 +540,33 @@ print_r($rows->fetchAll(PDO::FETCH_ASSOC));
 ```
 
 See the documentation for [managing secrets](https://duckdb.org/docs/current/configuration/secrets_manager) and [read_json()](https://duckdb.org/docs/lts/data/json/loading_json).
+
+## Read data from S3, write data to S3
+
+Start [RustFS](https://rustfs.com) container, create new "my-bucket" bucket:
+
+```bash
+docker run --rm -p 9000:9000 rustfs/rustfs --access-key "access-key" --secret-key "secret-key"
+docker run --network host --entrypoint sh rustfs/rc -c "
+  rc alias set local http://127.0.0.1:9000 'access-key' 'secret-key'
+  rc bucket create local/my-bucket"
+```
+
+Use DuckDB [httpfs](https://duckdb.org/docs/current/core_extensions/httpfs/s3api) extension to read and write data from/to S3:
+
+```php
+$db = new PDO('duckdb::memory:');
+// set credentials
+$db->exec("CREATE SECRET rustfs (TYPE s3, ENDPOINT '127.0.0.1:9000', USE_SSL false, URL_STYLE 'path', KEY_ID 'access-key', SECRET 'secret-key')");
+// write data to S3
+$db->exec("COPY ( select 'bar' as foo ) TO 's3://my-bucket/numbers.parquet' (FORMAT parquet)");
+// read data from S3
+$row = $db->query("SELECT * FROM 's3://my-bucket/numbers.parquet'");
+print_r($row->fetch(PDO::FETCH_ASSOC));
+
+# Array
+#     [foo] => bar
+```
 
 ## Client-server mode (Quack Remote Protocol)
 
@@ -778,8 +805,8 @@ Swoole\Coroutine\run(function() {
 
 ```bash
 docker build --no-cache -f Dockerfile.trueasync2 -t pdo_duckdb_trueasync2 .
-docker run --rm -it pdo_duckdb_trueasync2 php -m
-docker run --rm -it -v $(pwd):/app pdo_duckdb_trueasync2 php /app/test_trueasync.php
+docker run --rm pdo_duckdb_trueasync2 php -m
+docker run --rm -v $(pwd):/app pdo_duckdb_trueasync2 php /app/test_trueasync.php
 ```
 
 ## Why DuckDB?
