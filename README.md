@@ -688,11 +688,9 @@ $db = new PDO('duckdb::memory:', null, null, [
 git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
 cd pdo_duckdb
 
-wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip
-unzip -o libduckdb-src.zip duckdb.hpp -d ./
-
-wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip
-unzip -o static-libs-linux-amd64.zip -d ./
+wget https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-static-libs-linux-amd64.tar.gz
+tar xvzf duckdb-static-libs-linux-amd64.tar.gz
+tar xvzf libduckdb-src.tar.gz
 
 phpize
 ./configure --with-pdo-duckdb CC=gcc CXX=g++
@@ -714,11 +712,9 @@ php test.php
 git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
 cd pdo_duckdb
 
-wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip
-unzip -o libduckdb-src.zip duckdb.hpp -d ./
-
-wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip
-unzip -o static-libs-linux-amd64.zip -d ./
+wget https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-static-libs-linux-amd64.tar.gz
+tar xvzf duckdb-static-libs-linux-amd64.tar.gz
+tar xvzf libduckdb-src.tar.gz
 
 phpize-zts
 ./configure --with-pdo-duckdb --with-php-config=php-config-zts CC=gcc CXX=g++
