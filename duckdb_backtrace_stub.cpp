@@ -9,6 +9,7 @@
  */
 #if defined(__linux__) && !defined(__GLIBC__)
 
+/*
 extern "C" __attribute__((visibility("hidden"))) void __register_frame_info(void const *, void *) {
 }
 
@@ -21,5 +22,6 @@ extern "C" __attribute__((visibility("hidden"))) void __deregister_frame_info(vo
 
 extern "C" __attribute__((visibility("hidden"))) void __deregister_frame_info_bases(void const *, void *) {
 }
+*/
 
 #endif
