@@ -26,18 +26,16 @@ WORKDIR /pdo-duckdb-php
 
 RUN <<EOF
     set -euxo pipefail
-    build_arch=$(uname -m)
-    case "$build_arch" in
+    arch=$(uname -m)
+    case "$arch" in
         x86_64|amd64)  duckdb_arch=amd64 ; arch_name=x86_64 ;;
         aarch64|arm64) duckdb_arch=arm64 ; arch_name=arm64 ;;
-        x86)           echo "no DuckDB musl artifacts for x86"; exit 1 ;;
-        *) echo "unsupported arch: $build_arch"; exit 1 ;;
+        *) echo "unsupported arch: $arch"; exit 1 ;;
     esac
-    duckdb_libs="duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz"
-    duckdb_base_url="https://artifacts.duckdb.org/staged/v2.0-cyanoptera"
+    wget https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
+
     make clean || true
-    wget ${duckdb_base_url}/${duckdb_libs}
-    tar xvzf ${duckdb_libs}
+    tar xvzf duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
     tar xvzf libduckdb-src.tar.gz
     phpize82
     ./configure --with-pdo-duckdb --with-php-config=php-config82
@@ -49,8 +47,7 @@ RUN <<EOF
     zip -j "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" modules/pdo_duckdb.so
 
     make clean
-    wget ${duckdb_base_url}/${duckdb_libs}
-    tar xvzf ${duckdb_libs}
+    tar xvzf duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
     tar xvzf libduckdb-src.tar.gz
     phpize83
     ./configure --with-pdo-duckdb --with-php-config=php-config83
@@ -62,8 +59,7 @@ RUN <<EOF
     zip -j "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" modules/pdo_duckdb.so
 
     make clean
-    wget ${duckdb_base_url}/${duckdb_libs}
-    tar xvzf ${duckdb_libs}
+    tar xvzf duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
     tar xvzf libduckdb-src.tar.gz
     phpize84
     ./configure --with-pdo-duckdb --with-php-config=php-config84
@@ -75,8 +71,7 @@ RUN <<EOF
     zip -j "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" modules/pdo_duckdb.so
 
     make clean
-    wget ${duckdb_base_url}/${duckdb_libs}
-    tar xvzf ${duckdb_libs}
+    tar xvzf duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
     tar xvzf libduckdb-src.tar.gz
     phpize85
     ./configure --with-pdo-duckdb --with-php-config=php-config85
@@ -88,8 +83,7 @@ RUN <<EOF
     zip -j "php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl.zip" modules/pdo_duckdb.so
 
     make clean
-    wget ${duckdb_base_url}/${duckdb_libs}
-    tar xvzf ${duckdb_libs}
+    tar xvzf duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
     tar xvzf libduckdb-src.tar.gz
     phpize86
     ./configure --with-pdo-duckdb --with-php-config=php-config86
