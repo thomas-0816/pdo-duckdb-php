@@ -21,6 +21,22 @@ Supported SAPIs: php-cli, php-fpm, mod_php, FrankenPHP, TrueAsync, Swoole
 
 Support end: macOS 14 (August 2026), Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
 
+## Install and setup DuckDB v2, migration notes
+
+Install and setup (alpha, not for production use):
+
+```bash
+pie install thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT version()")->fetchColumn());'
+```
+
+Backward compatibility:
+
+```sql
+SET error_on_division_by_zero=false;
+SET default_transaction_invalidation_policy='SYNTACTIC_ERRORS_DO_NOT_INVALIDATE';
+```
+
 ## Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
 ```bash
@@ -58,22 +74,6 @@ RUN <<EOF
     php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php
     php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 EOF
-```
-
-## Install and setup DuckDB v2, migration notes
-
-Install and setup:
-
-```bash
-pie install thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
-php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT version()")->fetchColumn());'
-```
-
-Backward compatibility:
-
-```sql
-SET error_on_division_by_zero=false;
-SET default_transaction_invalidation_policy='SYNTACTIC_ERRORS_DO_NOT_INVALIDATE';
 ```
 
 ## Usage examples
