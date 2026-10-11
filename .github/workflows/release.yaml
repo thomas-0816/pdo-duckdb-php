@@ -92,8 +92,8 @@ jobs:
           ls -l *.zip
           gh release upload "$tag" *.zip --clobber
 
-  windows:
-    name: Windows
+  windows_84_85_86:
+    name: Windows PHP 8.4-8.6
     runs-on: ${{ (matrix.php-version == '8.6' && 'windows-2025-vs2026') || 'windows-2022' }}
     permissions:
       contents: write # publish release
@@ -101,8 +101,6 @@ jobs:
       fail-fast: false
       matrix:
         php-version:
-          - 8.2
-          - 8.3
           - 8.4
           - 8.5
           - 8.6
@@ -121,22 +119,6 @@ jobs:
           tar xvzf libduckdb-src.tar.gz
           ls -lisa
           MSYS_NO_PATHCONV=1 tzutil /s "W. Europe Standard Time"
-      - name: Use newest VS2022 toolset for 8.2 and 8.3
-        # php-windows-builder maps PHP 8.2/8.3 to vs16 channel (VS2019 toolsets 14.20-14.29),
-        # whose STL lacks the __std_find_* / _Thrd_sleep_for helpers that the DuckDB v2 static libraries reference.
-        # Widen toolset range to 14.20-14.49, so the newest installed VS2022 toolset (14.44, the same one PHP 8.4/8.5 use)
-        # is selected for compiling and linking.
-        if: matrix.php-version == '8.2' || matrix.php-version == '8.3'
-        shell: pwsh
-        run: |
-          $actionsRoot = Join-Path (Split-Path $env:RUNNER_WORKSPACE -Parent) '_actions'
-          $vsJson = Get-ChildItem -Path $actionsRoot -Recurse -Filter 'vs.json' -ErrorAction SilentlyContinue |
-                    Where-Object { $_.FullName -match 'BuildPhpExtension\\config\\vs\.json$' } |
-                    Select-Object -First 1
-          if (-not $vsJson) { throw 'php-windows-builder extension vs.json not found' }
-          $config = Get-Content -LiteralPath $vsJson.FullName -Raw | ConvertFrom-Json
-          $config.vs.vs16.minorMax = 49
-          $config | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath $vsJson.FullName -Encoding utf8
       - name: Build extension
         uses: php/php-windows-builder/extension@29352c0ef9e8ce65264ea9e287881a6f7758a953 # 1.9.0
         with:
@@ -145,7 +127,7 @@ jobs:
           arch: x64
           args: --with-pdo-duckdb
           test-workers: 1
-      - name: Bundle duckdb.dll, name to the release tag, upload as a release asset
+      - name: Upload as a release asset
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -155,15 +137,57 @@ jobs:
           $zip = Get-ChildItem artifacts -Filter "php_pdo_duckdb-*.zip" |
                  Where-Object { $_.Name -notlike '*-logs*' } | Select-Object -First 1
           if (-not $zip) { throw "no extension artifact zip produced" }
-          if ($zip.BaseName -notmatch '(\d+\.\d+-(?:nts|ts)-vs\d+-\w+)$') {
-            throw "unexpected artifact name: $($zip.Name)"
-          }
-          $newbase = "php_pdo_duckdb-$Env:tag-$($matches[1])"
+          Write-Host "uploading $($zip.Name) $Env:tag"
+          gh release upload "$Env:tag" "$($zip.FullName)" --clobber
+
+  windows_82_83:
+    name: Windows PHP 8.2-8.3
+    runs-on: windows-2022
+    permissions:
+      contents: write # publish release
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - 8.2
+          - 8.3
+        ts:
+          - nts
+          - ts
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download libduckdb dll
+        shell: bash
+        run: |
+          curl -fsSL "https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-shared-libs-windows-amd64.tar.gz" -o duckdb-shared-libs-windows-amd64.tar.gz
+          tar xvzf duckdb-shared-libs-windows-amd64.tar.gz
+          tar xvzf libduckdb-src.tar.gz
+          ls -lisa
+          MSYS_NO_PATHCONV=1 tzutil /s "W. Europe Standard Time"
+          mv config.w32_dynamic config.w32
+      - name: Build extension
+        uses: php/php-windows-builder/extension@29352c0ef9e8ce65264ea9e287881a6f7758a953 # 1.9.0
+        with:
+          php-version: ${{ matrix.php-version }}
+          ts: ${{ matrix.ts }}
+          arch: x64
+          args: --with-pdo-duckdb
+          test-workers: 1
+      - name: Bundle duckdb.dll, upload as a release asset
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.event.release.tag_name }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $zip = Get-ChildItem artifacts -Filter "php_pdo_duckdb-*.zip" |
+                 Where-Object { $_.Name -notlike '*-logs*' } | Select-Object -First 1
+          if (-not $zip) { throw "no extension artifact zip produced" }
           Expand-Archive $zip.FullName -DestinationPath stage -Force
-          Get-ChildItem stage -Filter "php_pdo_duckdb-*.dll" | ForEach-Object { Rename-Item $_.FullName "$newbase.dll" }
-          Get-ChildItem stage -Filter "php_pdo_duckdb-*.pdb" | ForEach-Object { Rename-Item $_.FullName "$newbase.pdb" }
           Copy-Item duckdb.dll -Destination stage\ -Force
-          $out = "$newbase.zip"
+          $out = $zip.Name
           if (Test-Path $out) { Remove-Item $out -Force }
           Compress-Archive -Path stage\* -DestinationPath $out
           Write-Host "uploading $out $Env:tag"
@@ -172,7 +196,7 @@ jobs:
   clamav:
     name: "Docker: clamAV"
     runs-on: ubuntu-24.04
-    needs: [linux_macos, windows, linux_alpine]
+    needs: [linux_macos, windows_84_85_86, windows_82_83, linux_alpine]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
