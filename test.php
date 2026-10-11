@@ -22,8 +22,8 @@ $statement->execute([1, 42.21, 'Hello DuckDB! 🐘 💓 🦆']);
 $statement = $duckDb->query("SELECT * FROM table1");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$parquet = tempnam('/tmp', 'pdo_duckdb_test') . '.parquet';
-$duckDb = new PDO('duckdb:' . tempnam('/tmp', 'pdo_duckdb_test') . '.db');
+$parquet = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.parquet';
+$duckDb = new PDO('duckdb:' . tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.db');
 $duckDb->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR, data JSON)");
 
 $statement = $duckDb->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
@@ -60,8 +60,8 @@ $statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $statement->fetch()) { print_r($row); }
 
-$json = tempnam('/tmp', 'pdo_duckdb_test') . '.json';
-$db = new PDO('duckdb:' . tempnam('/tmp', 'pdo_duckdb_test') . '.db');
+$json = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.json';
+$db = new PDO('duckdb:' . tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.db');
 $db->exec("CREATE TABLE t (i INTEGER, v VARCHAR)");
 $statement = $db->prepare("INSERT INTO t VALUES (?, ?)");
 $statement->execute([1, 'hello']);
@@ -81,7 +81,7 @@ $list = [
     ['123', '456', '789'],
     ['aaa', 'bbb', 'ccc']
 ];
-$csv = tempnam('/tmp', 'pdo_duckdb_test') . '.csv';
+$csv = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.csv';
 $fp = fopen($csv, 'w');
 foreach ($list as $fields) {
     fputcsv($fp, $fields, ',', '"', "");
@@ -502,12 +502,12 @@ $db->exec("INSERT INTO geometries VALUES
 $statement = $db->query("SELECT geom FROM geometries");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$json = tempnam('/tmp', 'pdo_duckdb_test') . '.json';
+$json = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.json';
 file_put_contents($json, json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL);
 file_put_contents($json, json_encode(['date' => '2026-02-03 04:05:06', 'log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
 
-$parquet = tempnam('/tmp', 'pdo_duckdb_test') . '.parquet';
-$parquet2 = tempnam('/tmp', 'pdo_duckdb_test') . '.parquet';
+$parquet = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.parquet';
+$parquet2 = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.parquet';
 
 // limit threads and memory usage for converting big files, see https://github.com/duckdb/duckdb/issues/16078
 // 100k rows per group
@@ -692,7 +692,7 @@ foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") a
 }
 echo $count . PHP_EOL;
 
-$dbFile = tempnam('/tmp', 'pdo_duckdb_test') . '.db';
+$dbFile = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.db';
 new PDO('duckdb:' . $dbFile);
 $db = new PDO('duckdb:' . $dbFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('access_mode', 'memory_limit', 'threads')");
