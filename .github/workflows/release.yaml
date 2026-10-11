@@ -52,15 +52,14 @@ jobs:
           php -v
           apt-get update && apt-get install -y --no-install-recommends libgcc-13-dev
           case "$os" in
-            ubuntu-22.04)     libduckdb=static-libs-linux-amd64.zip ;;
-            ubuntu-22.04-arm) libduckdb=static-libs-linux-arm64.zip ;;
-            macos-15)         libduckdb=static-libs-osx-arm64.zip ;;
+            ubuntu-22.04)     libduckdb=duckdb-static-libs-linux-amd64.tar.gz ;;
+            ubuntu-22.04-arm) libduckdb=duckdb-static-libs-linux-arm64.tar.gz ;;
+            macos-15)         libduckdb=duckdb-static-libs-osx-arm64.tar.gz ;;
             *) echo "unmapped runner os"; exit 1 ;;
           esac
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
-          unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/${libduckdb}" -o libduckdb.zip
-          unzip -o libduckdb.zip -d ./
+          curl -fsSL "https://artifacts.duckdb.org/staged/v2.0-cyanoptera/${libduckdb}" -o ${libduckdb}
+          tar xvzf ${libduckdb}
+          tar xvzf libduckdb-src.tar.gz
       - name: Build and upload prebuilt binary
         uses: php/pie-ext-binary-builder@cbe134360897f23793f23c2edc7602261d205a25 # 0.0.4
         with:
@@ -117,10 +116,9 @@ jobs:
       - name: Download libduckdb
         shell: bash
         run: |
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
-          unzip -o libduckdb-src.zip duckdb.hpp -d ./
-          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-windows-amd64.zip" -o libduckdb-windows-amd64.zip
-          unzip -o libduckdb-windows-amd64.zip -d ./
+          curl -fsSL "https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-static-libs-windows-amd64.tar.gz" -o duckdb-static-libs-windows-amd64.tar.gz
+          tar xvzf duckdb-static-libs-windows-amd64.tar.gz
+          tar xvzf libduckdb-src.tar.gz
           ls -lisa
           MSYS_NO_PATHCONV=1 tzutil /s "W. Europe Standard Time"
       - name: Build extension

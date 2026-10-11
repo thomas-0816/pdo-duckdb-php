@@ -245,6 +245,7 @@ jobs:
           curl -fsSL "https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-static-libs-linux-amd64.tar.gz" -o duckdb-static-libs-linux-amd64.tar.gz
           tar xvzf duckdb-static-libs-linux-amd64.tar.gz
           tar xvzf libduckdb-src.tar.gz
+          cd ../../
           ./buildconf --force
           ./configure --disable-all --enable-zts --enable-cli --enable-pcntl --enable-pdo --with-pdo-duckdb
           make -j$(nproc)
