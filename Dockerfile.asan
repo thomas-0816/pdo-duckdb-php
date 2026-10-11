@@ -54,10 +54,9 @@ RUN <<EOF
 
     cd pdo-duckdb-php
     make clean || true
-    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip" -o libduckdb-src.zip
-    unzip -o libduckdb-src.zip duckdb.hpp -d ./
-    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux-amd64.zip" -o static-libs-linux-amd64.zip
-    unzip -o static-libs-linux-amd64.zip -d ./
+    curl -fsSL "https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-static-libs-linux-amd64.tar.gz" -o duckdb-static-libs-linux-amd64.tar.gz
+    tar xvzf duckdb-static-libs-linux-amd64.tar.gz
+    tar xvzf libduckdb-src.tar.gz
     phpize
     ./configure --with-pdo-duckdb
     make -j$(nproc)

@@ -23,7 +23,7 @@ WORKDIR /pdo-duckdb
 
 RUN <<EOF
     make clean
-    unzip -o static-libs-linux-amd64.zip -d ./
+    tar xvzf duckdb-static-libs-linux-amd64.tar.gz
 EOF
 
 # php 8.2
