@@ -92,7 +92,7 @@ jobs:
             php -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
           fi
 
-  windows:
+  windows_84_85_86:
     name: Windows
     runs-on: ${{ (matrix.php-version == '8.6' && 'windows-2025-vs2026') || 'windows-2022' }}
     timeout-minutes: 5
@@ -100,8 +100,6 @@ jobs:
       fail-fast: false
       matrix:
         php-version:
-          - 8.2
-          - 8.3
           - 8.4
           - 8.5
           - 8.6
@@ -120,22 +118,6 @@ jobs:
           tar xvzf libduckdb-src.tar.gz
           ls -lisa
           MSYS_NO_PATHCONV=1 tzutil /s "W. Europe Standard Time"
-      - name: Use newest VS2022 toolset for 8.2 and 8.3
-        # php-windows-builder maps PHP 8.2/8.3 to vs16 channel (VS2019 toolsets 14.20-14.29),
-        # whose STL lacks the __std_find_* / _Thrd_sleep_for helpers that the DuckDB v2 static libraries reference.
-        # Widen toolset range to 14.20-14.49, so the newest installed VS2022 toolset (14.44, the same one PHP 8.4/8.5 use)
-        # is selected for compiling and linking.
-        if: matrix.php-version == '8.2' || matrix.php-version == '8.3'
-        shell: pwsh
-        run: |
-          $actionsRoot = Join-Path (Split-Path $env:RUNNER_WORKSPACE -Parent) '_actions'
-          $vsJson = Get-ChildItem -Path $actionsRoot -Recurse -Filter 'vs.json' -ErrorAction SilentlyContinue |
-                    Where-Object { $_.FullName -match 'BuildPhpExtension\\config\\vs\.json$' } |
-                    Select-Object -First 1
-          if (-not $vsJson) { throw 'php-windows-builder extension vs.json not found' }
-          $config = Get-Content -LiteralPath $vsJson.FullName -Raw | ConvertFrom-Json
-          $config.vs.vs16.minorMax = 49
-          $config | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath $vsJson.FullName -Encoding utf8
       - name: Build extension
         uses: php/php-windows-builder/extension@29352c0ef9e8ce65264ea9e287881a6f7758a953 # 1.9.0
         with:
@@ -155,6 +137,59 @@ jobs:
           phpts: ${{ matrix.ts }}
       - name: Test extension with Swoole
         if: matrix.php-version != '8.6'
+        shell: bash
+        run: |
+          php -m | grep swoole
+          cp ./build/*/x64/Release*/php_pdo_duckdb.dll ./
+          php -dextension=$(pwd)/php_pdo_duckdb.dll -m | grep pdo_duckdb
+          php -dextension=$(pwd)/php_pdo_duckdb.dll -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+          php -dextension=$(pwd)/php_pdo_duckdb.dll test.php
+          php -dextension=$(pwd)/php_pdo_duckdb.dll test_swoole.php
+
+  windows_82_83:
+    name: Windows 8.2/8.3
+    runs-on: windows-2022
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - 8.2
+          - 8.3
+        ts:
+          - nts
+          - ts
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download libduckdb dll
+        shell: bash
+        run: |
+          curl -fsSL "https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-shared-libs-windows-amd64.tar.gz" -o duckdb-shared-libs-windows-amd64.tar.gz
+          tar xvzf duckdb-shared-libs-windows-amd64.tar.gz
+          tar xvzf libduckdb-src.tar.gz
+          ls -lisa
+          MSYS_NO_PATHCONV=1 tzutil /s "W. Europe Standard Time"
+          mv config.w32_dynamic config.w32
+      - name: Build extension
+        uses: php/php-windows-builder/extension@29352c0ef9e8ce65264ea9e287881a6f7758a953 # 1.9.0
+        with:
+          php-version: ${{ matrix.php-version }}
+          ts: ${{ matrix.ts }}
+          arch: x64
+          args: --with-pdo-duckdb
+          test-workers: 1
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+          tools: pie
+          extensions: swoole-alpha
+        env:
+          phpts: ${{ matrix.ts }}
+      - name: Test extension with Swoole
         shell: bash
         run: |
           php -m | grep swoole
