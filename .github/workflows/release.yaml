@@ -121,7 +121,11 @@ jobs:
           tar xvzf libduckdb-src.tar.gz
           ls -lisa
           MSYS_NO_PATHCONV=1 tzutil /s "W. Europe Standard Time"
-      - name: Use vs17 instead of vs16 for 8.2 and 8.3
+      - name: Use newest VS2022 toolset for 8.2 and 8.3
+        # php-windows-builder maps PHP 8.2/8.3 to vs16 channel (VS2019 toolsets 14.20-14.29),
+        # whose STL lacks the __std_find_* / _Thrd_sleep_for helpers that the DuckDB v2 static libraries reference.
+        # Widen toolset range to 14.20-14.49, so the newest installed VS2022 toolset (14.44, the same one PHP 8.4/8.5 use)
+        # is selected for compiling and linking.
         if: matrix.php-version == '8.2' || matrix.php-version == '8.3'
         shell: pwsh
         run: |
@@ -131,10 +135,8 @@ jobs:
                     Select-Object -First 1
           if (-not $vsJson) { throw 'php-windows-builder extension vs.json not found' }
           $config = Get-Content -LiteralPath $vsJson.FullName -Raw | ConvertFrom-Json
-          $config.php.'8.2' = 'vs17'
-          $config.php.'8.3' = 'vs17'
+          $config.vs.vs16.minorMax = 49
           $config | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath $vsJson.FullName -Encoding utf8
-          Write-Host "Patched $($vsJson.FullName): PHP 8.2/8.3 -> $($config.php.'8.2')"
       - name: Build extension
         uses: php/php-windows-builder/extension@29352c0ef9e8ce65264ea9e287881a6f7758a953 # 1.9.0
         with:
