@@ -1,7 +1,8 @@
 // config.w32 for PDO_DuckDB extension
 // Usage: configure --with-pdo-duckdb
-// NOTE: Extract libduckdb-windows-amd64.zip into DUCKDB_PATH to provide
-// duckdb.dll, duckdb.lib, and headers for linking with MSVC.
+// NOTE: Extract duckdb-shared-libs-windows-amd64.tar.gz into the extension
+// directory to provide duckdb.dll, duckdb.lib, and headers for linking with
+// the DLL. duckdb.hpp comes from libduckdb-src.tar.gz.
 // On GitHub Actions, use the MinGW toolchain with config.m4 instead.
 
 ARG_WITH("pdo-duckdb", "DuckDB support for PDO", "no");
@@ -23,7 +24,7 @@ if (PHP_PDO_DUCKDB != "no") {
 		EXTENSION("pdo_duckdb",
 			"pdo_duckdb.c duckdb_driver.c duckdb_statement.c duckdb_stubs.cpp duckdb_swoole.cpp",
 			null,
-			"/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 /EHsc");
+			"/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1 /EHsc /arch:AVX2 /bigobj /std:c++17");
 
 		ADD_FLAG("CFLAGS_PDO_DUCKDB", "/I " + DUCKDB_PATH + " /I " + DUCKDB_PATH + "\\include");
 		ADD_FLAG("LDFLAGS_PDO_DUCKDB", "/LIBPATH:" + DUCKDB_PATH + " /CETCOMPAT");
