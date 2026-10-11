@@ -60,6 +60,21 @@ RUN <<EOF
 EOF
 ```
 
+## Install and setup DuckDB v2, migration notes
+
+Install and setup:
+
+```bash
+pie install thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+```
+
+Backward compatibility:
+
+```sql
+SET error_on_division_by_zero=false;
+SET default_transaction_invalidation_policy='SYNTACTIC_ERRORS_DO_NOT_INVALIDATE';
+```
+
 ## Usage examples
 
 ```php
