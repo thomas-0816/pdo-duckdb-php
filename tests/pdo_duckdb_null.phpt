@@ -21,34 +21,6 @@ for ($i = 0; $i < $columnCount; $i++) {
 }
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-/*
-// TODO v2
-SELECT null::variant, null::bignum
-SELECT row(), struct_pack()
-SELECT typeof(row())
-SELECT typeof(NULL::STRUCT)
-SELECT NULL::STRUCT()
-SELECT NULL::STRUCT, row()::STRUCT
-CREATE TABLE t(i INTEGER, s STRUCT)
-INSERT INTO t VALUES (1, row()), (2, NULL), (3, row())
-SELECT i, s FROM t ORDER BY i
-SELECT count(*) FROM t WHERE s IS NOT NULL
-SELECT i FROM t ORDER BY s, i
-SELECT s, count(*) FROM t WHERE s IS NOT NULL GROUP BY s
-SELECT count(*) FROM (SELECT DISTINCT s FROM t)
-SELECT row() = row(), row() IS NOT DISTINCT FROM row()
-SELECT t1.i, t2.i, t1.s FROM t t1 JOIN t t2 USING (s) WHERE t1.s IS NOT NULL AND t1.i < t2.i ORDER BY 1, 2
-SELECT {'a': row(), 'b': 1}, [row(), row()], typeof({'a': row()})
-SELECT row()::VARCHAR
-SELECT struct_concat(row(), row()), struct_concat(row(), {'x': 1}), struct_concat({'x': 1}, row())
-SELECT struct_concat(row(), row(1, 2))
-SELECT struct_contains(row(), 'a'), struct_contains(row(), 5)
-SELECT struct_extract(row(), 'a')
-SELECT row()[1]
-SELECT unnest(row())
-SELECT i, s FROM t ORDER BY i
-*/
-
 ?>
 --EXPECTF--
 string(7) "boolean"
@@ -78,7 +50,7 @@ string(4) "enum"
 string(6) "struct"
 string(4) "list"
 string(7) "unknown"
-string(7) "integer"
+string(4) "null"
 string(5) "union"
 string(4) "uuid"
 string(3) "bit"
@@ -93,7 +65,7 @@ array(1) {
   array(37) {
     ["CAST(NULL AS BOOLEAN)"]=>
     NULL
-    ["CAST(NULL AS "TINYINT")"]=>
+    ["CAST(NULL AS tinyint)"]=>
     NULL
     ["CAST(NULL AS SMALLINT)"]=>
     NULL
@@ -101,43 +73,43 @@ array(1) {
     NULL
     ["CAST(NULL AS BIGINT)"]=>
     NULL
-    ["CAST(NULL AS "UTINYINT")"]=>
+    ["CAST(NULL AS utinyint)"]=>
     NULL
-    ["CAST(NULL AS "USMALLINT")"]=>
+    ["CAST(NULL AS usmallint)"]=>
     NULL
-    ["CAST(NULL AS "UINTEGER")"]=>
+    ["CAST(NULL AS uinteger)"]=>
     NULL
-    ["CAST(NULL AS "UBIGINT")"]=>
+    ["CAST(NULL AS ubigint)"]=>
     NULL
     ["CAST(NULL AS FLOAT)"]=>
     NULL
-    ["CAST(NULL AS "DOUBLE")"]=>
+    ["CAST(NULL AS double)"]=>
     NULL
     ["CAST(NULL AS TIMESTAMP)"]=>
     NULL
-    ["CAST(NULL AS "DATE")"]=>
+    ["CAST(NULL AS date)"]=>
     NULL
     ["CAST(NULL AS TIME)"]=>
     NULL
     ["CAST(NULL AS INTERVAL)"]=>
     NULL
-    ["CAST(NULL AS "HUGEINT")"]=>
+    ["CAST(NULL AS hugeint)"]=>
     NULL
-    ["CAST(NULL AS "UHUGEINT")"]=>
+    ["CAST(NULL AS uhugeint)"]=>
     NULL
     ["CAST(NULL AS VARCHAR)"]=>
     NULL
-    ["CAST(NULL AS "BLOB")"]=>
+    ["CAST(NULL AS blob)"]=>
     NULL
     ["CAST(NULL AS DECIMAL)"]=>
     NULL
-    ["CAST(NULL AS "TIMESTAMP_S")"]=>
+    ["CAST(NULL AS timestamp_s)"]=>
     NULL
-    ["CAST(NULL AS "TIMESTAMP_MS")"]=>
+    ["CAST(NULL AS timestamp_ms)"]=>
     NULL
-    ["CAST(NULL AS "TIMESTAMP_NS")"]=>
+    ["CAST(NULL AS timestamp_ns)"]=>
     NULL
-    ["CAST(NULL AS "ENUM"('a'))"]=>
+    ["CAST(NULL AS enum('a'))"]=>
     NULL
     ["CAST(NULL AS STRUCT(duck INTEGER))"]=>
     NULL
@@ -149,21 +121,21 @@ array(1) {
     NULL
     ["CAST(NULL AS UNION(str VARCHAR))"]=>
     NULL
-    ["CAST(NULL AS "UUID")"]=>
+    ["CAST(NULL AS uuid)"]=>
     NULL
-    ["CAST(NULL AS BIT(1))"]=>
+    ["CAST(NULL AS BIT)"]=>
     NULL
-    ["CAST(NULL AS "TIME WITH TIME ZONE")"]=>
+    ["CAST(NULL AS timetz)"]=>
     NULL
-    ["CAST(NULL AS "TIMESTAMP WITH TIME ZONE")"]=>
+    ["CAST(NULL AS timestamptz)"]=>
     NULL
-    ["CAST(NULL AS "TIME_NS")"]=>
+    ["CAST(NULL AS time_ns)"]=>
     NULL
-    ["CAST(NULL AS "GEOMETRY")"]=>
+    ["CAST(NULL AS GEOMETRY)"]=>
     NULL
-    ["CAST(NULL AS "VARIANT")"]=>
+    ["CAST(NULL AS VARIANT)"]=>
     NULL
-    ["CAST(NULL AS "BIGNUM")"]=>
+    ["CAST(NULL AS bignum)"]=>
     NULL
   }
 }

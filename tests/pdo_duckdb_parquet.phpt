@@ -134,7 +134,7 @@ array(3) {
 }
 array(2) {
   [0]=>
-  array(31) {
+  array(33) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["row_group_id"]=>
@@ -198,9 +198,23 @@ array(2) {
     NULL
     ["geo_types"]=>
     NULL
+    ["encoding_stats"]=>
+    array(1) {
+      [0]=>
+      array(3) {
+        ["page_type"]=>
+        string(9) "DATA_PAGE"
+        ["encoding"]=>
+        string(5) "PLAIN"
+        ["count"]=>
+        int(1)
+      }
+    }
+    ["stats_nan_count"]=>
+    NULL
   }
   [1]=>
-  array(31) {
+  array(33) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["row_group_id"]=>
@@ -264,6 +278,20 @@ array(2) {
     NULL
     ["geo_types"]=>
     NULL
+    ["encoding_stats"]=>
+    array(1) {
+      [0]=>
+      array(3) {
+        ["page_type"]=>
+        string(9) "DATA_PAGE"
+        ["encoding"]=>
+        string(5) "PLAIN"
+        ["count"]=>
+        int(1)
+      }
+    }
+    ["stats_nan_count"]=>
+    NULL
   }
 }
 array(1) {
@@ -284,9 +312,9 @@ array(1) {
     ["footer_signing_key_metadata"]=>
     NULL
     ["file_size_bytes"]=>
-    int(388)
+    int(417)
     ["footer_size"]=>
-    int(275)
+    int(304)
     ["column_orders"]=>
     array(2) {
       [0]=>

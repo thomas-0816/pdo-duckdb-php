@@ -6,6 +6,7 @@ pdo_duckdb
 <?php
 
 $db = new PDO('duckdb::memory:');
+$db->exec('SET error_on_division_by_zero=false');
 $statement = $db->query("SELECT 0/0, 0//0"); // -nan, null
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
@@ -52,7 +53,8 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT CAST(NULL AS DECIMAL(10,2))");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-// TODO v2 select ln(-1), sqrt(-1)
+$statement = $db->query("SELECT ln(-1), sqrt(-1)");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 ?>
 --EXPECTF--
@@ -98,16 +100,16 @@ array(1) {
     float(1.5)
     [".50"]=>
     float(0.5)
-    [2]=>
+    ["2."]=>
     float(2)
   }
 }
 array(1) {
   [0]=>
   array(3) {
-    ["100.0"]=>
+    ["1e2"]=>
     float(100)
-    ["6.02214e+23"]=>
+    ["6.02214e23"]=>
     float(6.02214E+23)
     ["1e-10"]=>
     float(1.0E-10)
@@ -116,11 +118,11 @@ array(1) {
 array(1) {
   [0]=>
   array(4) {
-    [100000000]=>
+    ["100_000_000"]=>
     int(100000000)
     ["CAST('0xFF_FF' AS INTEGER)"]=>
     int(65535)
-    ["121.2"]=>
+    ["1_2.1_2E0_1"]=>
     float(121.2)
     ["CAST('0b0_1_0_1' AS INTEGER)"]=>
     int(5)
@@ -145,7 +147,7 @@ array(7) {
 array(1) {
   [0]=>
   array(1) {
-    ["CAST('3402823669209384634633746074317682114571111' AS "BIGNUM")"]=>
+    ["CAST('3402823669209384634633746074317682114571111' AS bignum)"]=>
     string(43) "3402823669209384634633746074317682114571111"
   }
 }
@@ -156,7 +158,7 @@ array(1) {
     float(1.23)
     ["CAST(0.001 AS DECIMAL(10, 3))"]=>
     float(0.001)
-    ["-(CAST(3.14 AS DECIMAL(4, 2)))"]=>
+    ["(-(CAST(3.14 AS DECIMAL(4, 2))))"]=>
     float(-3.14)
     ["CAST(0 AS DECIMAL(5, 2))"]=>
     float(0)
@@ -169,7 +171,7 @@ array(1) {
     float(1.23)
     ["CAST(0.001 AS DECIMAL(14, 4))"]=>
     float(0.001)
-    ["-(CAST(3.14 AS DECIMAL(15, 5)))"]=>
+    ["(-(CAST(3.14 AS DECIMAL(15, 5))))"]=>
     float(-3.14)
     ["CAST(0 AS DECIMAL(16, 6))"]=>
     float(0)
@@ -198,9 +200,9 @@ array(1) {
   array(3) {
     ["CAST(0.311699786984687608 AS DECIMAL(18, 18))"]=>
     string(19) ".311699786984687608"
-    ["CAST(0.45971054587213545 AS DECIMAL(38, 38))"]=>
+    ["CAST(0.45971054587213542206239787480916869700 AS DECIMAL(38, 38))"]=>
     string(39) ".45971054587213539913392807288705646592"
-    ["-(CAST(0.311699786984687608 AS DECIMAL(18, 18)))"]=>
+    ["(-(CAST(0.311699786984687608 AS DECIMAL(18, 18))))"]=>
     string(20) "-.311699786984687608"
   }
 }
@@ -209,5 +211,14 @@ array(1) {
   array(1) {
     ["CAST(NULL AS DECIMAL(10, 2))"]=>
     NULL
+  }
+}
+array(1) {
+  [0]=>
+  array(2) {
+    ["ln(-1)"]=>
+    float(NAN)
+    ["sqrt(-1)"]=>
+    float(NAN)
   }
 }

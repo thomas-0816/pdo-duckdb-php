@@ -53,7 +53,7 @@ array(1) {
     float(0.9)
     ["CAST(3.1 AS FLOAT)"]=>
     float(3.1)
-    ["CAST(main.list_value(1, 2, 3) AS VARCHAR[])"]=>
+    ["CAST(list_value(1, 2, 3) AS VARCHAR[])"]=>
     array(3) {
       [0]=>
       string(1) "1"
@@ -67,12 +67,12 @@ array(1) {
 array(1) {
   [0]=>
   array(2) {
-    ["CAST(main.struct_pack(a := 42) AS STRUCT(a VARCHAR))"]=>
+    ["CAST(struct_pack(a := 42) AS STRUCT(a VARCHAR))"]=>
     array(1) {
       ["a"]=>
       string(2) "42"
     }
-    ["CAST(main.struct_pack(a := 42) AS STRUCT(a VARCHAR, b VARCHAR))"]=>
+    ["CAST(struct_pack(a := 42) AS STRUCT(a VARCHAR, b VARCHAR))"]=>
     array(2) {
       ["a"]=>
       string(2) "42"
@@ -84,12 +84,12 @@ array(1) {
 array(1) {
   [0]=>
   array(2) {
-    ["CAST(main.struct_pack(a := 42, b := 43) AS STRUCT(a VARCHAR))"]=>
+    ["CAST(struct_pack(a := 42, b := 43) AS STRUCT(a VARCHAR))"]=>
     array(1) {
       ["a"]=>
       string(2) "42"
     }
-    ["CAST(main.struct_pack(a := 42, b := 84) AS STRUCT(b VARCHAR, a VARCHAR))"]=>
+    ["CAST(struct_pack(a := 42, b := 84) AS STRUCT(b VARCHAR, a VARCHAR))"]=>
     array(2) {
       ["b"]=>
       string(2) "84"
@@ -101,7 +101,7 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["main.list_value(main.struct_pack(a := 42), main.struct_pack(b := 84))"]=>
+    ["list_value(struct_pack(a := 42), struct_pack(b := 84))"]=>
     array(2) {
       [0]=>
       array(2) {
@@ -159,5 +159,5 @@ array(2) {
 Caught: SQLSTATE[HY000]: Conversion Error: Type INT32 with value 999 can't be cast because the value is out of range for the destination type INT8
 
 LINE 1: SELECT CAST(999 AS TINYINT)
-               ^
+               ^^^^^^^^^^^^^^^^^^^^
 int(121)

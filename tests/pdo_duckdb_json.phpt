@@ -85,7 +85,7 @@ array(1) {
 Caught: SQLSTATE[HY000]: Conversion Error: Malformed JSON at byte 0 of input: unexpected character.  Input: "unquoted"
 
 LINE 1: SELECT 'unquoted'::JSON
-                         ^
+                         ^^^^^^
 array(1) {
   [0]=>
   array(1) {
@@ -116,7 +116,7 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["CAST(main.struct_pack(duck := 42) AS "JSON")"]=>
+    ["CAST(struct_pack(duck := 42) AS "JSON")"]=>
     array(1) {
       ["duck"]=>
       int(42)
@@ -126,7 +126,7 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["CAST(CAST('2023-05-12' AS "DATE") AS "JSON")"]=>
+    ["CAST(CAST('2023-05-12' AS DATE) AS "JSON")"]=>
     string(10) "2023-05-12"
   }
 }

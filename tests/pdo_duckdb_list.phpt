@@ -29,7 +29,7 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 array(1) {
   [0]=>
   array(1) {
-    ["main.list_value(1, 2, 3)"]=>
+    ["list_value(1, 2, 3)"]=>
     array(3) {
       [0]=>
       int(1)
@@ -43,7 +43,7 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["main.list_value('duck', 'goose', NULL, 'heron')"]=>
+    ["list_value('duck', 'goose', NULL, 'heron')"]=>
     array(4) {
       [0]=>
       string(4) "duck"
@@ -59,7 +59,7 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["main.list_value(main.list_value('duck', 'goose', 'heron'), NULL, main.list_value('frog', 'toad'), main.list_value())"]=>
+    ["list_value(list_value('duck', 'goose', 'heron'), NULL, list_value('frog', 'toad'), list_value())"]=>
     array(4) {
       [0]=>
       array(3) {
@@ -102,7 +102,7 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["main.list_value('a', 'b', 'c')[1:2]"]=>
+    ["list_value('a', 'b', 'c')[1:2]"]=>
     array(2) {
       [0]=>
       string(1) "a"
@@ -114,7 +114,7 @@ array(1) {
 array(1) {
   [0]=>
   array(1) {
-    ["list_slice(main.list_value('a', 'b', 'c'), 2, 3)"]=>
+    ["list_slice(list_value('a', 'b', 'c'), 2, 3)"]=>
     array(2) {
       [0]=>
       string(1) "b"
