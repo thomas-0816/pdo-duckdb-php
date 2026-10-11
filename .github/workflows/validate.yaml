@@ -55,9 +55,9 @@ jobs:
           uname -a
           php -v
           if [ "$RUNNER_OS" = "Windows" ]; then
-              pie install -v thomas-0816/pdo-duckdb-php
+              pie install -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
           else
-              sudo pie install -v thomas-0816/pdo-duckdb-php
+              sudo pie install -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
           fi
           php -m | grep duckdb
           php <<'EOF'
