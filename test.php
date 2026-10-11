@@ -126,10 +126,10 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT '-infinity'::DATE AS negative, 'epoch'::DATE AS epoch, 'infinity'::DATE AS positive");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT 0/0, 0//0"); // -nan, null
+$statement = $db->query("SELECT 0/0, try(0//0)"); // -nan, null
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT 1/0, -1/0, 1//0, -1//0"); // inf, -inf, null, null
+$statement = $db->query("SELECT 1/0, -1/0, try(1//0), try(-1//0)"); // inf, -inf, null, null
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db->exec("CREATE TABLE array_table (id INTEGER, arr INTEGER[3])");

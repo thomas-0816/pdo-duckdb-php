@@ -2,26 +2,19 @@
 
 #if DUCKDB_MAJOR_VERSION >= 2
 
-//! duckdb.hpp already carries duckdb_static_extension.h, so the descriptor layout and the registration entry point
-//! below come from there. The extensions themselves only export their describe functions.
-
-extern "C" {
-int32_t duckdb_extension_core_functions_describe(duckdb_extension_descriptor *descriptor);
-int32_t duckdb_extension_loadable_extensions_describe(duckdb_extension_descriptor *descriptor);
-int32_t duckdb_extension_json_describe(duckdb_extension_descriptor *descriptor);
-int32_t duckdb_extension_icu_describe(duckdb_extension_descriptor *descriptor);
-}
+extern "C" int32_t duckdb_extension_core_functions_describe(duckdb_extension_descriptor *descriptor);
+extern "C" int32_t duckdb_extension_loadable_extensions_describe(duckdb_extension_descriptor *descriptor);
+extern "C" int32_t duckdb_extension_httplib_describe(duckdb_extension_descriptor *descriptor);
+extern "C" int32_t duckdb_extension_json_describe(duckdb_extension_descriptor *descriptor);
+extern "C" int32_t duckdb_extension_icu_describe(duckdb_extension_descriptor *descriptor);
 
 namespace {
 
-//! Bundled extensions register themselves with the engine from a static initializer, so before main and therefore
-//! before any connection exists. The engine's own ExtensionHelper::RegisterLinkedExtensions then publishes whatever is
-//! in the registry onto every DBConfig, and DuckDB's constructor loads them through LoadAllExtensions. Order below is
-//! the load order, so json is registered before icu.
 struct StaticExtensionRegistrar {
 	StaticExtensionRegistrar() {
 		duckdb_register_static_extension(duckdb_extension_core_functions_describe);
 		duckdb_register_static_extension(duckdb_extension_loadable_extensions_describe);
+		duckdb_register_static_extension(duckdb_extension_httplib_describe);
 		duckdb_register_static_extension(duckdb_extension_json_describe);
 		duckdb_register_static_extension(duckdb_extension_icu_describe);
 	}
