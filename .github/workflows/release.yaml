@@ -128,17 +128,12 @@ jobs:
           args: --with-pdo-duckdb
           test-workers: 1
       - name: Upload as a release asset
-        shell: pwsh
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.event.release.tag_name }}
         run: |
-          $ErrorActionPreference = 'Stop'
-          $zip = Get-ChildItem artifacts -Filter "php_pdo_duckdb-*.zip" |
-                 Where-Object { $_.Name -notlike '*-logs*' } | Select-Object -First 1
-          if (-not $zip) { throw "no extension artifact zip produced" }
-          Write-Host "uploading $($zip.Name) $Env:tag"
-          gh release upload "$Env:tag" "$($zip.FullName)" --clobber
+          gh release upload "$tag" artifacts/*.zip --clobber
 
   windows_82_83:
     name: Windows PHP 8.2-8.3
