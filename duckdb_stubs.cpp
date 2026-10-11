@@ -18,8 +18,8 @@ extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector ve
 	try {
 		auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
 		auto *conn_ptr = reinterpret_cast<duckdb::Connection *>(conn);
-		auto &values_vec = VariantVector::GetValues(*vec_ptr);
-		auto &type_id_vec = VariantVector::GetValuesTypeId(*vec_ptr);
+		auto &values_vec = UnifiedVariantVector::GetValues(*vec_ptr);
+		auto &type_id_vec = UnifiedVariantVector::GetValuesTypeId(*vec_ptr);
 
 		idx_t count = row + 1;
 		duckdb::UnifiedVectorFormat uf_values, uf_type_id;
@@ -72,12 +72,12 @@ extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector ve
 			target = LogicalType::TIMESTAMP_TZ;
 			break;
 		case VariantLogicalType::DECIMAL: {
-			auto &byte_offset_vec = VariantVector::GetValuesByteOffset(*vec_ptr);
+			auto &byte_offset_vec = UnifiedVariantVector::GetValuesByteOffset(*vec_ptr);
 			duckdb::UnifiedVectorFormat uf_byte_offset;
 			byte_offset_vec.ToUnifiedFormat(count, uf_byte_offset);
 			auto byte_offset_data = uf_byte_offset.GetData<uint32_t>(uf_byte_offset);
 			uint32_t byte_offset = byte_offset_data[uf_byte_offset.sel->get_index(entry.offset)];
-			auto &data_vec = VariantVector::GetData(*vec_ptr);
+			auto &data_vec = UnifiedVariantVector::GetData(*vec_ptr);
 			duckdb::UnifiedVectorFormat uf_data;
 			data_vec.ToUnifiedFormat(count, uf_data);
 			auto data_index = uf_data.sel->get_index(row);
