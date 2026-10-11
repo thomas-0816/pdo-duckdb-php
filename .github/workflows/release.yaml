@@ -126,6 +126,7 @@ jobs:
           ts: ${{ matrix.ts }}
           arch: x64
           args: --with-pdo-duckdb
+          test-workers: 1
       - name: Upload as a release asset
         shell: bash
         env:
@@ -168,6 +169,7 @@ jobs:
           ts: ${{ matrix.ts }}
           arch: x64
           args: --with-pdo-duckdb
+          test-workers: 1
       - name: Bundle duckdb.dll, upload as a release asset
         shell: pwsh
         env:
