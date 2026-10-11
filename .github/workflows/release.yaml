@@ -185,7 +185,6 @@ jobs:
           $out = $zip.Name
           if (Test-Path $out) { Remove-Item $out -Force }
           Compress-Archive -Path stage\* -DestinationPath $out
-          Write-Host "uploading $out $Env:tag"
           gh release upload "$Env:tag" "$out" --clobber
 
   clamav:
