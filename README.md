@@ -37,7 +37,7 @@ SET error_on_division_by_zero=false;
 SET default_transaction_invalidation_policy='SYNTACTIC_ERRORS_DO_NOT_INVALIDATE';
 ```
 
-More information about [Migrating to DuckDB v2.0](https://duckdb.org/docs/preview/operations_manual/migration)
+More information about [migrating to DuckDB v2.0](https://duckdb.org/docs/preview/operations_manual/migration).
 
 ## Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
