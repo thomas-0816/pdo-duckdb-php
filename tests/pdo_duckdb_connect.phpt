@@ -14,7 +14,7 @@ $statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $statement->fetch()) { var_dump($row); }
 
-$db->exec("INSTAll parquet; LOAD parquet; INSTALL httpfs; LOAD httpfs;");
+$db->exec("INSTALL httpfs; LOAD httpfs;");
 
 $statement = $db->query("
   SELECT extension_name, loaded, installed FROM duckdb_extensions()
@@ -28,7 +28,7 @@ var_dump(in_array('pdo_duckdb', get_loaded_extensions()));
 $db = new PDO('duckdb::memory:');
 try {
     $db->exec("
-        LOAD parquet; LOAD httpfs;
+        LOAD httpfs;
         SET enable_external_access = false;
         select * from 'http://127.0.0.1/tmp/pdo_duckdb_test_table1.parquet';
     ");
@@ -39,7 +39,6 @@ try {
 $db = new PDO('duckdb::memory:');
 try {
     $db->exec("
-        LOAD parquet;
         SET enable_external_access = false;
         select * from '/tmp/pdo_duckdb_test_table1.parquet';
     ");

@@ -28,7 +28,7 @@ if (PHP_PDO_DUCKDB != "no") {
 	ADD_FLAG("LDFLAGS_PDO_DUCKDB", "/LIBPATH:" + DUCKDB_PATH);
 	// rstrtmgr.lib provides the Rm* restart manager calls duckdb makes when it
 	// reports why a file lock is held; ws2_32.lib is already in the default LIBS.
-	ADD_FLAG("LIBS_PDO_DUCKDB", "duckdb_static.lib duckdb_httplib.lib duckdb_loadable_extensions.lib core_functions_extension.lib icu_extension.lib json_extension.lib rstrtmgr.lib");
+	ADD_FLAG("LIBS_PDO_DUCKDB", "duckdb_static.lib duckdb_httplib.lib duckdb_loadable_extensions.lib core_functions_extension.lib icu_extension.lib json_extension.lib parquet_extension.lib rstrtmgr.lib");
 
 	ADD_EXTENSION_DEP("pdo_duckdb", "pdo");
 	AC_DEFINE("HAVE_DUCKDB", 1, "Have DuckDB library");
