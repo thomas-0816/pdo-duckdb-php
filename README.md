@@ -32,7 +32,7 @@ For a complete list, see [What's New in the Docs for 2.0](https://duckdb.org/doc
 
 More information about [migrating to DuckDB v2.0](https://duckdb.org/docs/preview/operations_manual/migration).
 
-## Install and setup DuckDB v2, migration notes
+## Install and setup DuckDB v2
 
 Install and setup (alpha, not for production use):
 
