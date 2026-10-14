@@ -608,6 +608,7 @@ Client connect:
 $client = new PDO('duckdb::memory:', null, null, [
     PDO::DUCKDB_ATTR_INIT_COMMAND =>
         "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;"
+        // "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); CONNECT remote;" // DuckDB v2
 ]);
 $client->exec('CREATE TABLE IF NOT EXISTS table1 (v VARCHAR, v2 VARCHAR)');
 $client->exec("INSERT INTO table1 VALUES ('foo', 'bar')");
@@ -816,6 +817,7 @@ duckdb database.duckdb --cmd "
 # run the clients
 Swoole\Coroutine\run(function() {
   $sql = "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;";
+  // $sql = "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); CONNECT remote;"; // DuckDB v2
   $waitGroup = new Swoole\Coroutine\WaitGroup();
   for ($i = 0; $i < 8; $i++) {
     Swoole\Coroutine::create(function () use ($waitGroup, $sql) {
