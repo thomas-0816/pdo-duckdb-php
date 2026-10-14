@@ -99,7 +99,8 @@ file_put_contents($tmpPhpFile, <<<'END'
     $args = Swoole\Thread::getArguments();
     $pdo = new PDO('duckdb::memory:');
     $pdo->exec("ATTACH 'quack:127.0.0.1:9494' AS remote_db (TOKEN '{$args[1]}', DISABLE_SSL true)");
-    $pdo->exec("INSERT INTO remote_db.orders (user_id) VALUES ({$args[0]})");
+    $pdo->exec("CONNECT remote_db");
+    $pdo->exec("INSERT INTO orders (user_id) VALUES ({$args[0]})");
 END);
 $threads = [];
 for ($i = 0; $i < 10; $i++) {

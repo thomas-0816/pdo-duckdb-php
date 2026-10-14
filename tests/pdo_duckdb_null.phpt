@@ -13,7 +13,7 @@ $statement = $db->query("SELECT
   null::hugeint, null::uhugeint, null::varchar, null::blob, null::decimal, null::timestamp_s, null::timestamp_ms,
   null::timestamp_ns, null::enum('a'), null::struct(duck integer), null::integer[], null::integer[1], map_from_entries(null),
   null::union(str varchar), null::uuid, null::bit, null::timetz, null::timestamptz, null::time_ns, null::geometry,
-  null::variant, null::bignum
+  null::variant, null::bignum, null::struct, row() AS s;
 ");
 $columnCount = $statement->columnCount();
 for ($i = 0; $i < $columnCount; $i++) {
@@ -60,9 +60,11 @@ string(7) "time_ns"
 string(8) "geometry"
 string(4) "json"
 string(6) "bignum"
+string(6) "struct"
+string(6) "struct"
 array(1) {
   [0]=>
-  array(37) {
+  array(39) {
     ["CAST(NULL AS BOOLEAN)"]=>
     NULL
     ["CAST(NULL AS tinyint)"]=>
@@ -137,5 +139,10 @@ array(1) {
     NULL
     ["CAST(NULL AS bignum)"]=>
     NULL
+    ["CAST(NULL AS STRUCT)"]=>
+    NULL
+    ["s"]=>
+    array(0) {
+    }
   }
 }

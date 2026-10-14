@@ -21,6 +21,17 @@ Supported SAPIs: php-cli, php-fpm, mod_php, FrankenPHP, TrueAsync, Swoole
 
 Support end: macOS 14 (August 2026), Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
 
+## DuckDB v2
+
+DuckDB v2 brings many new features:
+
+JSON mutation functions, variant functions, nearest joins, group by UNNEST, triggers, $variable shorthand, async IO,
+connect/disconnect statements, explain (sql), deferred constraints and many more
+
+For a complete list, see [What's New in the Docs for 2.0](https://duckdb.org/docs/preview/whats_new_in_the_docs).
+
+More information about [migrating to DuckDB v2.0](https://duckdb.org/docs/preview/operations_manual/migration).
+
 ## Install and setup DuckDB v2, migration notes
 
 Install and setup (alpha, not for production use):
@@ -33,17 +44,9 @@ php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT version()")->fetchCo
 Backward compatibility:
 
 ```sql
-SET error_on_division_by_zero=false;
-SET default_transaction_invalidation_policy='SYNTACTIC_ERRORS_DO_NOT_INVALIDATE';
+SET error_on_division_by_zero = false;
+SET default_transaction_invalidation_policy = 'SYNTACTIC_ERRORS_DO_NOT_INVALIDATE';
 ```
-
-DuckDB v2 brings many new features:
-
-JSON mutation functions, nearest joins, group by UNNEST, triggers, $variable shorthand, async IO, connect/disconnect statements
-
-For a complete list, see [What's New in the Docs for 2.0](https://duckdb.org/docs/preview/whats_new_in_the_docs).
-
-More information about [migrating to DuckDB v2.0](https://duckdb.org/docs/preview/operations_manual/migration).
 
 ## Install and setup with 🥧 [PIE](https://github.com/php/pie)
 

@@ -59,7 +59,8 @@ for ($i = 0; $i < 10; $i++) {
     $threads[] = Async\spawn_thread(function() use ($i, $authToken) {
         $pdo = new PDO('duckdb::memory:');
         $pdo->exec("ATTACH 'quack:127.0.0.1:9494' AS remote_db (TOKEN '{$authToken}', DISABLE_SSL true)");
-        $pdo->exec("INSERT INTO remote_db.orders (user_id) VALUES ($i)");
+        $pdo->exec("CONNECT remote_db");
+        $pdo->exec("INSERT INTO orders (user_id) VALUES ($i)");
     });
 }
 Async\await_all($threads);

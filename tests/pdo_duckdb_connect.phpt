@@ -84,14 +84,14 @@ $server = new PDO('duckdb::memory:');
 $server->exec("CALL quack_serve('quack:127.0.0.1:9494', token='secret')");
 
 $client1 = new PDO('duckdb::memory:', null, null, [
-    PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;"
+    PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); CONNECT remote;"
 ]);
 $client1->exec('CREATE TABLE IF NOT EXISTS table1 (v VARCHAR, v2 VARCHAR)');
 $client1->exec("INSERT INTO table1 VALUES ('foo', 'bar')");
 var_dump($client1->query('SELECT * FROM table1')->fetchAll(PDO::FETCH_ASSOC));
 
 $client2 = new PDO('duckdb::memory:', null, null, [
-    PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;"
+    PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); CONNECT remote;"
 ]);
 var_dump($client2->query('SELECT * FROM table1')->fetchAll(PDO::FETCH_ASSOC));
 
