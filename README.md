@@ -37,6 +37,12 @@ SET error_on_division_by_zero=false;
 SET default_transaction_invalidation_policy='SYNTACTIC_ERRORS_DO_NOT_INVALIDATE';
 ```
 
+DuckDB v2 brings many new features:
+
+JSON mutation functions, nearest joins, group by UNNEST, triggers, $variable shorthand, async IO, connect/disconnect statements
+
+For a complete list, see [What's New in the Docs for 2.0](https://duckdb.org/docs/preview/whats_new_in_the_docs).
+
 More information about [migrating to DuckDB v2.0](https://duckdb.org/docs/preview/operations_manual/migration).
 
 ## Install and setup with 🥧 [PIE](https://github.com/php/pie)
@@ -674,17 +680,25 @@ SET enable_external_access = false;
 
 # Resource limits
 SET threads = 4;
+
 SET memory_limit = '4GB';
 SET max_temp_directory_size = '4GB';
 
 # Lock configuration
 SET lock_configuration = true;
 
+# Disable compression
+SET force_compression='uncompressed';
+
 # Query timeout (DuckDB v2, e.g. 30s)
 SET max_execution_time = 30000;
 
-# Disable compression
-SET force_compression='uncompressed';
+# Request a checkpoint on database detach (DuckDB v2)
+SET checkpoint_on_detach = 'ENABLED';
+
+# Async IO resource limits (DuckDB v2)
+SET async_threads = 4;
+SET http_client_pool_capacity = 4;
 
 # Disable fsync (DuckDB v2)
 SET fsync_mode = 'none';
