@@ -434,7 +434,7 @@ $db->query('SELECT 99')->fetchColumn();
 $seen = count($first->fetchAll(PDO::FETCH_COLUMN)) + 1;
 $first->closeCursor();
 $first->execute();
-$seen2 = count($first->fetchAll(PDO::FETCH_ASSOC));
+$seen2 = count($first->fetchAll(PDO::FETCH_COLUMN));
 var_dump([$seen, $seen2]);
 
 $second = $db->query('SELECT i FROM range(5000) t(i)');
@@ -443,7 +443,7 @@ $db->exec('CREATE TEMP TABLE IF NOT EXISTS scratch (i INTEGER)');
 $seen = count($second->fetchAll(PDO::FETCH_COLUMN)) + 1;
 $second->closeCursor();
 $second->execute();
-$seen2 = count($second->fetchAll(PDO::FETCH_ASSOC));
+$seen2 = count($second->fetchAll(PDO::FETCH_COLUMN));
 var_dump([$seen, $seen2]);
 
 $third = $db->query('SELECT i FROM range(5000) t(i)');
@@ -452,7 +452,7 @@ $db->prepare('SELECT 1');
 $seen = count($third->fetchAll(PDO::FETCH_COLUMN)) + 1;
 $third->closeCursor();
 $third->execute();
-$seen2 = count($third->fetchAll(PDO::FETCH_ASSOC));
+$seen2 = count($third->fetchAll(PDO::FETCH_COLUMN));
 var_dump([$seen, $seen2]);
 
 $fourth = $db->query('SELECT i FROM range(10) t(i)');
@@ -460,6 +460,14 @@ $fourth->fetchColumn();
 var_dump($db->query('SELECT 99')->fetchColumn());
 $seen = $fourth->fetchAll(PDO::FETCH_COLUMN);
 var_dump([count($seen) + 1, $seen[0]]);
+
+$full = $db->query('SELECT i FROM range(5000) t(i)');
+$seen = [];
+while (($column = $full->fetchColumn()) !== false) {
+    $seen[] = $column;
+}
+var_dump(count($seen));
+var_dump($db->query('SELECT 42')->fetchColumn());
 
 ?>
 --EXPECTF--
@@ -1085,3 +1093,5 @@ array(2) {
   [1]=>
   int(1)
 }
+int(5000)
+int(42)
