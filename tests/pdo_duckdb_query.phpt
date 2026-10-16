@@ -412,6 +412,20 @@ try {
     echo 'Caught: ', $e->getMessage(), PHP_EOL;
 }
 
+$stmt = $db->prepare('SELECT ?');
+try {
+    $stmt->execute([-1 => 'aa']);
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$stmt = $db->prepare('SELECT ?');
+try {
+    $stmt->bindValue(-1, 'aa');
+} catch (Throwable $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -1009,3 +1023,5 @@ array(2) {
 Caught: SQLSTATE[HY000]: could not encode parameter as JSON
 Caught: SQLSTATE[HY000]: could not resolve named parameter ':invalid'
 Caught: SQLSTATE[HY000]: could not resolve named parameter ':invalid'
+Caught: SQLSTATE[HY000]: invalid parameter index -1
+Caught: PDOStatement::bindValue(): Argument #1 ($param) must be greater than or equal to 1
