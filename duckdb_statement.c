@@ -685,6 +685,7 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 		zval *parameter = Z_ISREF(param->parameter) ? Z_REFVAL(param->parameter) : &param->parameter;
 
 		if (param->paramno >= 0) {
+			/* param->paramno is 0-based in PDO, but DuckDB expects 1-based index */
 			idx = (idx_t) param->paramno + 1;
 		} else if (param->name) {
 			/* Inline named parameter resolution */
