@@ -17,7 +17,7 @@ var_dump($db->query('SELECT i, s FROM t ORDER BY i')->fetchAll(PDO::FETCH_ASSOC)
 var_dump($db->query('SELECT i FROM t ORDER BY s, i')->fetchAll(PDO::FETCH_ASSOC));
 var_dump($db->query('SELECT count(*) FROM t WHERE s IS NOT NULL')->fetch(PDO::FETCH_ASSOC));
 
-var_dump($db->query('struct_concat(row(), row(1, 2))')->fetch(PDO::FETCH_ASSOC));
+var_dump($db->query('SELECT struct_concat(row(), row(1, 2))')->fetch(PDO::FETCH_ASSOC));
 var_dump($db->query("SELECT struct_contains(row(), 'a'), struct_contains(row(), 5)")->fetch(PDO::FETCH_ASSOC));
 var_dump($db->query("SELECT struct_concat(row(), row()), struct_concat(row(), {'x': 1}), struct_concat({'x': 1}, row())")->fetch(PDO::FETCH_ASSOC));
 

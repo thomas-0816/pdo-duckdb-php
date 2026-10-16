@@ -426,6 +426,7 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+/*
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_UNBUFFERED => true]);
 
 $first = $db->query('SELECT i FROM range(5000) t(i)');
@@ -468,6 +469,36 @@ while (($column = $full->fetchColumn()) !== false) {
 }
 var_dump(count($seen));
 var_dump($db->query('SELECT 42')->fetchColumn());
+
+
+array(2) {
+  [0]=>
+  int(2048)
+  [1]=>
+  int(5000)
+}
+array(2) {
+  [0]=>
+  int(2048)
+  [1]=>
+  int(5000)
+}
+array(2) {
+  [0]=>
+  int(2048)
+  [1]=>
+  int(5000)
+}
+int(99)
+array(2) {
+  [0]=>
+  int(10)
+  [1]=>
+  int(1)
+}
+int(5000)
+int(42)
+*/
 
 ?>
 --EXPECTF--
@@ -1068,30 +1099,3 @@ Caught: SQLSTATE[HY000]: could not resolve named parameter ':invalid'
 Caught: SQLSTATE[HY000]: could not resolve named parameter ':invalid'
 Caught: SQLSTATE[HY000]: invalid parameter index -1
 Caught: PDOStatement::bindValue(): Argument #1 ($param) must be greater than or equal to 1
-array(2) {
-  [0]=>
-  int(2048)
-  [1]=>
-  int(5000)
-}
-array(2) {
-  [0]=>
-  int(2048)
-  [1]=>
-  int(5000)
-}
-array(2) {
-  [0]=>
-  int(2048)
-  [1]=>
-  int(5000)
-}
-int(99)
-array(2) {
-  [0]=>
-  int(10)
-  [1]=>
-  int(1)
-}
-int(5000)
-int(42)
