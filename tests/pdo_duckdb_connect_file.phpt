@@ -48,6 +48,16 @@ $db2->exec("INSERT INTO t2 values (1, 'asd')");
 $db = new PDO('duckdb:' . $tmpFile);
 var_dump($db->query('SELECT count(*) from t2')->fetchColumn(0));
 
+$tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '_v2.db';
+$db = new PDO('duckdb:' . $tmpFile);
+var_dump($db->query("SELECT tags['storage_version'] FROM duckdb_databases() WHERE internal = false")->fetchColumn());
+var_dump($db->query("SELECT current_setting('storage_compatibility_version')")->fetchColumn());
+
+$tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '_v156.db';
+$db = new PDO('duckdb:' . $tmpFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['storage_compatibility_version' => 'v1.5.6']]);
+var_dump($db->query("SELECT tags['storage_version'] FROM duckdb_databases() WHERE internal = false")->fetchColumn());
+var_dump($db->query("SELECT current_setting('storage_compatibility_version')")->fetchColumn());
+
 // TODO v2 ATTACH 'my_file.db' AS mmaped_db (IO_MODE 'MMAP');
 // TODO v2 ATTACH 'my_file.db' AS mmaped_db (IO_MODE 'DIRECT_IO');
 
@@ -77,3 +87,7 @@ Caught: SQLSTATE[HY000]: Could not open DuckDB database: %s
 Caught: SQLSTATE[HY000]: Could not open DuckDB database: %s
 int(1)
 int(1)
+string(7) "v2.0.0+"
+string(6) "latest"
+string(7) "v1.5.0+"
+string(6) "v1.5.6"

@@ -61,6 +61,10 @@ var_dump($row);
 
 $db->exec("create table t1 (yr integer not null default year(now()::TIMESTAMP))");
 
+$db->exec("SET TimeZone='UTC'");
+$statement = $db->query("select '2026-10-16 22:08:43.12345678901'::TIMESTAMP_NS, 'infinity'::TIMESTAMP_NS, '-infinity'::TIMESTAMP_NS");
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(1) {
@@ -210,4 +214,12 @@ array(3) {
   string(29) "2026-01-23 11:04:56.789123+01"
   [2]=>
   string(29) "2026-01-23 11:04:56.789123+01"
+}
+array(3) {
+  ["CAST('2026-10-16 22:08:43.12345678901' AS TIMESTAMP_NS)"]=>
+  string(29) "2026-10-16 22:08:43.123456789"
+  ["CAST('infinity' AS TIMESTAMP_NS)"]=>
+  string(8) "infinity"
+  ["CAST('-infinity' AS TIMESTAMP_NS)"]=>
+  string(9) "-infinity"
 }

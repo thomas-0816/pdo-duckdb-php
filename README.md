@@ -677,6 +677,7 @@ Use SQL `SET variable = value;` or put the settings inside the PDO::DUCKDB_ATTR_
 SET autoload_known_extensions = false;
 SET autoinstall_known_extensions = false;
 SET allow_community_extensions = false;
+SET allow_persistent_secrets = false;
 
 # Disable external file access, directory white listing
 SET allowed_directories = ['/tmp'];
