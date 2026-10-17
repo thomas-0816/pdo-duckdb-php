@@ -847,7 +847,7 @@ docker run --rm -v $(pwd):/app pdo_duckdb_trueasync2 php /app/test_trueasync.php
 - Custom UDF scalar functions: requires calling PHP functions in parallel which is not supported by NTS and would be very slow
 - Custom UDF table functions: using `select * from json_each('<json_string>')` gives better performance and is easier to use
 - Appender API: using `insert into ... select value->>0, ... from json_each('<json_string>')` is easier to use, gives almost the same performance and provides better error handling
-- open_basedir: only provides security on application level, use real sandboxes like [nono](https://github.com/nolabs-ai/nono) or lightweight VMs like [firecracher](https://github.com/firecracker-microvm/firecracker) instead
+- open_basedir: only provides security on application level, use real sandboxes like [nono](https://github.com/nolabs-ai/nono) or lightweight VMs like [firecracker](https://github.com/firecracker-microvm/firecracker) instead
 - persistent connections: opening a connection to DuckDB is already very fast, a reset function for the database session is currently not available in DuckDB
 - ERRMODE_SILENT, ERRMODE_WARNING: the standard for PHP and all frameworks is ERRMODE_EXCEPTION
 
