@@ -442,6 +442,13 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_UNBUFFERED => true]);
+try {
+    $db->query('SELECT i::TINYINT FROM range(1000) as t(i)')->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -1044,3 +1051,7 @@ Caught: SQLSTATE[HY000]: invalid parameter index -1
 Caught: PDOStatement::bindValue(): Argument #1 ($param) must be greater than or equal to 1
 int(42)
 Caught: SQLSTATE[HY000]: Resource In Use Error: connection has an open result; drain or destroy it before starting a new query
+Caught: SQLSTATE[HY000]: Conversion Error: Type INT64 with value 128 can't be cast because the value is out of range for the destination type INT8 when casting from source column i
+
+LINE 1: SELECT i::TINYINT FROM range(1000) as t(i)
+                ^^^^^^^^^

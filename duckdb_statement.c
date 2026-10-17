@@ -43,7 +43,12 @@ static inline int fetch_next_chunk(pdo_duckdb_stmt *S)
 	}
 
 	if (S->chunk == NULL) {
+		const char *err = duckdb_result_error(res);
+		if (err) {
+			zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: %s", err);
+		}
 		S->chunk_size = 0;
+		S->chunk_idx = 0;
 		S->done = 1;
 		return 0;
 	}
