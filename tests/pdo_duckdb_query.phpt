@@ -143,6 +143,7 @@ foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") a
     $count++;
 }
 echo $count . PHP_EOL;
+var_dump($db->query("SELECT 42")->fetchColumn());
 
 $db = new PDO('duckdb::memory:');
 $statement = $db->query("SELECT 1\0 as a, 'te\0st' as b");
@@ -426,79 +427,20 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
-/*
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_UNBUFFERED => true]);
 
-$first = $db->query('SELECT i FROM range(5000) t(i)');
-$first->fetchColumn();
-$db->query('SELECT 99')->fetchColumn();
-$seen = count($first->fetchAll(PDO::FETCH_COLUMN)) + 1;
-$first->closeCursor();
-$first->execute();
-$seen2 = count($first->fetchAll(PDO::FETCH_COLUMN));
-var_dump([$seen, $seen2]);
-
-$second = $db->query('SELECT i FROM range(5000) t(i)');
-$second->fetchColumn();
-$db->exec('CREATE TEMP TABLE IF NOT EXISTS scratch (i INTEGER)');
-$seen = count($second->fetchAll(PDO::FETCH_COLUMN)) + 1;
-$second->closeCursor();
-$second->execute();
-$seen2 = count($second->fetchAll(PDO::FETCH_COLUMN));
-var_dump([$seen, $seen2]);
-
-$third = $db->query('SELECT i FROM range(5000) t(i)');
-$third->fetchColumn();
-$db->prepare('SELECT 1');
-$seen = count($third->fetchAll(PDO::FETCH_COLUMN)) + 1;
-$third->closeCursor();
-$third->execute();
-$seen2 = count($third->fetchAll(PDO::FETCH_COLUMN));
-var_dump([$seen, $seen2]);
-
-$fourth = $db->query('SELECT i FROM range(10) t(i)');
-$fourth->fetchColumn();
-var_dump($db->query('SELECT 99')->fetchColumn());
-$seen = $fourth->fetchAll(PDO::FETCH_COLUMN);
-var_dump([count($seen) + 1, $seen[0]]);
-
-$full = $db->query('SELECT i FROM range(5000) t(i)');
-$seen = [];
-while (($column = $full->fetchColumn()) !== false) {
-    $seen[] = $column;
-}
-var_dump(count($seen));
+$statement = $db->query('SELECT i FROM range(2500) t(i)');
+$statement->fetchColumn();
+$statement->closeCursor();
 var_dump($db->query('SELECT 42')->fetchColumn());
 
-
-array(2) {
-  [0]=>
-  int(2048)
-  [1]=>
-  int(5000)
+$statement = $db->query('SELECT i FROM range(2500) t(i)');
+$statement->fetchColumn();
+try {
+    $db->query('SELECT 42')->fetchColumn();
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
 }
-array(2) {
-  [0]=>
-  int(2048)
-  [1]=>
-  int(5000)
-}
-array(2) {
-  [0]=>
-  int(2048)
-  [1]=>
-  int(5000)
-}
-int(99)
-array(2) {
-  [0]=>
-  int(10)
-  [1]=>
-  int(1)
-}
-int(5000)
-int(42)
-*/
 
 ?>
 --EXPECTF--
@@ -777,6 +719,7 @@ array(1) {
 bool(false)
 bool(true)
 20000
+int(42)
 array(1) {
   [0]=>
   array(2) {
@@ -1099,3 +1042,5 @@ Caught: SQLSTATE[HY000]: could not resolve named parameter ':invalid'
 Caught: SQLSTATE[HY000]: could not resolve named parameter ':invalid'
 Caught: SQLSTATE[HY000]: invalid parameter index -1
 Caught: PDOStatement::bindValue(): Argument #1 ($param) must be greater than or equal to 1
+int(42)
+Caught: SQLSTATE[HY000]: Resource In Use Error: connection has an open result; drain or destroy it before starting a new query
