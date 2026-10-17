@@ -449,6 +449,14 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+$invalid = $db->prepare('SELECT ?::integer, ?::integer, ?::integer');
+$invalid->execute([42, 'invalid', '42foo']);
+try {
+  $invalid->fetch(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -1055,3 +1063,7 @@ Caught: SQLSTATE[HY000]: Conversion Error: Type INT64 with value 128 can't be ca
 
 LINE 1: SELECT i::TINYINT FROM range(1000) as t(i)
                 ^^^^^^^^^
+Caught: SQLSTATE[HY000]: Conversion Error: Could not convert string 'invalid' to INT32
+
+LINE 1: SELECT ?::integer, ?::integer, ?::integer
+                            ^^^^^^^^^
