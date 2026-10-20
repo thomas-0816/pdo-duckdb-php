@@ -143,6 +143,7 @@ foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") a
     $count++;
 }
 echo $count . PHP_EOL;
+var_dump($db->query("SELECT 42")->fetchColumn());
 
 $db = new PDO('duckdb::memory:');
 $statement = $db->query("SELECT 1\0 as a, 'te\0st' as b");
@@ -412,6 +413,50 @@ try {
     echo 'Caught: ', $e->getMessage(), PHP_EOL;
 }
 
+$stmt = $db->prepare('SELECT ?');
+try {
+    $stmt->execute([-1 => 'aa']);
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$stmt = $db->prepare('SELECT ?');
+try {
+    $stmt->bindValue(-1, 'aa');
+} catch (Throwable $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_UNBUFFERED => true]);
+
+$statement = $db->query('SELECT i FROM range(2500) t(i)');
+$statement->fetchColumn();
+$statement->closeCursor();
+var_dump($db->query('SELECT 42')->fetchColumn());
+
+$statement = $db->query('SELECT i FROM range(2500) t(i)');
+$statement->fetchColumn();
+try {
+    $db->query('SELECT 42')->fetchColumn();
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_UNBUFFERED => true]);
+try {
+    $db->query('SELECT i::TINYINT FROM range(1000) as t(i)')->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
+$invalid = $db->prepare('SELECT ?::integer, ?::integer, ?::integer');
+$invalid->execute([42, 'invalid', '42foo']);
+try {
+  $invalid->fetch(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -658,6 +703,7 @@ array(1) {
 bool(false)
 bool(true)
 20000
+int(42)
 array(1) {
   [0]=>
   array(2) {
@@ -975,3 +1021,15 @@ array(2) {
 Caught: SQLSTATE[HY000]: could not encode parameter as JSON
 Caught: SQLSTATE[HY000]: could not resolve named parameter ':invalid'
 Caught: SQLSTATE[HY000]: could not resolve named parameter ':invalid'
+Caught: SQLSTATE[HY000]: invalid parameter index -1
+Caught: PDOStatement::bindValue(): Argument #1 ($param) must be greater than or equal to 1
+int(42)
+Caught: SQLSTATE[HY000]: Resource In Use Error: connection has an open result; drain or destroy it before starting a new query
+Caught: SQLSTATE[HY000]: Conversion Error: Type INT64 with value 128 can't be cast because the value is out of range for the destination type INT8 when casting from source column i
+
+LINE 1: SELECT i::TINYINT FROM range(1000) as t(i)
+                ^^^^^^^^^
+Caught: SQLSTATE[HY000]: Conversion Error: Could not convert string 'invalid' to INT32
+
+LINE 1: SELECT ?::integer, ?::integer, ?::integer
+                            ^^^^^^^^^

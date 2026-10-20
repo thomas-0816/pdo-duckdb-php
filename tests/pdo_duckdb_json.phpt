@@ -57,11 +57,12 @@ $db->exec("COPY (SELECT * FROM '{$jsonFile}') TO '{$parquetFile}' (COMPRESSION z
 $statement = $db->query("SELECT * FROM '{$parquetFile}'");
 var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
-$url = 'https://httpbin.org/headers';
+$url = 'https://mockhttp.org/headers';
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE SECRET http_auth (TYPE http, SCOPE '{$url}', BEARER_TOKEN 'some secret')");
-$rows = $db->query("SELECT * FROM read_json('{$url}')");
-var_dump($rows->fetchAll(PDO::FETCH_ASSOC));
+$db->exec('SET force_download=true');
+$row = $db->query("SELECT headers.authorization FROM read_json('{$url}')");
+var_dump($row->fetchColumn());
 
 ?>
 --EXPECTF--
@@ -148,21 +149,4 @@ array(1) {
   ["log"]=>
   string(8) "log text"
 }
-array(1) {
-  [0]=>
-  array(1) {
-    ["headers"]=>
-    array(5) {
-      ["Accept"]=>
-      string(3) "*/*"
-      ["Authorization"]=>
-      string(18) "Bearer some secret"
-      ["Host"]=>
-      string(11) "httpbin.org"
-      ["User-Agent"]=>
-      string(%d) "duckdb/%s"
-      ["X-Amzn-Trace-Id"]=>
-      string(40) "Root=%s"
-    }
-  }
-}
+string(18) "Bearer some secret"
