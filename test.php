@@ -3,6 +3,10 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+set_error_handler(function (int $severity, string $message, string $file, int $line): bool {
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
+
 var_dump(in_array('duckdb', PDO::getAvailableDrivers()));
 
 $duckDb = new PDO('duckdb::memory:');
@@ -18,8 +22,8 @@ $statement->execute([1, 42.21, 'Hello DuckDB! 🐘 💓 🦆']);
 $statement = $duckDb->query("SELECT * FROM table1");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$parquet = tempnam('/tmp', 'pdo_duckdb_test') . '.parquet';
-$duckDb = new PDO('duckdb:' . tempnam('/tmp', 'pdo_duckdb_test') . '.db');
+$parquet = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.parquet';
+$duckDb = new PDO('duckdb:' . tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.db');
 $duckDb->exec("CREATE TABLE table2 (id INTEGER, text VARCHAR, data JSON)");
 
 $statement = $duckDb->prepare("INSERT INTO table2 VALUES (?, ?, ?)");
@@ -56,8 +60,8 @@ $statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello']);
 $statement = $db->query("SELECT * FROM t", PDO::FETCH_ASSOC);
 while ($row = $statement->fetch()) { print_r($row); }
 
-$json = tempnam('/tmp', 'pdo_duckdb_test') . '.json';
-$db = new PDO('duckdb:' . tempnam('/tmp', 'pdo_duckdb_test') . '.db');
+$json = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.json';
+$db = new PDO('duckdb:' . tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.db');
 $db->exec("CREATE TABLE t (i INTEGER, v VARCHAR)");
 $statement = $db->prepare("INSERT INTO t VALUES (?, ?)");
 $statement->execute([1, 'hello']);
@@ -77,7 +81,7 @@ $list = [
     ['123', '456', '789'],
     ['aaa', 'bbb', 'ccc']
 ];
-$csv = tempnam('/tmp', 'pdo_duckdb_test') . '.csv';
+$csv = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.csv';
 $fp = fopen($csv, 'w');
 foreach ($list as $fields) {
     fputcsv($fp, $fields, ',', '"', "");
@@ -122,10 +126,10 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT '-infinity'::DATE AS negative, 'epoch'::DATE AS epoch, 'infinity'::DATE AS positive");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT 0/0, 0//0"); // -nan, null
+$statement = $db->query("SELECT 0/0, try(0//0)"); // -nan, null
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT 1/0, -1/0, 1//0, -1//0"); // inf, -inf, null, null
+$statement = $db->query("SELECT 1/0, -1/0, try(1//0), try(-1//0)"); // inf, -inf, null, null
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db->exec("CREATE TABLE array_table (id INTEGER, arr INTEGER[3])");
@@ -498,12 +502,12 @@ $db->exec("INSERT INTO geometries VALUES
 $statement = $db->query("SELECT geom FROM geometries");
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$json = tempnam('/tmp', 'pdo_duckdb_test') . '.json';
+$json = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.json';
 file_put_contents($json, json_encode(['date' => '2026-01-02 03:04:05', 'log' => 'log text']) . PHP_EOL);
 file_put_contents($json, json_encode(['date' => '2026-02-03 04:05:06', 'log' => 'log text 2']) . PHP_EOL, FILE_APPEND);
 
-$parquet = tempnam('/tmp', 'pdo_duckdb_test') . '.parquet';
-$parquet2 = tempnam('/tmp', 'pdo_duckdb_test') . '.parquet';
+$parquet = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.parquet';
+$parquet2 = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.parquet';
 
 // limit threads and memory usage for converting big files, see https://github.com/duckdb/duckdb/issues/16078
 // 100k rows per group
@@ -688,7 +692,7 @@ foreach ($db->query("SELECT range::INTEGER AS n FROM range(10000) ORDER BY n") a
 }
 echo $count . PHP_EOL;
 
-$dbFile = tempnam('/tmp', 'pdo_duckdb_test') . '.db';
+$dbFile = tempnam(sys_get_temp_dir(), 'pdo_duckdb_test') . '.db';
 new PDO('duckdb:' . $dbFile);
 $db = new PDO('duckdb:' . $dbFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only', 'memory_limit' => '4GB', 'threads' => 1]]);
 $statement = $db->query("SELECT value FROM duckdb_settings() WHERE name IN ('access_mode', 'memory_limit', 'threads')");
@@ -759,7 +763,7 @@ $db->exec("INSERT INTO t1 VALUES (MAP {'key1': 10}), ('[1, null, {\"key\": \"val
 $db->exec("INSERT INTO t1 VALUES (TIMESTAMP_NS '1992-09-20 11:30:00.123456789'), (TIMESTAMP_MS '1992-09-20 11:30:00.123456789'), (TIMESTAMP_S '1992-09-20 11:30:00.123456789')");
 $db->exec("INSERT INTO t1 VALUES (TIMESTAMPTZ '1992-09-20 11:30:00.123456789'), (TIMESTAMPTZ '1992-09-20 12:30:00.123456789+01:00'), (timezone('America/Denver', TIMESTAMP '2001-02-16 20:38:40'))");
 $statement = $db->query("SELECT * FROM t1");
-print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+var_export($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:');
 $db->exec("create table t1 (s STRUCT(v VARIANT))");
