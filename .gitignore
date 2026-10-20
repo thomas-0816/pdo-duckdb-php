@@ -13,6 +13,7 @@ Makefile*
 configure*
 libtool
 duckdb.h
+duckdb.hpp
 libduckdb.so
 libduckdb.dylib
 run-tests.php

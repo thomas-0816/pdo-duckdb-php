@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  linux:
-    name: Linux
+  setup:
+    name: setup
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -23,6 +23,10 @@ jobs:
           - ubuntu-24.04-arm
           - ubuntu-26.04
           - ubuntu-26.04-arm
+          - macos-15
+          - macos-26
+          - windows-2022
+          - windows-2025
         php-version:
           - 8.2
           - 8.3
@@ -32,22 +36,42 @@ jobs:
         thread-safety:
           - zts
           - nts
+        variant:
+          - plain
+          - swoole
+        exclude:
+          - php-version: 8.6
+            variant: swoole
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Setup PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
+          tools: composer, pie
+          extensions: ${{ matrix.variant == 'swoole' && (startsWith(matrix.os, 'windows') && 'swoole-alpha' || 'swoole') || '' }}
         env:
           phpts: ${{ matrix.thread-safety }}
+          verbose: true
       - name: Debug PHP
         shell: bash
+        env:
+          os: ${{ matrix.os }}
+          variant: ${{ matrix.variant }}
         run: |
           uname -a
           php -v
           php -i
-          free
-          cat /proc/cpuinfo
+          composer --version
+          pie --version
+          php -m
+          if [ "$variant" = "swoole" ]; then
+              php -m | grep swoole
+          fi
+          if [ "$RUNNER_OS" = "Linux" ]; then
+              free
+              cat /proc/cpuinfo
+          fi

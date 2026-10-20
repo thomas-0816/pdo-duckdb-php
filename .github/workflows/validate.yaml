@@ -37,13 +37,12 @@ jobs:
         thread-safety:
           - zts
           - nts
-
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Setup PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
@@ -52,8 +51,6 @@ jobs:
           phpts: ${{ matrix.thread-safety }}
       - name: Install and test the extension
         shell: bash
-        env:
-          os: ${{ matrix.os }}
         run: |
           uname -a
           php -v
