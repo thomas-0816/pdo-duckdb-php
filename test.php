@@ -656,7 +656,6 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 $db = new PDO('duckdb::memory:');
 try {
     $db->exec("
-        LOAD parquet;
         SET enable_external_access = false;
         SELECT * FROM 'http://127.0.0.1/tmp/pdo_duckdb_test_table1.parquet';
     ");
@@ -667,7 +666,6 @@ try {
 $db = new PDO('duckdb::memory:');
 try {
     $db->exec("
-        LOAD parquet;
         SET enable_external_access = false;
         SELECT * FROM '/tmp/pdo_duckdb_test_table1.parquet';
     ");
