@@ -65,7 +65,6 @@ if (! class_exists(Swoole\Thread::class)) {
     return;
 }
 
-
 // run in parallel using threads, in-memory
 $tmpPhpFile = tempnam(sys_get_temp_dir(), 'swoole') . '.php';
 file_put_contents($tmpPhpFile, '<?php
