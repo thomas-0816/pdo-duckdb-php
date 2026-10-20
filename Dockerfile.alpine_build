@@ -25,11 +25,13 @@ EOF
 WORKDIR /pdo-duckdb-php
 
 RUN <<EOF
-    make clean
+    set -euxo pipefail
+    make clean || true
     cp /usr/lib/libduckdb_* ./
     cp /usr/lib/libcore_functions_extension.a ./
     cp /usr/lib/libjson_extension.a ./
     cp /usr/lib/libicu_extension.a ./
+    cp /usr/lib/libparquet_extension.a ./
     cp /usr/include/duckdb.h ./
     cp /usr/include/duckdb.hpp ./
     phpize82
@@ -53,6 +55,7 @@ RUN <<EOF
     cp /usr/lib/libcore_functions_extension.a ./
     cp /usr/lib/libjson_extension.a ./
     cp /usr/lib/libicu_extension.a ./
+    cp /usr/lib/libparquet_extension.a ./
     cp /usr/include/duckdb.h ./
     cp /usr/include/duckdb.hpp ./
     phpize83
@@ -76,6 +79,7 @@ RUN <<EOF
     cp /usr/lib/libcore_functions_extension.a ./
     cp /usr/lib/libjson_extension.a ./
     cp /usr/lib/libicu_extension.a ./
+    cp /usr/lib/libparquet_extension.a ./
     cp /usr/include/duckdb.h ./
     cp /usr/include/duckdb.hpp ./
     phpize84
@@ -99,6 +103,7 @@ RUN <<EOF
     cp /usr/lib/libcore_functions_extension.a ./
     cp /usr/lib/libjson_extension.a ./
     cp /usr/lib/libicu_extension.a ./
+    cp /usr/lib/libparquet_extension.a ./
     cp /usr/include/duckdb.h ./
     cp /usr/include/duckdb.hpp ./
     phpize85
@@ -122,6 +127,7 @@ RUN <<EOF
     cp /usr/lib/libcore_functions_extension.a ./
     cp /usr/lib/libjson_extension.a ./
     cp /usr/lib/libicu_extension.a ./
+    cp /usr/lib/libparquet_extension.a ./
     cp /usr/include/duckdb.h ./
     cp /usr/include/duckdb.hpp ./
     phpize86
