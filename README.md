@@ -719,6 +719,8 @@ $db = new PDO('duckdb::memory:', null, null, [
         "SET threads = 2; SET memory_limit = '4GB';"]);
 ```
 
+The DuckDB security model is described [here](https://duckdb.org/security).
+
 ## Compile NTS
 
 ```bash
