@@ -43,7 +43,12 @@ static inline int fetch_next_chunk(pdo_duckdb_stmt *S)
 	}
 
 	if (S->chunk == NULL) {
+		const char *err = duckdb_result_error(res);
+		if (err) {
+			zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: %s", err);
+		}
 		S->chunk_size = 0;
+		S->chunk_idx = 0;
 		S->done = 1;
 		return 0;
 	}
@@ -686,8 +691,8 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 
 		if (param->paramno >= 0) {
 			/* param->paramno is 0-based in PDO, but DuckDB expects 1-based index */
-			idx = param->paramno + 1;
-		} else {
+			idx = (idx_t) param->paramno + 1;
+		} else if (param->name) {
 			/* Inline named parameter resolution */
 			const char *name = ZSTR_VAL(param->name);
 			const char *bare = name;
@@ -696,10 +701,12 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 			}
 			duckdb_state pstate = duckdb_bind_parameter_index(S->stmt, &idx, bare);
 			if (pstate != DuckDBSuccess || idx == 0) {
-				zend_throw_exception_ex(php_pdo_get_exception(), 0,
-					"SQLSTATE[HY000]: could not resolve named parameter '%s'", ZSTR_VAL(param->name));
+				zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: could not resolve named parameter '%s'", ZSTR_VAL(param->name));
 				return 0;
 			}
+		} else {
+			zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: invalid parameter index %lld", (long long) param->paramno);
+			return 0;
 		}
 
 		if (Z_ISNULL_P(parameter)) {
