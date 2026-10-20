@@ -119,8 +119,6 @@ __Apache Parquet__: very fast and efficient column based storage file format con
 Each column is split into several column groups. Depending on the query, the file can be read partially by certain columns groups.\
 Different compression or dictionary algorithms can be applied to each column. Also supports encryption.
 
-__Note__: You can read and save Parquet files on local file systems or directly on [S3 object storage](https://duckdb.org/docs/lts/core_extensions/httpfs/s3api).
-
 ## Read CSV files with SQL
 
 ```php
@@ -360,7 +358,7 @@ var_export($statement->fetch(PDO::FETCH_NUM));
 Start MariaDB container, create and fill "orders" table:
 
 ```bash
-docker run --rm -it -p 3306:3306 -e MARIADB_ROOT_PASSWORD=secret -e MARIADB_DATABASE=testdb mariadb:12
+docker run --rm -p 3306:3306 -e MARIADB_ROOT_PASSWORD=secret -e MARIADB_DATABASE=testdb mariadb:12
 mysql -h 127.0.0.1 -u root -psecret testdb -e "
     CREATE TABLE orders (id integer primary key, customer integer, origin varchar(255));
     INSERT INTO orders VALUES (1, 42, 'shop');
@@ -368,7 +366,7 @@ mysql -h 127.0.0.1 -u root -psecret testdb -e "
 "
 ```
 
-Use DuckDB [MySQL extension](https://duckdb.org/docs/lts/core_extensions/mysql) to copy "orders" table from MariaDB to a parquet file:
+Use DuckDB [MySQL extension](https://duckdb.org/docs/current/core_extensions/mysql) to copy "orders" table from MariaDB to a parquet file:
 
 ```php
 $db = new PDO('duckdb::memory:');
@@ -395,7 +393,7 @@ print_r($rows);
 Start PostgreSQL container, create and fill "orders" table:
 
 ```bash
-docker run --rm -it -p 5432:5432 -e POSTGRES_PASSWORD=secret postgres:18
+docker run --rm -p 5432:5432 -e POSTGRES_PASSWORD=secret postgres:18
 PGPASSWORD=secret psql -h 127.0.0.1 -U postgres -c "
     CREATE TABLE orders (id integer primary key, customer integer, origin varchar(255));
     INSERT INTO orders VALUES (1, 42, 'shop');
@@ -403,7 +401,7 @@ PGPASSWORD=secret psql -h 127.0.0.1 -U postgres -c "
 "
 ```
 
-Use DuckDB [PostgreSQL extension](https://duckdb.org/docs/lts/core_extensions/postgres) to copy "orders" table from PostgreSQL to a parquet file:
+Use DuckDB [PostgreSQL extension](https://duckdb.org/docs/current/core_extensions/postgres) to copy "orders" table from PostgreSQL to a parquet file:
 
 ```php
 $db = new PDO('duckdb::memory:');
@@ -539,7 +537,35 @@ print_r($rows->fetchAll(PDO::FETCH_ASSOC));
 #             [X-Amzn-Trace-Id] => Root=1-6aab0271-2c027dfa07bc6def14ce4e72
 ```
 
-See the documentation for [managing secrets](https://duckdb.org/docs/current/configuration/secrets_manager) and [read_json()](https://duckdb.org/docs/lts/data/json/loading_json).
+See the documentation for [managing secrets](https://duckdb.org/docs/current/configuration/secrets_manager) and [read_json()](https://duckdb.org/docs/current/data/json/loading_json).
+
+## Read data from S3, write data to S3
+
+Start [RustFS](https://rustfs.com) container, create new "my-bucket" bucket:
+
+```bash
+docker run --rm -p 9000:9000 rustfs/rustfs --access-key "access-key" --secret-key "secret-key"
+docker run --network host --entrypoint sh rustfs/rc -c "
+  rc alias set local http://127.0.0.1:9000 'access-key' 'secret-key'
+  rc bucket create local/my-bucket"
+```
+
+Use DuckDB [httpfs](https://duckdb.org/docs/current/core_extensions/httpfs/s3api) extension to read and write data from/to S3:
+
+```php
+$db = new PDO('duckdb::memory:');
+// set credentials
+$db->exec("CREATE SECRET rustfs (TYPE s3, ENDPOINT '127.0.0.1:9000', USE_SSL false,
+    URL_STYLE 'path', KEY_ID 'access-key', SECRET 'secret-key')");
+// write data to S3
+$db->exec("COPY ( select 'bar' as foo ) TO 's3://my-bucket/numbers.parquet' (FORMAT parquet)");
+// read data from S3
+$row = $db->query("SELECT * FROM 's3://my-bucket/numbers.parquet'");
+print_r($row->fetch(PDO::FETCH_ASSOC));
+
+# Array
+#     [foo] => bar
+```
 
 ## Client-server mode (Quack Remote Protocol)
 
@@ -585,7 +611,7 @@ echo $result, PHP_EOL;
 # SELECT * FROM customers WHERE age(birth_date) > 30;
 ```
 
-More extensions: [List of Core Extensions](https://duckdb.org/docs/lts/core_extensions/overview), [List of Community Extensions](https://duckdb.org/community_extensions/list_of_extensions)
+More extensions: [List of Core Extensions](https://duckdb.org/docs/current/core_extensions/overview), [List of Community Extensions](https://duckdb.org/community_extensions/list_of_extensions)
 
 __Note__: Community extensions are third party projects, NOT maintained or reviewed by the DuckDB team.
 
@@ -623,6 +649,7 @@ Use SQL `SET variable = value;` or put the settings inside the PDO::DUCKDB_ATTR_
 SET autoload_known_extensions = false;
 SET autoinstall_known_extensions = false;
 SET allow_community_extensions = false;
+SET allow_persistent_secrets = false;
 
 # Disable external file access, directory white listing
 SET allowed_directories = ['/tmp'];
@@ -636,6 +663,9 @@ SET max_temp_directory_size = '4GB';
 # Lock configuration
 SET lock_configuration = true;
 
+# Disable compression
+SET force_compression='uncompressed';
+
 # Query timeout (DuckDB v2, e.g. 30s)
 SET max_execution_time = 30000;
 
@@ -646,7 +676,7 @@ SET force_compression='uncompressed';
 SET fsync_mode = 'none';
 ```
 
-A complete list is available in the DuckDB documentation: [Securing DuckDB](https://duckdb.org/docs/lts/operations_manual/securing_duckdb/overview).
+A complete list is available in the DuckDB documentation: [Securing DuckDB](https://duckdb.org/docs/current/operations_manual/securing_duckdb/overview).
 
 Alternatively, you can run SQL statements when the connection is estabilshed using PDO::DUCKDB_ATTR_INIT_COMMAND:
 
@@ -655,6 +685,8 @@ $db = new PDO('duckdb::memory:', null, null, [
     PDO::DUCKDB_ATTR_INIT_COMMAND =>
         "SET threads = 2; SET memory_limit = '4GB';"]);
 ```
+
+The DuckDB security model is described [here](https://duckdb.org/security).
 
 ## Compile NTS
 
@@ -669,7 +701,8 @@ wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux
 unzip -o static-libs-linux-amd64.zip -d ./
 
 phpize
-./configure --with-pdo-duckdb
+./configure --with-pdo-duckdb CC=gcc CXX=g++
+# ./configure --with-pdo-duckdb CC=clang CXX=clang++
 make
 NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
@@ -694,7 +727,8 @@ wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/static-libs-linux
 unzip -o static-libs-linux-amd64.zip -d ./
 
 phpize-zts
-./configure --with-pdo-duckdb --with-php-config=php-config-zts
+./configure --with-pdo-duckdb --with-php-config=php-config-zts CC=gcc CXX=g++
+# ./configure --with-pdo-duckdb --with-php-config=php-config-zts CC=clang CXX=clang++
 make
 NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
@@ -776,9 +810,18 @@ Swoole\Coroutine\run(function() {
 
 ```bash
 docker build --no-cache -f Dockerfile.trueasync2 -t pdo_duckdb_trueasync2 .
-docker run --rm -it pdo_duckdb_trueasync2 php -m
-docker run --rm -it -v $(pwd):/app pdo_duckdb_trueasync2 php /app/test_trueasync.php
+docker run --rm pdo_duckdb_trueasync2 php -m
+docker run --rm -v $(pwd):/app pdo_duckdb_trueasync2 php /app/test_trueasync.php
 ```
+
+## Features not implemented
+
+- Custom UDF scalar functions: requires calling PHP functions in parallel which is not supported by NTS and would be very slow
+- Custom UDF table functions: using `select * from json_each('<json_string>')` gives better performance and is easier to use
+- Appender API: using `insert into ... select value->>0, ... from json_each('<json_string>')` is easier to use, gives almost the same performance and provides better error handling
+- open_basedir: only provides security on application level, use real sandboxes like [nono](https://github.com/nolabs-ai/nono) or lightweight VMs like [firecracker](https://github.com/firecracker-microvm/firecracker) instead
+- persistent connections: opening a connection to DuckDB is already very fast, a reset function for the database session is currently not available in DuckDB
+- ERRMODE_SILENT, ERRMODE_WARNING: the standard for PHP and all frameworks is ERRMODE_EXCEPTION
 
 ## Why DuckDB?
 
@@ -834,10 +877,18 @@ php run-tests.php --show-diff --show-clean -q
 php-zts run-tests.php --show-diff --show-clean -q
 ```
 
-## Laravel / Symfony
+## Laravel, Symfony
 
 - [Laravel Eloquent driver for DuckDB](https://github.com/thomas-0816/laravel-duckdb)
 - [Doctrine DBAL for DuckDB](https://github.com/thomas-0816/doctrine-dbal-duckdb)
+
+## DuckDB Resources
+
+- [DuckDB documentation](https://duckdb.org/docs/current/)
+- [DuckDB engineering blog](https://duckdb.org/news/)
+- [Awesome DuckDB](https://github.com/davidgasquez/awesome-duckdb)
+- [DuckDB books](https://duckdb.org/library/?type=book)
+- [DuckDB talks](https://duckdb.org/library/?type=talk)
 
 ## AI Disclosure
 
