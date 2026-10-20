@@ -19,7 +19,7 @@ RUN <<EOF
         php86 php86-pdo php86-mbstring php86-dev \
         --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
     ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
-    git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git
+    git clone --depth=1 --branch=v1_5 https://github.com/thomas-0816/pdo-duckdb-php.git
 EOF
 
 WORKDIR /pdo-duckdb-php
