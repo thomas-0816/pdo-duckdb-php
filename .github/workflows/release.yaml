@@ -57,7 +57,7 @@ jobs:
             macos-15)         libduckdb=duckdb-static-libs-osx-arm64.tar.gz ;;
             *) echo "unmapped runner os"; exit 1 ;;
           esac
-          curl -fsSL "https://artifacts.duckdb.org/staged/v2.0-cyanoptera/${libduckdb}" -o ${libduckdb}
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v2.0.0/${libduckdb}" -o ${libduckdb}
           tar xvzf ${libduckdb}
           tar xvzf libduckdb-src.tar.gz
       - name: Build and upload prebuilt binary
@@ -114,7 +114,7 @@ jobs:
       - name: Download libduckdb
         shell: bash
         run: |
-          curl -fsSL "https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-static-libs-windows-amd64.tar.gz" -o duckdb-static-libs-windows-amd64.tar.gz
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-static-libs-windows-amd64.tar.gz" -o duckdb-static-libs-windows-amd64.tar.gz
           tar xvzf duckdb-static-libs-windows-amd64.tar.gz
           tar xvzf libduckdb-src.tar.gz
           ls -lisa
@@ -156,7 +156,7 @@ jobs:
       - name: Download libduckdb dll
         shell: bash
         run: |
-          curl -fsSL "https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-shared-libs-windows-amd64.tar.gz" -o duckdb-shared-libs-windows-amd64.tar.gz
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-shared-libs-windows-amd64.tar.gz" -o duckdb-shared-libs-windows-amd64.tar.gz
           tar xvzf duckdb-shared-libs-windows-amd64.tar.gz
           tar xvzf libduckdb-src.tar.gz
           ls -lisa

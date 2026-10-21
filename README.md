@@ -726,7 +726,7 @@ The DuckDB security model is described [here](https://duckdb.org/security).
 git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
 cd pdo_duckdb
 
-wget https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-static-libs-linux-amd64.tar.gz
+wget https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-static-libs-linux-amd64.tar.gz
 tar xvzf duckdb-static-libs-linux-amd64.tar.gz
 tar xvzf libduckdb-src.tar.gz
 
@@ -750,7 +750,7 @@ php test.php
 git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
 cd pdo_duckdb
 
-wget https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-static-libs-linux-amd64.tar.gz
+wget https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-static-libs-linux-amd64.tar.gz
 tar xvzf duckdb-static-libs-linux-amd64.tar.gz
 tar xvzf libduckdb-src.tar.gz
 

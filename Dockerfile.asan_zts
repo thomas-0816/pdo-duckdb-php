@@ -54,7 +54,7 @@ RUN <<EOF
 
     cd pdo-duckdb-php
     make clean || true
-    curl -fsSL "https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-static-libs-linux-amd64.tar.gz" -o duckdb-static-libs-linux-amd64.tar.gz
+    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-static-libs-linux-amd64.tar.gz" -o duckdb-static-libs-linux-amd64.tar.gz
     tar xvzf duckdb-static-libs-linux-amd64.tar.gz
     tar xvzf libduckdb-src.tar.gz
     phpize

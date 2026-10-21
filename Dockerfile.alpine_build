@@ -32,7 +32,7 @@ RUN <<EOF
         aarch64|arm64) duckdb_arch=arm64 ; arch_name=arm64 ;;
         *) echo "unsupported arch: $arch"; exit 1 ;;
     esac
-    wget https://artifacts.duckdb.org/staged/v2.0-cyanoptera/duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
+    wget https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
 
     make clean || true
     tar xvzf duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
