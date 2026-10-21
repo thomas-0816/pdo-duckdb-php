@@ -24,13 +24,20 @@ Support end: macOS 14 (August 2026), Ubuntu 22.04 (April 2027), Debian 12 (April
 ## Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
 ```bash
-pie install thomas-0816/pdo-duckdb-php
+# DuckDB 1.x
+pie install thomas-0816/pdo-duckdb-php:^1
+# DuckDB 2.x
+pie install thomas-0816/pdo-duckdb-php:^2-beta
 ```
 
 ## Install and load on demand with 🥧 [PIE](https://github.com/php/pie)
 
 ```bash
-pie install --skip-enable-extension thomas-0816/pdo-duckdb-php
+# DuckDB 1.x
+pie install --skip-enable-extension thomas-0816/pdo-duckdb-php:^1
+# DuckDB 2.x
+pie install --skip-enable-extension thomas-0816/pdo-duckdb-php:^2-beta
+
 php -d extension=pdo_duckdb some_script.php
 ```
 
