@@ -163,10 +163,10 @@ array(1) {
 }
 array(1) {
   [""version"()"]=>
-  string(%d) "v2.0.0-%s"
+  string(%d) "v2.0.%s"
 }
-string(%d) "v2.0.0-%s"
-string(%d) "v2.0.0-%s"
+string(%d) "v2.0.%s"
+string(%d) "v2.0.%s"
 string(6) "duckdb"
 array(3) {
   ["allow_community_extensions"]=>

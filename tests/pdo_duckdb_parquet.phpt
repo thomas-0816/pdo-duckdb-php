@@ -312,9 +312,9 @@ array(1) {
     ["footer_signing_key_metadata"]=>
     NULL
     ["file_size_bytes"]=>
-    int(417)
+    int(%d)
     ["footer_size"]=>
-    int(304)
+    int(%d)
     ["column_orders"]=>
     array(2) {
       [0]=>
