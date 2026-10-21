@@ -32,16 +32,7 @@ For a complete list, see [What's New in the Docs for 2.0](https://duckdb.org/doc
 
 More information about [migrating to DuckDB v2.0](https://duckdb.org/docs/preview/operations_manual/migration).
 
-## Install and setup DuckDB v2
-
-Install and setup (alpha, not for production use):
-
-```bash
-pie install thomas-0816/pdo-duckdb-php:^2-beta
-php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT version()")->fetchColumn());'
-```
-
-Backward compatibility:
+v2 backward compatibility settings:
 
 ```sql
 SET error_on_division_by_zero = false;
@@ -51,13 +42,20 @@ SET default_transaction_invalidation_policy = 'SYNTACTIC_ERRORS_DO_NOT_INVALIDAT
 ## Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
 ```bash
-pie install thomas-0816/pdo-duckdb-php
+# DuckDB 1.x
+pie install thomas-0816/pdo-duckdb-php:^1
+# DuckDB 2.x
+pie install thomas-0816/pdo-duckdb-php:^2-beta
 ```
 
 ## Install and load on demand with 🥧 [PIE](https://github.com/php/pie)
 
 ```bash
-pie install --skip-enable-extension thomas-0816/pdo-duckdb-php
+# DuckDB 1.x
+pie install --skip-enable-extension thomas-0816/pdo-duckdb-php:^1
+# DuckDB 2.x
+pie install --skip-enable-extension thomas-0816/pdo-duckdb-php:^2-beta
+
 php -d extension=pdo_duckdb some_script.php
 ```
 

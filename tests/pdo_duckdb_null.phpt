@@ -8,7 +8,7 @@ pdo_duckdb
 $db = new PDO('duckdb::memory:');
 
 $statement = $db->query("SELECT
-  null::boolean, null::tinyint, null::smallint, null::integer, null::bigint, null::utinyint, null::usmallint,
+  null, null::boolean, null::tinyint, null::smallint, null::integer, null::bigint, null::utinyint, null::usmallint,
   null::uinteger, null::ubigint, null::float, null::double, null::timestamp, null::date, null::time, null::interval,
   null::hugeint, null::uhugeint, null::varchar, null::blob, null::decimal, null::timestamp_s, null::timestamp_ms,
   null::timestamp_ns, null::enum('a'), null::struct(duck integer), null::integer[], null::integer[1], map_from_entries(null),
@@ -23,6 +23,7 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 ?>
 --EXPECTF--
+string(4) "null"
 string(7) "boolean"
 string(7) "tinyint"
 string(8) "smallint"
@@ -64,7 +65,9 @@ string(6) "struct"
 string(6) "struct"
 array(1) {
   [0]=>
-  array(39) {
+  array(40) {
+    ["NULL"]=>
+    NULL
     ["CAST(NULL AS BOOLEAN)"]=>
     NULL
     ["CAST(NULL AS tinyint)"]=>
