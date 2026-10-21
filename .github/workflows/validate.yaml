@@ -49,6 +49,7 @@ jobs:
           tools: pie
         env:
           phpts: ${{ matrix.thread-safety }}
+          update: true
       - name: Install and test the extension
         shell: bash
         run: |

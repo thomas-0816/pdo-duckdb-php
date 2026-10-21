@@ -43,6 +43,7 @@ jobs:
           coverage: none
         env:
           phpts: ${{ matrix.thread-safety }}
+          update: true
       - name: Download DuckDB static libs for this os/arch
         shell: bash
         env:
