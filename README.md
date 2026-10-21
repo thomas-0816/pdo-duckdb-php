@@ -37,7 +37,7 @@ More information about [migrating to DuckDB v2.0](https://duckdb.org/docs/previe
 Install and setup (alpha, not for production use):
 
 ```bash
-pie install thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
+pie install thomas-0816/pdo-duckdb-php:^2-beta
 php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT version()")->fetchColumn());'
 ```
 
