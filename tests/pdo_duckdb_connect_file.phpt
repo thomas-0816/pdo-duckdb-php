@@ -58,6 +58,33 @@ $db = new PDO('duckdb:' . $tmpFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['st
 var_dump($db->query("SELECT tags['storage_version'] FROM duckdb_databases() WHERE internal = false")->fetchColumn());
 var_dump($db->query("SELECT current_setting('storage_compatibility_version')")->fetchColumn());
 
+
+$tmpFile = tempnam(sys_get_temp_dir(), 'connect_backup') . '.db';
+$backupFile = tempnam(sys_get_temp_dir(), 'connect_backup') . '.db';
+
+$db = new PDO('duckdb:' . $tmpFile);
+$db->exec('CREATE TABLE t1 AS FROM generate_series(1000)');
+
+$database = $db->query('SELECT current_database()')->fetchColumn();
+$db->exec("ATTACH '{$backupFile}' AS backup");
+$db->exec("COPY FROM DATABASE {$database} TO backup");
+$db->exec('DETACH backup');
+
+$backup = new PDO('duckdb:' . $backupFile);
+var_dump($backup->query('SELECT count(*) from t1')->fetchColumn());
+
+
+$tmpFile = tempnam(sys_get_temp_dir(), 'connect_backup') . '.db';
+$backupFolder = tempnam(sys_get_temp_dir(), 'connect_backup');
+
+$db = new PDO('duckdb:' . $tmpFile);
+$db->exec('CREATE TABLE t1 AS FROM generate_series(1000)');
+$db->exec("EXPORT DATABASE '{$backupFolder}1' (FORMAT parquet, COMPRESSION zstd)");
+
+$restore = new PDO('duckdb::memory:');
+$restore->exec("IMPORT DATABASE '{$backupFolder}1'");
+var_dump($restore->query('SELECT count(*) from t1')->fetchColumn());
+
 // TODO v2 ATTACH 'my_file.db' AS mmaped_db (IO_MODE 'MMAP');
 // TODO v2 ATTACH 'my_file.db' AS mmaped_db (IO_MODE 'DIRECT_IO');
 
@@ -91,3 +118,5 @@ string(7) "v2.0.0+"
 string(6) "latest"
 string(7) "v1.5.0+"
 string(6) "v1.5.6"
+int(1001)
+int(1001)

@@ -829,7 +829,7 @@ Swoole\Coroutine\run(function() {
 });
 ```
 
-[Learn more](https://duckdb.org/docs/current/connect/concurrency) about concurrency in DuckDB.
+Learn more about [concurrency in DuckDB](https://duckdb.org/docs/current/connect/concurrency).
 
 ## Compile with PHP TrueAsync
 
@@ -838,6 +838,31 @@ docker build --no-cache -f Dockerfile.trueasync2 -t pdo_duckdb_trueasync2 .
 docker run --rm pdo_duckdb_trueasync2 php -m
 docker run --rm -v $(pwd):/app pdo_duckdb_trueasync2 php /app/test_trueasync.php
 ```
+
+## Backup and restore
+
+Backup as .duckdb file:
+
+```php
+$db = new PDO('duckdb:/tmp/my_database.duckdb');
+$db->exec("ATTACH '/tmp/backup.duckdb' AS backup");
+$db->exec('COPY FROM DATABASE my_database TO backup');
+$db->exec('DETACH backup');
+```
+
+Backup and restore as SQL + Parquet:
+
+```php
+$db = new PDO('duckdb:/tmp/my_database.duckdb');
+$db->exec('CREATE TABLE t1 AS FROM generate_series(1000)');
+$db->exec("EXPORT DATABASE '/tmp/backup/' (FORMAT parquet, COMPRESSION zstd)");
+
+$restore = new PDO('duckdb:/tmp/my_database_restore.duckdb');
+$restore->exec("IMPORT DATABASE '/tmp/backup/'");
+var_dump($restore->query('SELECT count(*) from t1')->fetchColumn());
+```
+
+Learn more about [export and import statements](https://duckdb.org/docs/current/sql/statements/export).
 
 ## Features not implemented
 
