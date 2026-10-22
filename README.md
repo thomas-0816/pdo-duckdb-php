@@ -21,9 +21,9 @@ Supported SAPIs: php-cli, php-fpm, mod_php, FrankenPHP, TrueAsync, Swoole
 
 Support end: macOS 14 (August 2026), Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
 
-## DuckDB v2
+## DuckDB 2.0
 
-DuckDB v2 brings many new features:
+DuckDB 2.0 brings many new features:
 
 JSON mutation functions, variant functions, nearest joins, group by UNNEST, triggers, $variable shorthand, async IO,
 explain (sql), deferred constraints and many more
@@ -38,6 +38,10 @@ v2 backward compatibility settings:
 SET error_on_division_by_zero = false;
 SET default_transaction_invalidation_policy = 'SYNTACTIC_ERRORS_DO_NOT_INVALIDATE';
 ```
+
+__Do I need to update to DuckDB 2.0 immediately?__
+
+DuckDB 1.5.x will be supported until 2027-03-01. See the [release calendar](https://duckdb.org/release_calendar).
 
 ## Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
@@ -548,6 +552,7 @@ $url = 'https://httpbin.org/headers';
 $db = new PDO('duckdb::memory:');
 
 $db->exec("CREATE SECRET http_auth (TYPE http, SCOPE '{$url}', BEARER_TOKEN 'some secret')");
+# $db->exec("CREATE SECRET http_auth IN connection (TYPE http, SCOPE '{$url}', BEARER_TOKEN 'some secret')"); // DuckDB v2
 
 $rows = $db->query("SELECT * FROM read_json('{$url}')");
 print_r($rows->fetchAll(PDO::FETCH_ASSOC));
@@ -582,6 +587,8 @@ $db = new PDO('duckdb::memory:');
 // set credentials
 $db->exec("CREATE SECRET rustfs (TYPE s3, ENDPOINT '127.0.0.1:9000', USE_SSL false,
     URL_STYLE 'path', KEY_ID 'access-key', SECRET 'secret-key')");
+// $db->exec("CREATE SECRET rustfs IN connection (TYPE s3, ENDPOINT '127.0.0.1:9000', USE_SSL false,
+//     URL_STYLE 'path', KEY_ID 'access-key', SECRET 'secret-key')"); // DuckDB v2
 // write data to S3
 $db->exec("COPY ( select 'bar' as foo ) TO 's3://my-bucket/numbers.parquet' (FORMAT parquet)");
 // read data from S3
