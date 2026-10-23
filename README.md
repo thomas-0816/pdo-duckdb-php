@@ -41,7 +41,7 @@ SET default_transaction_invalidation_policy = 'SYNTACTIC_ERRORS_DO_NOT_INVALIDAT
 
 __Do I need to update to DuckDB 2.0 immediately?__
 
-DuckDB 1.5.x will be supported until 2027-03-01. See the [release calendar](https://duckdb.org/release_calendar).
+DuckDB 1.5.x will be supported until 2027-03-01. More about the [release calendar](https://duckdb.org/release_calendar).
 
 ## Install and setup with 🥧 [PIE](https://github.com/php/pie)
 

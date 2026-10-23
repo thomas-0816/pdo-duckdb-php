@@ -23,7 +23,7 @@ RUN <<EOF
     set -euxo pipefail
     apt-get -y update
     apt-get -y --no-install-recommends install git apt-transport-https curl ca-certificates llvm clang re2c bison autoconf unzip build-essential tzdata \
-        libclang-rt-dev pkg-config libssl-dev libcurl4-openssl-dev libzstd-dev libc-ares-dev zlib1g-dev libbrotli-dev
+        libclang-rt-dev pkg-config libssl-dev libcurl4-openssl-dev libzstd-dev libc-ares-dev zlib1g-dev
     ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 EOF
 
@@ -49,7 +49,7 @@ RUN <<EOF
     git clone --depth=1 --branch=6.2 https://github.com/thomas-0816/swoole-src.git
     cd /swoole-src
     phpize
-    ./configure --enable-swoole-curl --enable-cares --enable-zstd --enable-brotli --enable-sockets --enable-swoole-thread
+    ./configure --enable-swoole-curl --enable-cares --enable-zstd --enable-sockets --enable-swoole-thread
     make -j$(nproc)
     make install
     php -d extension=swoole.so -m | grep swoole
