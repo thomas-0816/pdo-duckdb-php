@@ -209,7 +209,7 @@ jobs:
           docker build --pull --no-cache -f Dockerfile.php -t pdo_duckdb_php .
           docker build --pull --no-cache -f Dockerfile.php_alpine -t pdo_duckdb_php_alpine .
 
-  nginx:
+  nginx_fpm:
     name: "Docker: php nginx fpm"
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -218,7 +218,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --pull --no-cache -f Dockerfile.php_nginx -t pdo_duckdb_php_nginx .
+        run: docker build --pull --no-cache -f Dockerfile.php_nginx_fpm -t pdo_duckdb_php_nginx_fpm .
 
   apache:
     name: "Docker: php apache mod_php"

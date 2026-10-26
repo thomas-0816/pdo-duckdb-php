@@ -1,5 +1,5 @@
-# docker build --pull --no-cache -f Dockerfile.php_nginx -t pdo_duckdb_php_nginx .
-# docker run --rm -it pdo_duckdb_php_nginx
+# docker build --pull --no-cache -f Dockerfile.php_nginx_fpm -t pdo_duckdb_php_nginx_fpm .
+# docker run --rm -it pdo_duckdb_php_nginx_fpm
 
 # php 8.2
 FROM php:8.2-fpm AS php82
