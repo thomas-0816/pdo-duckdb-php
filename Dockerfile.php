@@ -10,7 +10,7 @@ RUN <<EOF
     apt-get -y update
     apt-get -y --no-install-recommends install unzip
     curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
-    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
     php -m | grep duckdb
     php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
     apt-get upgrade -y && apt-get clean
@@ -27,7 +27,7 @@ RUN <<EOF
     apt-get -y update
     apt-get -y --no-install-recommends install unzip
     curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
-    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
     php -m | grep duckdb
     php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
     apt-get upgrade -y && apt-get clean
@@ -44,7 +44,7 @@ RUN <<EOF
     apt-get -y update
     apt-get -y --no-install-recommends install unzip
     curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
-    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
     php -m | grep duckdb
     php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
     apt-get upgrade -y && apt-get clean
@@ -61,7 +61,7 @@ RUN <<EOF
     apt-get -y update
     apt-get -y --no-install-recommends install unzip
     curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
-    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
     php -m | grep duckdb
     php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
     apt-get upgrade -y && apt-get clean

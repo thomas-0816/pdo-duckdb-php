@@ -15,19 +15,19 @@ RUN <<EOF
     apk add --no-cache php86 php86-pdo php86-mbstring php86-iconv php86-openssl php86-phar --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
     ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
     curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
-    php82 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+    php82 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
     php82 -m | grep duckdb
     php82 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-    php83 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+    php83 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
     php83 -m | grep duckdb
     php83 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-    php84 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+    php84 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
     php84 -m | grep duckdb
     php84 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-    php85 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+    php85 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
     php85 -m | grep duckdb
     php85 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
-    php86 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+    php86 /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
     php86 -m | grep duckdb
     php86 -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 EOF

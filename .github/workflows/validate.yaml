@@ -56,9 +56,9 @@ jobs:
           uname -a
           php -v
           if [ "$RUNNER_OS" = "Windows" ]; then
-              pie install -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+              pie install -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
           else
-              sudo pie install -v thomas-0816/pdo-duckdb-php:^2.0.0.0-alpha
+              sudo pie install -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
           fi
           php -m | grep duckdb
           php <<'EOF'
@@ -254,8 +254,9 @@ jobs:
           persist-credentials: false
       - name: Build container
         run: |
-          docker build --pull --no-cache -f Dockerfile.ubuntu24 -t pdo_duckdb_ubuntu24 .
-          docker build --pull --no-cache -f Dockerfile.ubuntu26 -t pdo_duckdb_ubuntu26 .
+          docker build --pull --no-cache -f Dockerfile.ubuntu2404 -t pdo_duckdb_ubuntu2404 .
+          docker build --pull --no-cache -f Dockerfile.ubuntu2604 -t pdo_duckdb_ubuntu2604 .
+          docker build --pull --no-cache -f Dockerfile.ubuntu2610 -t pdo_duckdb_ubuntu2610 .
 
   opensuse:
     name: "Docker: openSUSE"
