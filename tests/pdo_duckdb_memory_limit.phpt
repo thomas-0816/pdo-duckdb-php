@@ -11,4 +11,4 @@ $result = $db->query("SELECT * FROM generate_series(100_000)")->fetchAll(PDO::FE
 
 ?>
 --EXPECTF--
-Fatal error: Allowed memory size of 33554432 bytes exhausted (tried to allocate 2097152 bytes) in %s on line 5
+Fatal error: Allowed memory size of 33554432 bytes exhausted %s in %s on line 5

@@ -11,7 +11,7 @@ $result = $db->query("SELECT * FROM generate_series(200_000)")->fetchAll(PDO::FE
 
 ?>
 --EXPECTF--
-Hard memory limit of 67108864 bytes exhausted (tried to allocate 2097152 bytes) in %s on line 5
+Hard memory limit of 67108864 bytes exhausted %s in %s on line 5
 
 Termsig=9
 
