@@ -43,8 +43,6 @@ echo 'Writing duckdb.hpp', PHP_EOL;
 
 $writtenFiles = [];
 $contents = '#pragma once' . PHP_EOL;
-$contents .= '#define DUCKDB_MAJOR_VERSION 2' . PHP_EOL;
-$contents .= '#define DUCKDB_MINOR_VERSION 0' . PHP_EOL;
 
 foreach ($mainHeaderFiles as $file) {
 	$contents .= getContent($file, $writtenFiles, $includePaths);
