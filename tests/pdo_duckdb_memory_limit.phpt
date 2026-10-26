@@ -5,7 +5,7 @@ pdo_duckdb
 --FILE--
 <?php
 
-if (getenv('USE_ZEND_ALLOC') === '0') { // valgrind-mode has no memory-limit
+if (getenv('ZEND_DONT_UNLOAD_MODULES') === '1') { // valgrind-mode has no memory-limit
     echo "Fatal error: Allowed memory size of 33554432 bytes exhausted foo in bar on line 9";
 }
 
