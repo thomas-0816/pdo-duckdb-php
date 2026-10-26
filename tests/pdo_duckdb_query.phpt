@@ -457,6 +457,22 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
+ini_set('memory_limit', '4M');
+$db = new PDO('duckdb::memory:');
+
+$i = 0;
+foreach ($db->query("SELECT * FROM generate_series(1_000_000)", PDO::FETCH_NUM) as $row) {
+  $i += $row[0];
+}
+var_dump($i);
+
+$i = 0;
+$statement = $db->query("SELECT * FROM generate_series(1_000_000)");
+while ($row = $statement->fetch()) {
+  $i += $row[0];
+}
+var_dump($i);
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -1067,3 +1083,5 @@ Caught: SQLSTATE[HY000]: Conversion Error: Could not convert string 'invalid' to
 
 LINE 1: SELECT ?::integer, ?::integer, ?::integer
                             ^^^^^^^^^
+int(500000500000)
+int(500000500000)
