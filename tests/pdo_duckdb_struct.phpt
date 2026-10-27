@@ -138,6 +138,11 @@ $statement->execute([['v' => 'foo', 'i' => 21, 'a' => ['b', 'c'], 'j' => [1, 2, 
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+echo json_encode($db->query("SELECT
+{a:{a:{a:{a:{a:{a:{a:{a:{a:{a:{a:{a:
+(1, 42.21, null, {a: null})::variant
+}}}}}}}}}}}} as a")->fetchAll(PDO::FETCH_COLUMN)), PHP_EOL;
+
 ?>
 --EXPECTF--
 array(1) {
@@ -647,3 +652,4 @@ array(1) {
     }
   }
 }
+[{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":{"a":[1,42.21,null,{"a":null}]}}}}}}}}}}}}]
