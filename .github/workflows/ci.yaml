@@ -284,6 +284,41 @@ jobs:
           advanced-security: false
           persona: pedantic
 
+  clang-tidy:
+    name: clang-tidy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup PHP
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: '8.5'
+          coverage: none
+        env:
+          update: true
+      - name: Install clang-tidy
+        run: sudo apt-get update && sudo apt-get install -y clang-tidy-20
+      - name: Build & Analyze
+        run: |
+          curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-static-libs-linux-amd64.tar.gz" -o duckdb-static-libs-linux-amd64.tar.gz
+          tar xvzf duckdb-static-libs-linux-amd64.tar.gz
+          tar xvzf libduckdb-src.tar.gz
+          phpize
+          ./configure --with-pdo-duckdb
+          intercept-build-20 make -j"$(nproc)"
+          checks="-*,clang-analyzer-*,bugprone-*,performance-*,portability-*"
+          checks="$checks,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling"
+          checks="$checks,-clang-analyzer-security.insecureAPI.strcpy"
+          checks="$checks,-clang-analyzer-optin.core.EnumCastOutOfRange"
+          checks="$checks,-bugprone-easily-swappable-parameters"
+          checks="$checks,-bugprone-implicit-widening-of-multiplication-result"
+          checks="$checks,-bugprone-macro-parentheses"
+          checks="$checks,-bugprone-reserved-identifier"
+          run-clang-tidy-20 -p . -quiet -j"$(nproc)" -checks="$checks" -warnings-as-errors='clang-analyzer-*,bugprone-*,performance-*,portability-*'
+
   intree:
     name: InTree
     runs-on: ubuntu-24.04

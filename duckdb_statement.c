@@ -115,7 +115,7 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 		S->done = 1;
 	}
 
-	stmt->row_count = duckdb_rows_changed(&S->result);
+	stmt->row_count = (zend_long)duckdb_rows_changed(&S->result);
 	return 1;
 }
 
