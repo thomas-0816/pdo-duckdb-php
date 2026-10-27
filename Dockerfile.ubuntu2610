@@ -7,12 +7,10 @@ ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 ENV DEBIAN_FRONTEND noninteractive
 
-SHELL ["/bin/bash", "-c"]
-
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    apt-get -y --no-install-recommends install apt-transport-https curl ca-certificates unzip php8.5-cli
+    apt-get -y --no-install-recommends install apt-transport-https curl ca-certificates unzip php-cli
     curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
     php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
     php -m | grep duckdb

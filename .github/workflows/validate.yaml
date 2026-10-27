@@ -243,6 +243,7 @@ jobs:
         run: |
           docker build --pull --no-cache -f Dockerfile.debian12 -t pdo_duckdb_debian12 .
           docker build --pull --no-cache -f Dockerfile.debian13 -t pdo_duckdb_debian13 .
+          docker build --pull --no-cache -f Dockerfile.debian14 -t pdo_duckdb_debian14 .
 
   ubuntu:
     name: "Docker: Ubuntu"
