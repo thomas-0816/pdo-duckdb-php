@@ -1,4 +1,4 @@
-# docker build --progress=plain -f Dockerfile.asan_swoole -t pdo_duckdb_asan_swoole .
+# docker build -f Dockerfile.asan_swoole -t pdo_duckdb_asan_swoole .
 # docker run --rm -it pdo_duckdb_asan_swoole
 
 FROM ubuntu:24.04

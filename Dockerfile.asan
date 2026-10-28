@@ -1,4 +1,4 @@
-# docker build --progress=plain -f Dockerfile.asan -t pdo_duckdb_asan .
+# docker build -f Dockerfile.asan -t pdo_duckdb_asan .
 # docker run --rm -it pdo_duckdb_asan
 
 FROM ubuntu:24.04
@@ -22,7 +22,7 @@ SHELL ["/bin/bash", "-c"]
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
-    apt-get -y --no-install-recommends install git apt-transport-https curl ca-certificates llvm clang re2c bison autoconf unzip build-essential libclang-rt-dev tzdata
+    apt-get -y --no-install-recommends install git apt-transport-https curl ca-certificates llvm clang libclang-rt-dev re2c bison autoconf unzip build-essential tzdata
     ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 EOF
 
