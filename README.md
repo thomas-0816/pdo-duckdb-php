@@ -936,6 +936,19 @@ php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 
 php run-tests.php --show-diff --show-clean -q
 php-zts run-tests.php --show-diff --show-clean -q
+
+# code coverage
+make clean
+tar xvzf duckdb-static-libs-linux-amd64.tar.gz
+tar xvzf libduckdb-src.tar.gz
+phpize
+./configure --with-pdo-duckdb CFLAGS="--coverage -O0" CXXFLAGS="--coverage -O0" LDFLAGS="--coverage"
+make
+NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+lcov --capture --directory . --include "*.c*" --ignore-errors gcov --output-file coverage.info
+genhtml coverage.info --output-directory coverage-html
+ungoogled-chromium coverage-html/index.html
+rm -rf *.gcov coverage* a-conftest.gcno
 ```
 
 ## Laravel, Symfony
