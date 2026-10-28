@@ -2,6 +2,7 @@
 build/
 modules/
 autom4te.cache/
+coverage/
 *.dep
 *.lo
 *.la

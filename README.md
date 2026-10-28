@@ -19,7 +19,7 @@ Supported operating systems: Ubuntu 22+, Debian 12+, Fedora 42+, openSUSE 16+, A
 
 Supported SAPIs: php-cli, php-fpm, mod_php, FrankenPHP, TrueAsync, Swoole
 
-Support end: macOS 14 (August 2026), Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
+Support end: macOS 14 (August 2026), PHP 8.2 (Jan 2027), Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
 
 ## DuckDB 2.0
 
@@ -938,17 +938,9 @@ php run-tests.php --show-diff --show-clean -q
 php-zts run-tests.php --show-diff --show-clean -q
 
 # code coverage
-make clean
-tar xvzf duckdb-static-libs-linux-amd64.tar.gz
-tar xvzf libduckdb-src.tar.gz
-phpize
-./configure --with-pdo-duckdb CFLAGS="--coverage -O0" CXXFLAGS="--coverage -O0" LDFLAGS="--coverage"
-make
-NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
-lcov --capture --directory . --include "*.c*" --ignore-errors gcov --output-file coverage.info
-genhtml coverage.info --output-directory coverage-html
-ungoogled-chromium coverage-html/index.html
-rm -rf *.gcov coverage* a-conftest.gcno
+docker build --progress=plain -f Dockerfile.coverage -t pdo_duckdb_coverage .
+docker run --rm -w /pdo-duckdb-php/coverage/ pdo_duckdb_coverage /bin/sh -c 'tar -cf - .' | tar -xvf - --one-top-level=coverage
+chromium coverage/index.html
 ```
 
 ## Laravel, Symfony
