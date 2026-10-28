@@ -1,0 +1,55 @@
+# docker build --progress=plain -f Dockerfile.coverage -t pdo_duckdb_coverage .
+# docker run --rm -w /pdo-duckdb-php/coverage/ pdo_duckdb_coverage /bin/sh -c 'tar -cf - .' | tar -xvf - --one-top-level=coverage
+# ungoogled-chromium coverage/index.html
+
+FROM ubuntu:24.04
+
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+ENV DEBIAN_FRONTEND="noninteractive"
+ENV CC="clang"
+ENV CXX="clang++"
+ENV CFLAGS="-O0 -fprofile-instr-generate -fcoverage-mapping"
+ENV CXXFLAGS="-O0 -fprofile-instr-generate -fcoverage-mapping"
+ENV LDFLAGS="-fprofile-instr-generate"
+ENV LLVM_PROFILE_FILE="/tmp/profile-%p-%m.profraw"
+
+SHELL ["/bin/bash", "-c"]
+
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get -y --no-install-recommends install apt-transport-https curl ca-certificates unzip build-essential llvm clang libclang-rt-dev autoconf tzdata
+    ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+    curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
+    echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
+    tee -a /etc/apt/sources.list.d/static-php85.list
+    apt-get -y update
+    apt-get -y --no-install-recommends install php-zts-cli php-zts-pdo php-zts-devel
+    cp /usr/lib/php-zts/modules/pdo-zts-85.so /usr/lib/php-zts/modules/pdo.so
+EOF
+
+COPY ./ ./pdo-duckdb-php
+WORKDIR /pdo-duckdb-php
+
+RUN <<EOF
+    set -euo pipefail
+    make clean || true
+    tar xvzf duckdb-static-libs-linux-amd64.tar.gz
+    tar xvzf libduckdb-src.tar.gz
+    phpize-zts
+    ./configure --with-pdo-duckdb --with-php-config=php-config-zts
+    make
+    make install
+    echo "extension=pdo_duckdb" > /etc/php-zts/conf.d/90-duckdb.ini
+    NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+    apt-get -y --no-install-recommends install php-zts-swoole
+    php -m | grep swoole
+    NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+    llvm-profdata merge -sparse /tmp/*.profraw -o /tmp/coverage.profdata
+    llvm-cov report modules/pdo_duckdb.so -instr-profile=/tmp/coverage.profdata -ignore-filename-regex='\.(h|hpp)$' | tee /tmp/coverage-report.txt
+    awk '/^TOTAL/ {printf "TOTAL LINE COVERAGE: %s (%d/%d lines)\n", $10, $8-$9, $8}' /tmp/coverage-report.txt
+    llvm-cov show modules/pdo_duckdb.so -instr-profile=/tmp/coverage.profdata -format=html -output-dir=coverage -ignore-filename-regex='\.(h|hpp)$'
+    apt-get upgrade -y && apt-get clean
+    rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
+EOF
