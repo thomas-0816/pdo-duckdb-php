@@ -151,6 +151,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 						init_command = emalloc(ZSTR_LEN(str_val) + 20);
 						sprintf(init_command, "SET TimeZone = '%s'; ", ZSTR_VAL(str_val));
 					} else if (strcasecmp(ZSTR_VAL(key), "force_mbedtls_unsafe") == 0) { // crashes, skip
+						zend_string_release(str_val);
 						continue;
 					} else {
 						duckdb_set_config(config, ZSTR_VAL(key), ZSTR_VAL(str_val));
