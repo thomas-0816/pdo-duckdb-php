@@ -44,7 +44,7 @@ RUN <<EOF
 
     apt-get -y --no-install-recommends install php-zts-swoole
     php -m | grep swoole
-    NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+    TEST_EXTENSIONS="swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
     llvm-profdata merge -sparse /tmp/*.profraw -o /tmp/coverage.profdata
     llvm-cov report modules/pdo_duckdb.so -instr-profile=/tmp/coverage.profdata -ignore-filename-regex='\.(h|hpp)$' | tee /tmp/report.txt
