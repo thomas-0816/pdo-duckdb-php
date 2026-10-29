@@ -26,7 +26,6 @@ RUN <<EOF
     tee -a /etc/apt/sources.list.d/static-php85.list
     apt-get -y update
     apt-get -y --no-install-recommends install php-zts-cli php-zts-pdo php-zts-devel
-    cp /usr/lib/php-zts/modules/pdo-zts-85.so /usr/lib/php-zts/modules/pdo.so
 EOF
 
 COPY ./ ./pdo-duckdb-php
@@ -40,12 +39,12 @@ RUN <<EOF
     phpize-zts
     ./configure --with-pdo-duckdb --with-php-config=php-config-zts
     make
-    make install
-    echo "extension=pdo_duckdb" > /etc/php-zts/conf.d/90-duckdb.ini
     NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+
     apt-get -y --no-install-recommends install php-zts-swoole
     php -m | grep swoole
     NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+
     llvm-profdata merge -sparse /tmp/*.profraw -o /tmp/coverage.profdata
     llvm-cov report modules/pdo_duckdb.so -instr-profile=/tmp/coverage.profdata -ignore-filename-regex='\.(h|hpp)$' | tee /tmp/report.txt
     awk '/^TOTAL/ {print "TOTAL LINE COVERAGE: " $10}' /tmp/report.txt
