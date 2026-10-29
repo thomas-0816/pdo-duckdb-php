@@ -47,8 +47,8 @@ RUN <<EOF
     php -m | grep swoole
     NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
     llvm-profdata merge -sparse /tmp/*.profraw -o /tmp/coverage.profdata
-    llvm-cov report modules/pdo_duckdb.so -instr-profile=/tmp/coverage.profdata -ignore-filename-regex='\.(h|hpp)$' | tee /tmp/coverage-report.txt
-    awk '/^TOTAL/ {printf "TOTAL LINE COVERAGE: %s (%d/%d lines)\n", $10, $8-$9, $8}' /tmp/coverage-report.txt
+    llvm-cov report modules/pdo_duckdb.so -instr-profile=/tmp/coverage.profdata -ignore-filename-regex='\.(h|hpp)$' | tee /tmp/report.txt
+    awk '/^TOTAL/ {print "TOTAL LINE COVERAGE: " $10}' /tmp/report.txt
     llvm-cov show modules/pdo_duckdb.so -instr-profile=/tmp/coverage.profdata -format=html -output-dir=coverage -ignore-filename-regex='\.(h|hpp)$'
     apt-get upgrade -y && apt-get clean
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
