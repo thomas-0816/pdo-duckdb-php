@@ -50,12 +50,6 @@ jobs:
         thread-safety:
           - zts
           - nts
-        variant:
-          - plain
-          - swoole
-        exclude:
-          - php-version: 8.6
-            variant: swoole
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -65,7 +59,6 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
-          extensions: ${{ matrix.variant == 'swoole' && 'swoole' || '' }}
         env:
           phpts: ${{ matrix.thread-safety }}
           update: true
@@ -89,11 +82,12 @@ jobs:
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-          if [ "$variant" = "swoole" ]; then
-            php -m
-            php -m | grep swoole
-            php -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
-          fi
+      - name: Test extension with Swoole
+        if: matrix.php-version != '8.6'
+        run: |
+          export TEST_PHP_ARGS="-d extension=swoole.so -d extension=pdo_duckdb.so"
+          TEST_EXTENSIONS="mysqlnd swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+          php -d extension=swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
 
   windows_84_85_86:
     name: Windows
@@ -240,9 +234,6 @@ jobs:
         thread-safety:
           - nts
           - zts
-        variant:
-          - plain
-          - swoole
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -252,7 +243,6 @@ jobs:
         with:
           php-version: 8.5
           coverage: none
-          extensions: ${{ matrix.variant == 'swoole' && 'swoole' || '' }}
         env:
           phpts: ${{ matrix.thread-safety }}
           update: true
@@ -266,9 +256,9 @@ jobs:
           phpize
           ./configure --with-pdo-duckdb
           make
-          php -m | grep swoole || true
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
+          TEST_EXTENSIONS="mysqlnd swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
 
   zizmor:
     name: zizmor
