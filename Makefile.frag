@@ -15,7 +15,19 @@ PHP_TEST_SHARED_EXTENSIONS = ` \
 	if test -f "$$1"; then \
 		echo -n " -d extension=$$1"; \
 	fi; \
+	set -- $(EXTENSION_DIR)/mysqlnd.so; \
+	if test -f "$$1"; then \
+		echo -n " -d extension=$$1"; \
+	fi; \
 	set -- $(EXTENSION_DIR)/mysqlnd-*.so; \
+	if test -f "$$1"; then \
+		echo -n " -d extension=$$1"; \
+	fi; \
+	set -- $(EXTENSION_DIR)/curl.so; \
+	if test -f "$$1"; then \
+		echo -n " -d extension=$$1"; \
+	fi; \
+	set -- $(EXTENSION_DIR)/curl-*.so; \
 	if test -f "$$1"; then \
 		echo -n " -d extension=$$1"; \
 	fi; \

@@ -34,6 +34,7 @@ WORKDIR /pdo-duckdb-php
 RUN <<EOF
     set -euo pipefail
     make clean || true
+    wget https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-static-libs-linux-amd64.tar.gz
     tar xvzf duckdb-static-libs-linux-amd64.tar.gz
     tar xvzf libduckdb-src.tar.gz
     phpize-zts
