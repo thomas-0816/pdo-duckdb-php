@@ -7,6 +7,10 @@ PHP_TEST_SHARED_EXTENSIONS = ` \
 	if test -f "$$1"; then \
 		echo -n " -d extension=$$1"; \
 	fi; \
+	set -- $(EXTENSION_DIR)/mysqlnd-*.so; \
+	if test -f "$$1"; then \
+		echo -n " -d extension=$$1"; \
+	fi; \
 	if test "x$(PHP_MODULES)" != "x"; then \
 		for i in $(PHP_MODULES)""; do \
 			. $$i; \
