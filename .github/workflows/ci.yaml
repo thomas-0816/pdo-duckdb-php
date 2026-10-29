@@ -82,13 +82,19 @@ jobs:
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+      - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }} ${{ matrix.variant }} Swoole
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+          extensions: ${{ matrix.php-version == '8.6' && 'swoole-alpha' || 'swoole') || '' }}
+        env:
+          phpts: ${{ matrix.thread-safety }}
+          update: true
       - name: Test extension with Swoole
         if: matrix.php-version != '8.6'
         run: |
-          export TEST_PHP_ARGS="-d extension=swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so"
-          export NO_INTERACTION=1
-          export REPORT_EXIT_STATUS=1
-          php run-tests.php --show-diff --show-clean -q
+          TEST_EXTENSIONS="sockets curl mysqlnd swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
 
   windows_84_85_86:
