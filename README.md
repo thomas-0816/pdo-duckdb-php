@@ -939,8 +939,8 @@ php-zts run-tests.php --show-diff --show-clean -q
 
 # code coverage
 docker build --progress=plain -f Dockerfile.coverage -t pdo_duckdb_coverage .
-docker run --rm -w /pdo-duckdb-php/coverage/ pdo_duckdb_coverage /bin/sh -c 'tar -cf - .' | tar -xvf - --one-top-level=coverage
-chromium coverage/index.html
+docker run --rm -w /pdo-duckdb-php/ pdo_duckdb_coverage /bin/sh -c 'tar -cf - ./coverage/' | tar -xvf - --one-top-level=coverage/
+chromium coverage/coverage/index.html
 ```
 
 ## Laravel, Symfony
