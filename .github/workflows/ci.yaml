@@ -85,8 +85,10 @@ jobs:
       - name: Test extension with Swoole
         if: matrix.php-version != '8.6'
         run: |
-          export TEST_PHP_ARGS="-d extension=swoole.so -d extension=pdo_duckdb.so"
-          TEST_EXTENSIONS="curl mysqlnd swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+          export TEST_PHP_ARGS="-d extension=swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so"
+          export NO_INTERACTION=1
+          export REPORT_EXIT_STATUS=1
+          php run-tests.php --show-diff --show-clean -q
           php -d extension=swoole.so -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
 
   windows_84_85_86:
