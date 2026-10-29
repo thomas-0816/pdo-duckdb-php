@@ -1,5 +1,13 @@
 PHP_TEST_SHARED_EXTENSIONS = ` \
+	set -- $(EXTENSION_DIR)/pdo.so; \
+	if test -f "$$1"; then \
+		echo -n " -d extension=$$1"; \
+	fi; \
 	set -- $(EXTENSION_DIR)/pdo-*.so; \
+	if test -f "$$1"; then \
+		echo -n " -d extension=$$1"; \
+	fi; \
+	set -- $(EXTENSION_DIR)/swoole.so; \
 	if test -f "$$1"; then \
 		echo -n " -d extension=$$1"; \
 	fi; \
