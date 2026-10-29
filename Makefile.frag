@@ -2,6 +2,9 @@ PHP_TEST_SHARED_EXTENSIONS = ` \
 	if test -f "$(EXTENSION_DIR)/pdo.so"; then \
 		echo -n " -d extension=$(EXTENSION_DIR)/pdo.so"; \
 	fi; \
+	if test -f "$(EXTENSION_DIR)/swoole.so"; then \
+		echo -n " -d extension=$(EXTENSION_DIR)/swoole.so"; \
+	fi; \
 	if test "x$(PHP_MODULES)" != "x"; then \
 		for i in $(PHP_MODULES)""; do \
 			. $$i; \
