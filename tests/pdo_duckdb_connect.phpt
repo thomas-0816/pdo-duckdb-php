@@ -71,8 +71,11 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
-$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND => 'SET threads = 2']);
-var_dump($db->query("SELECT value FROM duckdb_settings() WHERE name = 'threads'")->fetchColumn());
+$db = new PDO('duckdb::memory:', null, null, [
+    PDO::DUCKDB_ATTR_INIT_COMMAND => 'SET threads = 2',
+    PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'Europe/Berlin', 'force_mbedtls_unsafe' => false]
+]);
+var_dump($db->query("SELECT value FROM duckdb_settings() WHERE name IN ('threads', 'TimeZone')")->fetchAll(PDO::FETCH_COLUMN));
 
 try {
     new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND => "SELECT INVALID"]);
@@ -177,7 +180,12 @@ array(3) {
   string(4) "true"
 }
 Caught: SQLSTATE[IM001]: pdo_duckdb does not support persistent connections
-string(1) "2"
+array(2) {
+  [0]=>
+  string(1) "2"
+  [1]=>
+  string(13) "Europe/Berlin"
+}
 Caught: SQLSTATE[HY000]: Could not execute init command: Binder Error: Referenced column "INVALID" was not found because the FROM clause is missing
 
 LINE 1: SELECT INVALID

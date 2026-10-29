@@ -1,6 +1,6 @@
 # docker build --progress=plain -f Dockerfile.coverage -t pdo_duckdb_coverage .
-# docker run --rm -w /pdo-duckdb-php/coverage/ pdo_duckdb_coverage /bin/sh -c 'tar -cf - .' | tar -xvf - --one-top-level=coverage
-# ungoogled-chromium coverage/index.html
+# docker run --rm -w /pdo-duckdb-php/ pdo_duckdb_coverage /bin/sh -c 'tar -cf - ./coverage/' | tar -xvf - --one-top-level=coverage/
+# ungoogled-chromium coverage/coverage/index.html
 
 FROM ubuntu:24.04
 
@@ -44,7 +44,7 @@ RUN <<EOF
 
     apt-get -y --no-install-recommends install php-zts-swoole
     php -m | grep swoole
-    TEST_EXTENSIONS="swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+    TEST_EXTENSIONS="mysqlnd swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
 
     llvm-profdata merge -sparse /tmp/*.profraw -o /tmp/coverage.profdata
     llvm-cov report modules/pdo_duckdb.so -instr-profile=/tmp/coverage.profdata -ignore-filename-regex='\.(h|hpp)$' | tee /tmp/report.txt

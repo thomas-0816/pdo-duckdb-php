@@ -46,7 +46,7 @@ RUN <<EOF
     set -euxo pipefail
     export LD_LIBRARY_PATH=$(clang -print-resource-dir)/lib/linux
     export PATH="/tmp/php-asan/bin:$PATH"
-    git clone --depth=1 --branch=v6.2.3 https://github.com/swoole/swoole-src.git
+    git clone --depth=1 --branch=v6.2.4 https://github.com/swoole/swoole-src.git
     cd /swoole-src
     phpize
     ./configure --enable-swoole-curl --enable-cares --enable-zstd --enable-sockets
