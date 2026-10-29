@@ -84,10 +84,11 @@ jobs:
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
       - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }} ${{ matrix.variant }} Swoole
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        if: matrix.php-version != '8.6'
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
-          extensions: ${{ matrix.php-version == '8.6' && 'swoole-alpha' || 'swoole') || '' }}
+          extensions: ${{ matrix.variant == 'swoole' && (startsWith(matrix.os, 'windows') && 'swoole-alpha' || 'swoole') || '' }}
         env:
           phpts: ${{ matrix.thread-safety }}
           update: true
