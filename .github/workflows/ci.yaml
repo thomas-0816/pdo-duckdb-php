@@ -304,7 +304,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clang-tidy-20
       - name: Build & Analyze
         run: |
-          clang-format --style=file --dry-run --Werror *.c *.cpp *.h
+          clang-format-20 --style=file --dry-run --Werror *.c *.cpp *.h
           curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-static-libs-linux-amd64.tar.gz" -o duckdb-static-libs-linux-amd64.tar.gz
           tar xvzf duckdb-static-libs-linux-amd64.tar.gz
           tar xvzf libduckdb-src.tar.gz

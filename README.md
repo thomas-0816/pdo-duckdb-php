@@ -938,7 +938,7 @@ php run-tests.php --show-diff --show-clean -q
 php-zts run-tests.php --show-diff --show-clean -q
 
 # code formatting
-clang-format -i *.c *.cpp php_pdo_duckdb.h
+clang-format-20 -i *.c *.cpp php_pdo_duckdb.h
 
 # code coverage
 docker build --progress=plain -f Dockerfile.coverage -t pdo_duckdb_coverage .
