@@ -6,9 +6,9 @@ pdo_duckdb
 <?php
 
 $db = new PDO('duckdb::memory:');
-$db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR, t TUPLE(integer, string))");
-$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?)");
-$statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello', "(1, 'a')"]);
+$db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR, t TUPLE(integer, string), j JSON)");
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?, ?)");
+$statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello', "(1, 'a')", [1, 2]]);
 
 var_dump($db->lastInsertId());
 
@@ -27,6 +27,7 @@ var_dump($statement->getColumnMeta(2));
 var_dump($statement->getColumnMeta(3));
 var_dump($statement->getColumnMeta(4));
 var_dump($statement->getColumnMeta(5));
+var_dump($statement->getColumnMeta(6));
 var_dump($statement->columnCount());
 
 $db = new PDO('duckdb::memory:');
@@ -512,10 +513,32 @@ $stmt->bindValue(2, '', PDO::PARAM_BOOL);
 $stmt->execute();
 var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
+$statement = $db->prepare('SELECT ?::VARCHAR');
+$statement->bindValue(1, "\xFF", PDO::PARAM_STR); // invalid utf-8
+try {
+    $statement->execute();
+} catch (Exception $e) {
+    echo 'Caught: ', $e->getMessage(), PHP_EOL;
+}
+$statement = $db->prepare('SELECT :value::VARCHAR');
+$statement->bindValue('value', "\xFF", PDO::PARAM_STR);
+try {
+    $statement->execute();
+} catch (Exception $e) {
+    echo 'Caught: ', $e->getMessage(), PHP_EOL;
+}
+$statement = $db->prepare('SELECT ?::INTEGER');
+$statement->bindValue(2, 42);
+try {
+    $statement->execute();
+} catch (Exception $e) {
+    echo 'Caught: ', $e->getMessage(), PHP_EOL;
+}
+
 ?>
 --EXPECTF--
 string(1) "0"
-array(5) {
+array(6) {
   ["i"]=>
   int(1)
   ["b"]=>
@@ -531,8 +554,15 @@ array(5) {
     [1]=>
     string(1) "a"
   }
+  ["j"]=>
+  array(2) {
+    [0]=>
+    int(1)
+    [1]=>
+    int(2)
+  }
 }
-array(5) {
+array(6) {
   ["i"]=>
   int(1)
   ["b"]=>
@@ -547,6 +577,13 @@ array(5) {
     int(1)
     [1]=>
     string(1) "a"
+  }
+  ["j"]=>
+  array(2) {
+    [0]=>
+    int(1)
+    [1]=>
+    int(2)
   }
 }
 array(7) {
@@ -634,8 +671,25 @@ array(7) {
   ["precision"]=>
   int(0)
 }
+array(7) {
+  ["native_type"]=>
+  string(4) "json"
+  ["pdo_type"]=>
+  int(3)
+  ["duckdb:decl_type"]=>
+  string(4) "JSON"
+  ["flags"]=>
+  array(0) {
+  }
+  ["name"]=>
+  string(1) "j"
+  ["len"]=>
+  int(0)
+  ["precision"]=>
+  int(0)
+}
 bool(false)
-int(5)
+int(6)
 array(1) {
   [0]=>
   array(5) {
@@ -1152,3 +1206,6 @@ array(3) {
     bool(false)
   }
 }
+Caught: SQLSTATE[HY000]: parameter binding failed for parameter 1
+Caught: SQLSTATE[HY000]: parameter binding failed for parameter :value
+Caught: SQLSTATE[HY000]: parameter binding failed for parameter 2
