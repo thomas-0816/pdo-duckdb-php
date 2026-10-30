@@ -439,8 +439,9 @@ static int duckdb_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 		case PDO_DUCKDB_ATTR_UNBUFFERED:
 			ZVAL_BOOL(val, H->unbuffered);
 			return 1;
+		default:
+			return 0;
 	}
-	return 0;
 }
 
 /* ---------------- check liveness ---------------- */

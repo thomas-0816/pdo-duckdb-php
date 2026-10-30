@@ -26,7 +26,7 @@ $query = "
 try { // https://github.com/duckdb/duckdb/issues/26875
     $statement = $db->query($query);
 } catch (Exception $e) {
-    usleep(1000);
+    sleep(1);
     $statement = $db->query($query);
 }
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
