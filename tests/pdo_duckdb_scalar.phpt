@@ -12,6 +12,12 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT NULL = NULL");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$statement = $db->query("SELECT make_type('INTEGER'), get_type(42), NULL::TYPE");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("SELECT make_type('INTEGER')");
+var_dump($statement->getColumnMeta(0));
+
 ?>
 --EXPECTF--
 array(1) {
@@ -35,4 +41,32 @@ array(1) {
     ["(NULL = NULL)"]=>
     NULL
   }
+}
+array(1) {
+  [0]=>
+  array(3) {
+    ["make_type('INTEGER')"]=>
+    string(7) "INTEGER"
+    ["get_type(42)"]=>
+    string(7) "INTEGER"
+    ["CAST(NULL AS TYPE)"]=>
+    NULL
+  }
+}
+array(7) {
+  ["native_type"]=>
+  string(4) "type"
+  ["pdo_type"]=>
+  int(2)
+  ["duckdb:decl_type"]=>
+  string(4) "TYPE"
+  ["flags"]=>
+  array(0) {
+  }
+  ["name"]=>
+  string(20) "make_type('INTEGER')"
+  ["len"]=>
+  int(0)
+  ["precision"]=>
+  int(0)
 }

@@ -172,8 +172,21 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 	duckdb_free(alias);
 
 	switch (col_type) {
-		case DUCKDB_TYPE_INVALID:
+		case DUCKDB_TYPE_INVALID: {
+			/* The C API has no DUCKDB_TYPE_TYPE value: DuckDB's TYPE (the type
+			 * of types) is reported as INVALID, but is physically a VARCHAR
+			 * (e.g. make_type('INTEGER')). Render it instead of losing it. */
+			char *str = duckdb_get_string(conn, vec, row_idx);
+			if (str == NULL) {
+				ZVAL_NULL(result);
+			} else {
+				ZVAL_STRING(result, str);
+				duckdb_free(str);
+			}
+			break;
+		}
 		case DUCKDB_TYPE_ANY: {
+			/* ANY only exists during binding and has no runtime value. */
 			ZVAL_NULL(result);
 			break;
 		}
@@ -597,6 +610,11 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 	const char *type_str = NULL;
 	enum pdo_param_type pdo_type = PDO_PARAM_STR;
 
+	/* duckdb:decl_type carries the full, exact type declaration (e.g. DECIMAL(10,2),
+	   STRUCT(a INTEGER, b VARCHAR), TUPLE(INTEGER, STRING), INTEGER[], ...) as
+	   rendered by DuckDB's LogicalType::ToString(). */
+	char *decl_str = duckdb_logical_type_to_string(logical_type);
+
 	char *alias = duckdb_logical_type_get_alias(logical_type);
 	if (alias && alias[0]) {
 		type = strcmp(alias, "JSON") == 0 ? DUCKDB_TYPE_VARIANT : DUCKDB_TYPE_VARCHAR;
@@ -604,6 +622,12 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 	duckdb_free(alias);
 
 	switch ((unsigned) type) {
+		case DUCKDB_TYPE_INVALID:
+			/* DuckDB's TYPE (the type of types) has no duckdb_type enum
+			 * value in the C API and is reported as DUCKDB_TYPE_INVALID. */
+			type_str = (decl_str && strcmp(decl_str, "TYPE") == 0) ? "type" : "unknown";
+			pdo_type = PDO_PARAM_STR;
+			break;
 		case DUCKDB_TYPE_BOOLEAN:
 			type_str = "boolean";
 			pdo_type = PDO_PARAM_BOOL;
@@ -765,10 +789,6 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 	add_assoc_string(return_value, "native_type", (char *) type_str);
 	add_assoc_long(return_value, "pdo_type", pdo_type);
 
-	/* duckdb:decl_type carries the full, exact type declaration (e.g. DECIMAL(10,2),
-	   STRUCT(a INTEGER, b VARCHAR), TUPLE(INTEGER, STRING), INTEGER[], ...) as
-	   rendered by DuckDB's LogicalType::ToString(). */
-	char *decl_str = duckdb_logical_type_to_string(logical_type);
 	add_assoc_string(return_value, "duckdb:decl_type", decl_str ? decl_str : (char *) type_str);
 	if (decl_str) {
 		duckdb_free(decl_str);
