@@ -23,9 +23,8 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options);
 
 /* Driver definition */
 static pdo_driver_t pdo_duckdb_driver = {
-	PDO_DRIVER_HEADER(duckdb),
-	duckdb_handle_factory
-};
+    PDO_DRIVER_HEADER(duckdb),
+    duckdb_handle_factory};
 
 /* Process-wide DuckDB instance cache — see php_pdo_duckdb.h */
 duckdb_instance_cache pdo_duckdb_instance_cache = NULL;
@@ -76,7 +75,8 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 						RETURN_THROWS();
 					}
 				}
-			} ZEND_HASH_FOREACH_END();
+			}
+			ZEND_HASH_FOREACH_END();
 
 			zval *arg = ZEND_CALL_ARG(execute_data, 1);
 			zval_ptr_dtor(arg);
@@ -166,7 +166,8 @@ static void pdo_duckdb_stmt_bind_param_override(INTERNAL_FUNCTION_PARAMETERS)
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(pdo_duckdb)
 {
-	(void)type; (void)module_number;
+	(void)type;
+	(void)module_number;
 
 	ZEND_TSRMLS_CACHE_UPDATE();
 
@@ -221,7 +222,8 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 /* {{{ PHP_RINIT_FUNCTION */
 PHP_RINIT_FUNCTION(pdo_duckdb)
 {
-	(void)type; (void)module_number;
+	(void)type;
+	(void)module_number;
 	return SUCCESS;
 }
 /* }}} */
@@ -229,7 +231,8 @@ PHP_RINIT_FUNCTION(pdo_duckdb)
 /* {{{ PHP_MSHUTDOWN_FUNCTION */
 PHP_MSHUTDOWN_FUNCTION(pdo_duckdb)
 {
-	(void)type; (void)module_number;
+	(void)type;
+	(void)module_number;
 
 	php_pdo_unregister_driver(&pdo_duckdb_driver);
 	duckdb_destroy_instance_cache(&pdo_duckdb_instance_cache);
@@ -240,7 +243,8 @@ PHP_MSHUTDOWN_FUNCTION(pdo_duckdb)
 /* {{{ PHP_RSHUTDOWN_FUNCTION */
 PHP_RSHUTDOWN_FUNCTION(pdo_duckdb)
 {
-	(void)type; (void)module_number;
+	(void)type;
+	(void)module_number;
 	return SUCCESS;
 }
 /* }}} */
@@ -263,15 +267,14 @@ PHP_MINFO_FUNCTION(pdo_duckdb)
 zend_module_entry pdo_duckdb_module_entry = {
 	STANDARD_MODULE_HEADER,
 	"pdo_duckdb",
-	NULL,                           /* functions */
+	NULL, /* functions */
 	PHP_MINIT(pdo_duckdb),
 	PHP_MSHUTDOWN(pdo_duckdb),
-	PHP_RINIT(pdo_duckdb),          /* RINIT */
-	PHP_RSHUTDOWN(pdo_duckdb),      /* RSHUTDOWN */
+	PHP_RINIT(pdo_duckdb),
+	PHP_RSHUTDOWN(pdo_duckdb),
 	PHP_MINFO(pdo_duckdb),
 	PHP_PDO_DUCKDB_VERSION,
-	STANDARD_MODULE_PROPERTIES
-};
+	STANDARD_MODULE_PROPERTIES};
 /* }}} */
 
 #ifdef COMPILE_DL_PDO_DUCKDB
