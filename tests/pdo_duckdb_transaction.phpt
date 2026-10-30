@@ -96,7 +96,7 @@ catch (Exception $e) {
     echo 'Caught: ' . $e->getMessage(), PHP_EOL;
 }
 
-// triggers duckdb_fetch_error
+// triggers duckdb_handle_begin() failure
 $tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '.db';
 $db = new PDO('duckdb:' . $tmpFile);
 $db->exec('CREATE TABLE t (i INTEGER)');
@@ -104,6 +104,34 @@ $db->exec("SET debug_checkpoint_abort = 'before_truncate'");
 try { $db->exec('CHECKPOINT'); } catch (PDOException $e) {}
 try {
     $db->beginTransaction();
+} catch (PDOException $e) {
+    echo 'Caught: ' . $e->getMessage(), PHP_EOL;
+}
+
+// triggers duckdb_handle_commit() failure
+$tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '.db';
+$db = new PDO('duckdb:' . $tmpFile);
+$db->exec('CREATE TABLE t (i INTEGER)');
+$db->beginTransaction();
+$db->exec('INSERT INTO t VALUES (1)');
+$db->exec("SET debug_checkpoint_abort = 'before_wal_flush'");
+try {
+    $db->commit();
+} catch (PDOException $e) {
+    echo 'Caught: ' . $e->getMessage(), PHP_EOL;
+}
+
+// triggers duckdb_handle_rollback() failure
+$tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '.db';
+$db = new PDO('duckdb:' . $tmpFile);
+$db->exec('CREATE TABLE t (i INTEGER)');
+$db->beginTransaction();
+$db->exec('INSERT INTO t VALUES (1)');
+$db2 = new PDO('duckdb:' . $tmpFile);
+$db2->exec("SET debug_checkpoint_abort = 'before_truncate'");
+try { $db2->exec('CHECKPOINT'); } catch (PDOException $e) {}
+try {
+    $db->rollBack();
 } catch (PDOException $e) {
     echo 'Caught: ' . $e->getMessage(), PHP_EOL;
 }
@@ -161,6 +189,9 @@ int(3)
 Caught: There is no active transaction
 Caught: There is no active transaction
 Caught: There is already an active transaction
+Caught: SQLSTATE[HY000]: General error: FATAL Error: Failed: database has been invalidated %s
+Original error: "Failed to create checkpoint because of error: Checkpoint aborted before truncate because of PR
+Caught: SQLSTATE[HY000]: General error: FATAL Error: Simulated crash before WAL_FLUSH write
 Caught: SQLSTATE[HY000]: General error: FATAL Error: Failed: database has been invalidated %s
 Original error: "Failed to create checkpoint because of error: Checkpoint aborted before truncate because of PR
 int(0)

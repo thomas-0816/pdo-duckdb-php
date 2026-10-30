@@ -436,9 +436,6 @@ static int duckdb_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 		case PDO_ATTR_AUTOCOMMIT:
 			ZVAL_LONG(val, H->auto_commit);
 			return 1;
-		case PDO_ATTR_DRIVER_NAME:
-			ZVAL_STRINGL(val, "duckdb", sizeof("duckdb") - 1);
-			return 1;
 		case PDO_DUCKDB_ATTR_UNBUFFERED:
 			ZVAL_BOOL(val, H->unbuffered);
 			return 1;
@@ -452,7 +449,6 @@ static int duckdb_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 static zend_result duckdb_check_liveness(pdo_dbh_t *dbh)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
-	/* A simple query to test connection */
 	duckdb_result res;
 	duckdb_state st;
 	if (H->thread_lock) {

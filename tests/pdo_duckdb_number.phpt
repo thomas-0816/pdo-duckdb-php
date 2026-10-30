@@ -56,6 +56,9 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT ln(-1), sqrt(-1)");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$statement = $db->query("SELECT 10::SMALLINT, 11::USMALLINT");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(1) {
@@ -220,5 +223,14 @@ array(1) {
     float(NAN)
     ["sqrt(-1)"]=>
     float(NAN)
+  }
+}
+array(1) {
+  [0]=>
+  array(2) {
+    ["CAST(10 AS SMALLINT)"]=>
+    int(10)
+    ["CAST(11 AS USMALLINT)"]=>
+    int(11)
   }
 }
