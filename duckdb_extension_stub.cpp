@@ -10,7 +10,8 @@ extern "C" int32_t duckdb_extension_parquet_describe(duckdb_extension_descriptor
 namespace {
 
 struct StaticExtensionRegistrar {
-	StaticExtensionRegistrar() {
+	StaticExtensionRegistrar()
+	{
 		duckdb_register_static_extension(duckdb_extension_core_functions_describe);
 		duckdb_register_static_extension(duckdb_extension_loadable_extensions_describe);
 		duckdb_register_static_extension(duckdb_extension_httplib_describe);
