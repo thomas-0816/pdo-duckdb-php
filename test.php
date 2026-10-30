@@ -674,7 +674,14 @@ try {
 }
 
 $db = new PDO('duckdb::memory:');
-$statement = $db->query('SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE installed = 1 OR loaded = 1');
+try {
+    // https://github.com/duckdb/duckdb/issues/26875
+    $statement = $db->query('SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE installed = 1 OR loaded = 1');
+} catch (Exception $e) {
+    usleep(1000);
+    $statement = $db->query('SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE installed = 1 OR loaded = 1');
+}
+
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $count = 0;
@@ -826,6 +833,27 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['autoload_known_extensions' => false, 'autoinstall_known_extensions' => false, 'allow_community_extensions' => false]]);
 $statement = $db->query("select value from duckdb_settings() where name in ('autoload_known_extensions', 'autoinstall_known_extensions', 'allow_community_extensions')");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$db = new PDO('sqlite::memory:');
+$db->exec('CREATE TABLE t (i INTEGER)');
+$statement = $db->prepare('INSERT INTO t VALUES (?)');
+$statement->execute([1]);
+$statement = $db->prepare('INSERT INTO t VALUES (?)');
+$statement->bindValue(1, 2, PDO::PARAM_INT);
+$statement->execute();
+$statement = $db->prepare('INSERT INTO t VALUES (:i)');
+$statement->bindValue('i', 3, PDO::PARAM_INT);
+$statement->execute();
+$value = 1;
+$value2 = 'foo';
+$statement = $db->prepare('INSERT INTO t VALUES (?, ?)');
+$statement->bindParam(1, $value);
+$statement->bindParam(2, $value2);
+$statement->execute();
+$statement = $db->query('SELECT * FROM t', PDO::FETCH_NUM);
+while ($row = $statement->fetch()) { var_dump($row); }
+$statement = $db->query('SELECT * FROM t');
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 echo "DONE", PHP_EOL;
