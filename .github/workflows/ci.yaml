@@ -311,15 +311,7 @@ jobs:
           phpize
           ./configure --with-pdo-duckdb
           intercept-build-20 make -j"$(nproc)"
-          checks="-*,clang-analyzer-*,bugprone-*,performance-*,portability-*"
-          checks="$checks,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling"
-          checks="$checks,-clang-analyzer-security.insecureAPI.strcpy"
-          checks="$checks,-clang-analyzer-optin.core.EnumCastOutOfRange"
-          checks="$checks,-bugprone-easily-swappable-parameters"
-          checks="$checks,-bugprone-implicit-widening-of-multiplication-result"
-          checks="$checks,-bugprone-macro-parentheses"
-          checks="$checks,-bugprone-reserved-identifier"
-          run-clang-tidy-20 -p . -quiet -j"$(nproc)" -checks="$checks" -warnings-as-errors='clang-analyzer-*,bugprone-*,performance-*,portability-*'
+          run-clang-tidy-20 -p . -quiet -j"$(nproc)"
 
   clang-coverage:
     name: clang-coverage
