@@ -29,6 +29,8 @@ var_dump($statement->getColumnMeta(4));
 var_dump($statement->getColumnMeta(5));
 var_dump($statement->getColumnMeta(6));
 var_dump($statement->columnCount());
+$statement->closeCursor();
+var_dump($statement->getColumnMeta(0));
 
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
@@ -690,6 +692,7 @@ array(7) {
 }
 bool(false)
 int(6)
+bool(false)
 array(1) {
   [0]=>
   array(5) {
