@@ -67,7 +67,7 @@ try {
 }
 
 $db = new PDO('duckdb::memory:');
-$db->exec("CREATE TABLE t (n INTEGER NULL, i INTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
+$db->exec("CREATE TABLE t (n INTEGER NULL, i UINTEGER NULL, b BIGINT NULL, d DECIMAL(10, 2) NULL, v VARCHAR NULL)");
 $statement = $db->prepare('INSERT INTO t VALUES (:aa, :bb, :cc, :dd, :ee)');
 $statement->bindValue('aa', null, PDO::PARAM_NULL);
 $statement->bindValue('bb', 201, PDO::PARAM_INT);
@@ -76,11 +76,11 @@ $statement->bindValue('dd', 42.21, PDO::PARAM_STR);
 $statement->bindValue('ee', 'test', PDO::PARAM_STR);
 $statement->execute();
 $statement = $db->prepare('INSERT INTO t VALUES (?, ?, ?, ?, ?)');
-$statement->bindValue(1, null);
-$statement->bindValue(2, 202);
+$statement->bindValue(1, '', PDO::PARAM_NULL);
+$statement->bindValue(2, '202', PDO::PARAM_INT);
 $statement->bindValue(3, 300);
 $statement->bindValue(4, 42.21);
-$statement->bindValue(5, 'test');
+$statement->bindValue(5, 'test', PDO::PARAM_LOB);
 $statement->execute();
 $statement = $db->prepare('INSERT INTO t VALUES (:aa, :bb, :cc, :dd, :ee)');
 $statement->bindValue('aa', null);
@@ -487,6 +487,21 @@ var_dump($statement->fetchColumn());
 $statement->execute([43]);
 var_dump($statement->fetchColumn());
 
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE TABLE t (bool1 BOOLEAN, bool2 BOOLEAN)');
+$stmt = $db->prepare('INSERT INTO t VALUES (?, ?)');
+$stmt->bindValue(1, true, PDO::PARAM_BOOL);
+$stmt->bindValue(2, false, PDO::PARAM_BOOL);
+$stmt->execute();
+$stmt = $db->prepare('INSERT INTO t VALUES (?, ?)');
+$stmt->bindValue(1, 4, PDO::PARAM_INT);
+$stmt->bindValue(2, '0', PDO::PARAM_BOOL);
+$stmt->execute();
+$stmt = $db->prepare('INSERT INTO t VALUES (?, ?)');
+$stmt->bindValue(1, '1', PDO::PARAM_BOOL);
+$stmt->bindValue(2, '', PDO::PARAM_BOOL);
+$stmt->execute();
+var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
 ?>
 --EXPECTF--
@@ -1104,3 +1119,26 @@ int(500000500000)
 Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following parameters: 1
 int(42)
 int(43)
+array(3) {
+  [0]=>
+  array(2) {
+    ["bool1"]=>
+    bool(true)
+    ["bool2"]=>
+    bool(false)
+  }
+  [1]=>
+  array(2) {
+    ["bool1"]=>
+    bool(true)
+    ["bool2"]=>
+    bool(false)
+  }
+  [2]=>
+  array(2) {
+    ["bool1"]=>
+    bool(true)
+    ["bool2"]=>
+    bool(false)
+  }
+}
