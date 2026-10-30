@@ -91,8 +91,7 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 	}
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&S->result);
-		zend_throw_exception_ex(php_pdo_get_exception(), 0,
-			"SQLSTATE[HY000]: %s", err ? err : "execute error");
+		zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: %s", err ? err : "execute error");
 		duckdb_destroy_result(&S->result);
 		return 0;
 	}
@@ -110,12 +109,12 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 	   For INSERT/UPDATE, there are no columns and we are done immediately.
 	   Use php_pdo_stmt_set_column_count() so PHP core can properly rebuild
 	   stmt->columns when needed (e.g. after set_column_count(0)). */
-	php_pdo_stmt_set_column_count(stmt, (int)duckdb_column_count(&S->result));
+	php_pdo_stmt_set_column_count(stmt, (int) duckdb_column_count(&S->result));
 	if (stmt->column_count == 0) {
 		S->done = 1;
 	}
 
-	stmt->row_count = (zend_long)duckdb_rows_changed(&S->result);
+	stmt->row_count = (zend_long) duckdb_rows_changed(&S->result);
 	return 1;
 }
 
@@ -131,23 +130,18 @@ static inline zend_string *zval_to_map_key(zval *zv)
 	zval *val;
 
 	ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(zv), val) {
-		zend_string *part = Z_TYPE_P(val) == IS_ARRAY
-			? zval_to_map_key(val)
-			: zval_get_string(val);
+		zend_string *part = Z_TYPE_P(val) == IS_ARRAY ? zval_to_map_key(val) : zval_get_string(val);
 
 		if (result == NULL) {
 			result = part;
 		} else {
 			zend_string *prev = result;
-			result = zend_string_concat3(
-				ZSTR_VAL(prev), ZSTR_LEN(prev),
-				", ", 2,
-				ZSTR_VAL(part), ZSTR_LEN(part)
-			);
+			result = zend_string_concat3(ZSTR_VAL(prev), ZSTR_LEN(prev), ", ", 2, ZSTR_VAL(part), ZSTR_LEN(part));
 			zend_string_release(prev);
 			zend_string_release(part);
 		}
-	} ZEND_HASH_FOREACH_END();
+	}
+	ZEND_HASH_FOREACH_END();
 
 	if (result == NULL) {
 		result = zend_string_init("", 0, 0);
@@ -184,61 +178,61 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 			break;
 		}
 		case DUCKDB_TYPE_BOOLEAN: {
-			bool val = ((bool *)duckdb_vector_get_data(vec))[row_idx];
+			bool val = ((bool *) duckdb_vector_get_data(vec))[row_idx];
 			ZVAL_BOOL(result, val);
 			break;
 		}
 		case DUCKDB_TYPE_TINYINT: {
-			int8_t val = ((int8_t *)duckdb_vector_get_data(vec))[row_idx];
-			ZVAL_LONG(result, (zend_long)val);
+			int8_t val = ((int8_t *) duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_LONG(result, (zend_long) val);
 			break;
 		}
 		case DUCKDB_TYPE_SMALLINT: {
-			int16_t val = ((int16_t *)duckdb_vector_get_data(vec))[row_idx];
-			ZVAL_LONG(result, (zend_long)val);
+			int16_t val = ((int16_t *) duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_LONG(result, (zend_long) val);
 			break;
 		}
 		case DUCKDB_TYPE_INTEGER: {
-			int32_t val = ((int32_t *)duckdb_vector_get_data(vec))[row_idx];
-			ZVAL_LONG(result, (zend_long)val);
+			int32_t val = ((int32_t *) duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_LONG(result, (zend_long) val);
 			break;
 		}
 		case DUCKDB_TYPE_BIGINT: {
-			int64_t val = ((int64_t *)duckdb_vector_get_data(vec))[row_idx];
-			ZVAL_LONG(result, (zend_long)val);
+			int64_t val = ((int64_t *) duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_LONG(result, (zend_long) val);
 			break;
 		}
 		case DUCKDB_TYPE_UTINYINT: {
-			uint8_t val = ((uint8_t *)duckdb_vector_get_data(vec))[row_idx];
-			ZVAL_LONG(result, (zend_long)val);
+			uint8_t val = ((uint8_t *) duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_LONG(result, (zend_long) val);
 			break;
 		}
 		case DUCKDB_TYPE_USMALLINT: {
-			uint16_t val = ((uint16_t *)duckdb_vector_get_data(vec))[row_idx];
-			ZVAL_LONG(result, (zend_long)val);
+			uint16_t val = ((uint16_t *) duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_LONG(result, (zend_long) val);
 			break;
 		}
 		case DUCKDB_TYPE_UINTEGER: {
-			uint32_t val = ((uint32_t *)duckdb_vector_get_data(vec))[row_idx];
-			ZVAL_LONG(result, (zend_long)val);
+			uint32_t val = ((uint32_t *) duckdb_vector_get_data(vec))[row_idx];
+			ZVAL_LONG(result, (zend_long) val);
 			break;
 		}
 		case DUCKDB_TYPE_UBIGINT: {
-			uint64_t val = ((uint64_t *)duckdb_vector_get_data(vec))[row_idx];
-			if (val > (uint64_t)ZEND_LONG_MAX) {
+			uint64_t val = ((uint64_t *) duckdb_vector_get_data(vec))[row_idx];
+			if (val > (uint64_t) ZEND_LONG_MAX) {
 				char buf[24];
 				snprintf(buf, sizeof(buf), "%" PRIu64, val);
 				ZVAL_STRING(result, buf);
 			} else {
-				ZVAL_LONG(result, (zend_long)val);
+				ZVAL_LONG(result, (zend_long) val);
 			}
 			break;
 		}
 		case DUCKDB_TYPE_HUGEINT: {
-			duckdb_hugeint val = ((duckdb_hugeint *)duckdb_vector_get_data(vec))[row_idx];
-			if ((val.upper == 0 && val.lower <= (uint64_t)ZEND_LONG_MAX) ||
-				(val.upper == -1 && val.lower >= (uint64_t)ZEND_LONG_MIN)) {
-				ZVAL_LONG(result, (zend_long)val.lower);
+			duckdb_hugeint val = ((duckdb_hugeint *) duckdb_vector_get_data(vec))[row_idx];
+			if ((val.upper == 0 && val.lower <= (uint64_t) ZEND_LONG_MAX) ||
+				(val.upper == -1 && val.lower >= (uint64_t) ZEND_LONG_MIN)) {
+				ZVAL_LONG(result, (zend_long) val.lower);
 			} else {
 				char *str = duckdb_get_string(conn, vec, row_idx);
 				if (str == NULL) {
@@ -251,9 +245,9 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 			break;
 		}
 		case DUCKDB_TYPE_UHUGEINT: {
-			duckdb_uhugeint val = ((duckdb_uhugeint *)duckdb_vector_get_data(vec))[row_idx];
-			if (val.upper == 0 && val.lower <= (uint64_t)ZEND_LONG_MAX) {
-				ZVAL_LONG(result, (zend_long)val.lower);
+			duckdb_uhugeint val = ((duckdb_uhugeint *) duckdb_vector_get_data(vec))[row_idx];
+			if (val.upper == 0 && val.lower <= (uint64_t) ZEND_LONG_MAX) {
+				ZVAL_LONG(result, (zend_long) val.lower);
 			} else {
 				char *str = duckdb_get_string(conn, vec, row_idx);
 				if (str == NULL) {
@@ -266,24 +260,24 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 			break;
 		}
 		case DUCKDB_TYPE_FLOAT: {
-			float val = ((float *)duckdb_vector_get_data(vec))[row_idx];
+			float val = ((float *) duckdb_vector_get_data(vec))[row_idx];
 			if (isnan(val)) {
-				ZVAL_DOUBLE(result, (double)NAN);
+				ZVAL_DOUBLE(result, (double) NAN);
 			} else if (isinf(val)) {
-				ZVAL_DOUBLE(result, val > 0 ? (double)INFINITY : -(double)INFINITY);
+				ZVAL_DOUBLE(result, val > 0 ? (double) INFINITY : -(double) INFINITY);
 			} else {
 				char buf[32];
-				snprintf(buf, sizeof(buf), "%.7g", (double)val);
+				snprintf(buf, sizeof(buf), "%.7g", (double) val);
 				ZVAL_DOUBLE(result, zend_strtod(buf, NULL));
 			}
 			break;
 		}
 		case DUCKDB_TYPE_DOUBLE: {
-			double val = ((double *)duckdb_vector_get_data(vec))[row_idx];
+			double val = ((double *) duckdb_vector_get_data(vec))[row_idx];
 			if (isnan(val)) {
-				ZVAL_DOUBLE(result, (double)NAN);
+				ZVAL_DOUBLE(result, (double) NAN);
 			} else if (isinf(val)) {
-				ZVAL_DOUBLE(result, val > 0 ? (double)INFINITY : -(double)INFINITY);
+				ZVAL_DOUBLE(result, val > 0 ? (double) INFINITY : -(double) INFINITY);
 			} else {
 				ZVAL_DOUBLE(result, val);
 			}
@@ -293,7 +287,7 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 			char *alias = duckdb_logical_type_get_alias(logical_type);
 			if (alias && strcmp(alias, "JSON") == 0) {
 				duckdb_free(alias);
-				duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
+				duckdb_string_t str = ((duckdb_string_t *) duckdb_vector_get_data(vec))[row_idx];
 				const char *str_data = duckdb_string_t_data(&str);
 				size_t str_len = duckdb_string_t_length(str);
 				char *json_copy = emalloc(str_len + 1);
@@ -305,13 +299,13 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 				efree(json_copy);
 			} else {
 				duckdb_free(alias);
-				duckdb_string_t str = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
+				duckdb_string_t str = ((duckdb_string_t *) duckdb_vector_get_data(vec))[row_idx];
 				ZVAL_STRINGL(result, duckdb_string_t_data(&str), duckdb_string_t_length(str));
 			}
 			break;
 		}
 		case DUCKDB_TYPE_BLOB: {
-			duckdb_string_t blob = ((duckdb_string_t *)duckdb_vector_get_data(vec))[row_idx];
+			duckdb_string_t blob = ((duckdb_string_t *) duckdb_vector_get_data(vec))[row_idx];
 			ZVAL_STRINGL(result, duckdb_string_t_data(&blob), duckdb_string_t_length(blob));
 			break;
 		}
@@ -320,31 +314,30 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 			duckdb_hugeint hugeint_val;
 			switch (internal_type) {
 				case DUCKDB_TYPE_SMALLINT: {
-					int16_t val = ((int16_t *)duckdb_vector_get_data(vec))[row_idx];
-					hugeint_val.lower = (uint64_t)(int64_t)val;
+					int16_t val = ((int16_t *) duckdb_vector_get_data(vec))[row_idx];
+					hugeint_val.lower = (uint64_t) (int64_t) val;
 					hugeint_val.upper = val < 0 ? -1 : 0;
 					break;
 				}
 				case DUCKDB_TYPE_INTEGER: {
-					int32_t val = ((int32_t *)duckdb_vector_get_data(vec))[row_idx];
-					hugeint_val.lower = (uint64_t)(int64_t)val;
+					int32_t val = ((int32_t *) duckdb_vector_get_data(vec))[row_idx];
+					hugeint_val.lower = (uint64_t) (int64_t) val;
 					hugeint_val.upper = val < 0 ? -1 : 0;
 					break;
 				}
 				case DUCKDB_TYPE_BIGINT: {
-					int64_t val = ((int64_t *)duckdb_vector_get_data(vec))[row_idx];
-					hugeint_val.lower = (uint64_t)val;
+					int64_t val = ((int64_t *) duckdb_vector_get_data(vec))[row_idx];
+					hugeint_val.lower = (uint64_t) val;
 					hugeint_val.upper = val < 0 ? -1 : 0;
 					break;
 				}
 				default: {
-					hugeint_val = ((duckdb_hugeint *)duckdb_vector_get_data(vec))[row_idx];
+					hugeint_val = ((duckdb_hugeint *) duckdb_vector_get_data(vec))[row_idx];
 					break;
 				}
 			}
 			if ((hugeint_val.upper == 0 && hugeint_val.lower <= (1ULL << 53)) ||
-				(~hugeint_val.upper == 0 && (~hugeint_val.lower + 1) <= (1ULL << 53))
-			) {
+				(~hugeint_val.upper == 0 && (~hugeint_val.lower + 1) <= (1ULL << 53))) {
 				duckdb_decimal dec_val;
 				dec_val.width = duckdb_decimal_width(logical_type);
 				dec_val.scale = duckdb_decimal_scale(logical_type);
@@ -362,7 +355,7 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 			break;
 		}
 		case DUCKDB_TYPE_LIST: {
-			duckdb_list_entry entry = ((duckdb_list_entry *)duckdb_vector_get_data(vec))[row_idx];
+			duckdb_list_entry entry = ((duckdb_list_entry *) duckdb_vector_get_data(vec))[row_idx];
 			duckdb_vector child_vec = duckdb_list_vector_get_child(vec);
 			duckdb_logical_type child_type = duckdb_list_type_child_type(logical_type);
 
@@ -393,13 +386,13 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 					add_next_index_zval(result, &child_val);
 				}
 
-				duckdb_free((void *)name);
+				duckdb_free((void *) name);
 				duckdb_destroy_logical_type(&child_type);
 			}
 			break;
 		}
 		case DUCKDB_TYPE_MAP: {
-			duckdb_list_entry entry = ((duckdb_list_entry *)duckdb_vector_get_data(vec))[row_idx];
+			duckdb_list_entry entry = ((duckdb_list_entry *) duckdb_vector_get_data(vec))[row_idx];
 			duckdb_vector list_child_vec = duckdb_list_vector_get_child(vec);
 
 			duckdb_logical_type key_type = duckdb_map_type_key_type(logical_type);
@@ -425,7 +418,7 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 		}
 		case DUCKDB_TYPE_UNION: {
 			duckdb_vector tag_vec = duckdb_struct_vector_get_child(vec, 0);
-			uint8_t tag = ((uint8_t *)duckdb_vector_get_data(tag_vec))[row_idx];
+			uint8_t tag = ((uint8_t *) duckdb_vector_get_data(tag_vec))[row_idx];
 
 			idx_t member_count = duckdb_union_type_member_count(logical_type);
 			if (tag >= member_count || member_count == 0) {
@@ -443,7 +436,7 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 			array_init(result);
 			add_assoc_zval(result, member_name, &member_val);
 
-			duckdb_free((void *)member_name);
+			duckdb_free((void *) member_name);
 			duckdb_destroy_logical_type(&member_type);
 			break;
 		}
@@ -508,7 +501,7 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 /* ---------------- get column data (called by PDO after fetch) ---------------- */
 static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum pdo_param_type *type)
 {
-	(void)type;
+	(void) type;
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) stmt->dbh->driver_data;
 	duckdb_result *res = &S->result;
@@ -547,7 +540,8 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 /* ---------------- statement fetch (single row) ---------------- */
 static int duckdb_stmt_fetch(pdo_stmt_t *stmt, enum pdo_fetch_orientation ori, zend_long offset)
 {
-	(void)ori; (void)offset;
+	(void) ori;
+	(void) offset;
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
 
 	if (!S->result_set || S->done) {
@@ -560,7 +554,7 @@ static int duckdb_stmt_fetch(pdo_stmt_t *stmt, enum pdo_fetch_orientation ori, z
 	/* If the current chunk is exhausted, try to load the next one */
 	if (S->chunk == NULL || S->chunk_idx >= S->chunk_size) {
 		if (!fetch_next_chunk(S)) {
-			return 0;   /* no more rows */
+			return 0; /* no more rows */
 		}
 	}
 
@@ -619,55 +613,172 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 	duckdb_free(alias);
 
 	switch ((unsigned) type) {
-		case DUCKDB_TYPE_BOOLEAN: type_str = "boolean"; pdo_type = PDO_PARAM_BOOL; break;
-		case DUCKDB_TYPE_TINYINT: type_str = "tinyint"; pdo_type = PDO_PARAM_INT; break;
-		case DUCKDB_TYPE_SMALLINT: type_str = "smallint"; pdo_type = PDO_PARAM_INT; break;
-		case DUCKDB_TYPE_INTEGER: type_str = "integer"; pdo_type = PDO_PARAM_INT; break;
-		case DUCKDB_TYPE_BIGINT: type_str = "bigint"; pdo_type = PDO_PARAM_INT; break;
-		case DUCKDB_TYPE_UTINYINT: type_str = "utinyint"; pdo_type = PDO_PARAM_INT; break;
-		case DUCKDB_TYPE_USMALLINT: type_str = "usmallint"; pdo_type = PDO_PARAM_INT; break;
-		case DUCKDB_TYPE_UINTEGER: type_str = "uinteger"; pdo_type = PDO_PARAM_INT; break;
-		case DUCKDB_TYPE_UBIGINT: type_str = "ubigint"; pdo_type = PDO_PARAM_INT; break;
-		case DUCKDB_TYPE_HUGEINT: type_str = "hugeint"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_UHUGEINT: type_str = "uhugeint"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_FLOAT: type_str = "float"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_DOUBLE: type_str = "double"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_DECIMAL: type_str = "decimal"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_BLOB: type_str = "blob"; pdo_type = PDO_PARAM_LOB; break;
-		case DUCKDB_TYPE_DATE: type_str = "date"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_TIME: type_str = "time"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_TIME_TZ: type_str = "timetz"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_TIME_NS: type_str = "time_ns"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_TIMESTAMP: type_str = "timestamp"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_TIMESTAMP_S: type_str = "timestamp_s"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_TIMESTAMP_MS: type_str = "timestamp_ms"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_TIMESTAMP_NS: type_str = "timestamp_ns"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_TIMESTAMP_TZ: type_str = "timestamptz"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_TIMESTAMP_TZ_NS: type_str = "timestamptz_ns"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_LIST: type_str = "list"; pdo_type = PDO_PARAM_LOB; break;
-		case DUCKDB_TYPE_STRUCT: type_str = "struct"; pdo_type = PDO_PARAM_LOB; break;
-		case DUCKDB_TYPE_MAP: type_str = "map"; pdo_type = PDO_PARAM_LOB; break;
-		case DUCKDB_TYPE_ENUM: type_str = "enum"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_UNION: type_str = "union"; pdo_type = PDO_PARAM_LOB; break;
-		case DUCKDB_TYPE_UUID: type_str = "uuid"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_INTERVAL: type_str = "interval"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_VARIANT: type_str = "json"; pdo_type = PDO_PARAM_LOB; break;
-		case DUCKDB_TYPE_BIT: type_str = "bit"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_GEOMETRY: type_str = "geometry"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_BIGNUM: type_str = "bignum"; pdo_type = PDO_PARAM_STR; break;
-		case DUCKDB_TYPE_SQLNULL: type_str = "null"; pdo_type = PDO_PARAM_NULL; break;
-		case DUCKDB_TYPE_VARCHAR: type_str = "varchar"; pdo_type = PDO_PARAM_STR; break;
-		default: type_str = "unknown"; pdo_type = PDO_PARAM_STR; break;
+		case DUCKDB_TYPE_BOOLEAN:
+			type_str = "boolean";
+			pdo_type = PDO_PARAM_BOOL;
+			break;
+		case DUCKDB_TYPE_TINYINT:
+			type_str = "tinyint";
+			pdo_type = PDO_PARAM_INT;
+			break;
+		case DUCKDB_TYPE_SMALLINT:
+			type_str = "smallint";
+			pdo_type = PDO_PARAM_INT;
+			break;
+		case DUCKDB_TYPE_INTEGER:
+			type_str = "integer";
+			pdo_type = PDO_PARAM_INT;
+			break;
+		case DUCKDB_TYPE_BIGINT:
+			type_str = "bigint";
+			pdo_type = PDO_PARAM_INT;
+			break;
+		case DUCKDB_TYPE_UTINYINT:
+			type_str = "utinyint";
+			pdo_type = PDO_PARAM_INT;
+			break;
+		case DUCKDB_TYPE_USMALLINT:
+			type_str = "usmallint";
+			pdo_type = PDO_PARAM_INT;
+			break;
+		case DUCKDB_TYPE_UINTEGER:
+			type_str = "uinteger";
+			pdo_type = PDO_PARAM_INT;
+			break;
+		case DUCKDB_TYPE_UBIGINT:
+			type_str = "ubigint";
+			pdo_type = PDO_PARAM_INT;
+			break;
+		case DUCKDB_TYPE_HUGEINT:
+			type_str = "hugeint";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_UHUGEINT:
+			type_str = "uhugeint";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_FLOAT:
+			type_str = "float";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_DOUBLE:
+			type_str = "double";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_DECIMAL:
+			type_str = "decimal";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_BLOB:
+			type_str = "blob";
+			pdo_type = PDO_PARAM_LOB;
+			break;
+		case DUCKDB_TYPE_DATE:
+			type_str = "date";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_TIME:
+			type_str = "time";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_TIME_TZ:
+			type_str = "timetz";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_TIME_NS:
+			type_str = "time_ns";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_TIMESTAMP:
+			type_str = "timestamp";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_TIMESTAMP_S:
+			type_str = "timestamp_s";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_TIMESTAMP_MS:
+			type_str = "timestamp_ms";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_TIMESTAMP_NS:
+			type_str = "timestamp_ns";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_TIMESTAMP_TZ:
+			type_str = "timestamptz";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_TIMESTAMP_TZ_NS:
+			type_str = "timestamptz_ns";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_LIST:
+			type_str = "list";
+			pdo_type = PDO_PARAM_LOB;
+			break;
+		case DUCKDB_TYPE_STRUCT:
+			type_str = "struct";
+			pdo_type = PDO_PARAM_LOB;
+			break;
+		case DUCKDB_TYPE_MAP:
+			type_str = "map";
+			pdo_type = PDO_PARAM_LOB;
+			break;
+		case DUCKDB_TYPE_ENUM:
+			type_str = "enum";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_UNION:
+			type_str = "union";
+			pdo_type = PDO_PARAM_LOB;
+			break;
+		case DUCKDB_TYPE_UUID:
+			type_str = "uuid";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_INTERVAL:
+			type_str = "interval";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_VARIANT:
+			type_str = "json";
+			pdo_type = PDO_PARAM_LOB;
+			break;
+		case DUCKDB_TYPE_BIT:
+			type_str = "bit";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_GEOMETRY:
+			type_str = "geometry";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_BIGNUM:
+			type_str = "bignum";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		case DUCKDB_TYPE_SQLNULL:
+			type_str = "null";
+			pdo_type = PDO_PARAM_NULL;
+			break;
+		case DUCKDB_TYPE_VARCHAR:
+			type_str = "varchar";
+			pdo_type = PDO_PARAM_STR;
+			break;
+		default:
+			type_str = "unknown";
+			pdo_type = PDO_PARAM_STR;
+			break;
 	}
 
-	add_assoc_string(return_value, "native_type", (char *)type_str);
+	add_assoc_string(return_value, "native_type", (char *) type_str);
 	add_assoc_long(return_value, "pdo_type", pdo_type);
 
 	/* duckdb:decl_type carries the full, exact type declaration (e.g. DECIMAL(10,2),
 	   STRUCT(a INTEGER, b VARCHAR), TUPLE(INTEGER, STRING), INTEGER[], ...) as
 	   rendered by DuckDB's LogicalType::ToString(). */
 	char *decl_str = duckdb_logical_type_to_string(logical_type);
-	add_assoc_string(return_value, "duckdb:decl_type", decl_str ? decl_str : (char *)type_str);
+	add_assoc_string(return_value, "duckdb:decl_type", decl_str ? decl_str : (char *) type_str);
 	if (decl_str) {
 		duckdb_free(decl_str);
 	}
@@ -679,8 +790,7 @@ static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *ret
 }
 
 /* ---------------- parameter hook (binding before execution) ---------------- */
-static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data *param,
-                                   enum pdo_param_event event_type)
+static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data *param, enum pdo_param_event event_type)
 {
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
 
@@ -745,27 +855,29 @@ static int duckdb_stmt_param_hook(pdo_stmt_t *stmt, struct pdo_bound_param_data 
 			}
 		} else if (Z_TYPE_P(parameter) == IS_DOUBLE) {
 			state = duckdb_bind_double(S->stmt, idx, zval_get_double(parameter));
-		} else switch (PDO_PARAM_TYPE(param->param_type)) {
-			case PDO_PARAM_NULL:
-				state = duckdb_bind_null(S->stmt, idx);
-				break;
-			case PDO_PARAM_BOOL:
-				state = duckdb_bind_boolean(S->stmt, idx, zend_is_true(parameter) ? 1 : 0);
-				break;
-			case PDO_PARAM_INT:
-				state = duckdb_bind_int64(S->stmt, idx, (int64_t)zval_get_long(parameter));
-				break;
-			case PDO_PARAM_LOB: {
-				zend_string *str = zval_get_string(parameter);
-				state = duckdb_bind_blob(S->stmt, idx, ZSTR_VAL(str), ZSTR_LEN(str));
-				zend_string_release(str);
-				break;
-			}
-			default: {
-				zend_string *str = zval_get_string(parameter);
-				state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(str), ZSTR_LEN(str));
-				zend_string_release(str);
-				break;
+		} else {
+			switch (PDO_PARAM_TYPE(param->param_type)) {
+				case PDO_PARAM_NULL:
+					state = duckdb_bind_null(S->stmt, idx);
+					break;
+				case PDO_PARAM_BOOL:
+					state = duckdb_bind_boolean(S->stmt, idx, zend_is_true(parameter) ? 1 : 0);
+					break;
+				case PDO_PARAM_INT:
+					state = duckdb_bind_int64(S->stmt, idx, (int64_t) zval_get_long(parameter));
+					break;
+				case PDO_PARAM_LOB: {
+					zend_string *str = zval_get_string(parameter);
+					state = duckdb_bind_blob(S->stmt, idx, ZSTR_VAL(str), ZSTR_LEN(str));
+					zend_string_release(str);
+					break;
+				}
+				default: {
+					zend_string *str = zval_get_string(parameter);
+					state = duckdb_bind_varchar_length(S->stmt, idx, ZSTR_VAL(str), ZSTR_LEN(str));
+					zend_string_release(str);
+					break;
+				}
 			}
 		}
 
@@ -829,15 +941,15 @@ static int duckdb_stmt_dtor(pdo_stmt_t *stmt)
 
 /* ---------------- statement method table ---------------- */
 struct pdo_stmt_methods duckdb_stmt_methods = {
-	duckdb_stmt_dtor,             /* dtor */
-	duckdb_stmt_execute,          /* executer */
-	duckdb_stmt_fetch,            /* fetcher */
-	duckdb_stmt_describe_col,     /* describer */
-	duckdb_stmt_get_col,          /* get_col */
-	duckdb_stmt_param_hook,       /* param_hook */
-	NULL,                         /* set_attribute */
-	NULL,                         /* get_attribute */
-	duckdb_stmt_get_col_meta,     /* get_column_meta */
-	NULL,                         /* next_rowset */
-	duckdb_stmt_cursor_closer     /* cursor_closer */
+	duckdb_stmt_dtor,         /* dtor */
+	duckdb_stmt_execute,      /* executer */
+	duckdb_stmt_fetch,        /* fetcher */
+	duckdb_stmt_describe_col, /* describer */
+	duckdb_stmt_get_col,      /* get_col */
+	duckdb_stmt_param_hook,   /* param_hook */
+	NULL,                     /* set_attribute */
+	NULL,                     /* get_attribute */
+	duckdb_stmt_get_col_meta, /* get_column_meta */
+	NULL,                     /* next_rowset */
+	duckdb_stmt_cursor_closer /* cursor_closer */
 };
