@@ -59,7 +59,7 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT ln(-1), sqrt(-1)");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT 10::SMALLINT, 11::USMALLINT");
+$statement = $db->query("SELECT 10::SMALLINT, 11::USMALLINT, 12::HUGEINT, 13::UHUGEINT");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 ?>
@@ -241,10 +241,14 @@ array(1) {
 }
 array(1) {
   [0]=>
-  array(2) {
+  array(4) {
     ["CAST(10 AS SMALLINT)"]=>
     int(10)
     ["CAST(11 AS USMALLINT)"]=>
     int(11)
+    ["CAST(12 AS HUGEINT)"]=>
+    int(12)
+    ["CAST(13 AS UHUGEINT)"]=>
+    int(13)
   }
 }
