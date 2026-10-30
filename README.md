@@ -17,7 +17,7 @@ Supported PHP versions (nts & zts): 8.2, 8.3, 8.4, 8.5, 8.6
 
 Supported operating systems: Ubuntu 22+, Debian 12+, Fedora 42+, openSUSE 16+, AmazonLinux, Arch, Alma, Rocky, Alpine, Wolfi OS, Windows Server 2022/2025, macOS 15+
 
-Supported CPU architectures: x86_64/amd64 for Linux and Windows, aarch64/ARM64 for Linux and MacOS
+Supported CPU architectures: x86_64/amd64 for Linux and Windows, aarch64/arm64 for Linux and MacOS
 
 Supported SAPIs: php-cli, php-fpm, mod_php, FrankenPHP, TrueAsync, Swoole
 
