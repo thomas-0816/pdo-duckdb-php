@@ -551,7 +551,9 @@ var_dump($row->a);
 var_dump($stmt->fetch());
 var_dump($row->a);
 
-/* Re-executing destroys the previous result set and the loaded chunk. */
+/* Re-executing after a fetch drops the previous result set and loaded
+ * chunk. PHP <= 8.3 leaves the cleanup to the driver; newer PDO versions
+ * call the cursor closer first. */
 $stmt = $db->prepare('SELECT 42');
 var_dump($stmt->execute());
 var_dump($stmt->fetchColumn());
