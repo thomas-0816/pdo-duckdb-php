@@ -1,5 +1,5 @@
 --TEST--
-PDO_duckdb: Test array
+PDO_duckdb: Test scalar
 --EXTENSIONS--
 pdo_duckdb
 --FILE--
@@ -14,8 +14,6 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT make_type('INTEGER'), get_type(42), NULL::TYPE");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
-
-$statement = $db->query("SELECT make_type('INTEGER')");
 var_dump($statement->getColumnMeta(0));
 
 ?>

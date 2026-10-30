@@ -172,19 +172,6 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 	duckdb_free(alias);
 
 	switch (col_type) {
-		case DUCKDB_TYPE_INVALID: {
-			/* The C API has no DUCKDB_TYPE_TYPE value: DuckDB's TYPE (the type
-			 * of types) is reported as INVALID, but is physically a VARCHAR
-			 * (e.g. make_type('INTEGER')). Render it instead of losing it. */
-			char *str = duckdb_get_string(conn, vec, row_idx);
-			if (str == NULL) {
-				ZVAL_NULL(result);
-			} else {
-				ZVAL_STRING(result, str);
-				duckdb_free(str);
-			}
-			break;
-		}
 		case DUCKDB_TYPE_ANY: {
 			/* ANY only exists during binding and has no runtime value. */
 			ZVAL_NULL(result);
@@ -498,6 +485,7 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 				case DUCKDB_TYPE_TIMESTAMP_MS:
 				case DUCKDB_TYPE_TIMESTAMP_NS:
 				case DUCKDB_TYPE_TIMESTAMP_TZ_NS:
+				case DUCKDB_TYPE_INVALID: TYPE (the type of types) is reported as INVALID, e.g. select make_type('INTEGER'), get_type(42)
 			*/
 			char *str = duckdb_get_string(conn, vec, row_idx);
 			if (str == NULL) {
