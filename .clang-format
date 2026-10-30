@@ -1,0 +1,64 @@
+---
+# clang-format configuration for pdo_duckdb.
+#
+# The C sources follow the PHP extension style: 4-column tab indentation,
+# Allman braces for functions, and K&R braces for control statements.
+Language: Cpp
+BasedOnStyle: LLVM
+ColumnLimit: 0
+IndentWidth: 4
+TabWidth: 4
+UseTab: ForContinuationAndIndentation
+IndentPPDirectives: None
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+ForEachMacros:
+  - ZEND_HASH_FOREACH_VAL
+  - ZEND_HASH_FOREACH_STR_KEY_VAL
+IndentCaseLabels: true
+AlignAfterOpenBracket: Align
+AlignTrailingComments: true
+PointerAlignment: Right
+DerivePointerAlignment: false
+SpaceAfterCStyleCast: true
+SpaceBeforeParens: Custom
+SpaceBeforeParensOptions:
+  AfterControlStatements: true
+  AfterForeachMacros: false
+  AfterFunctionDeclarationName: false
+  AfterFunctionDefinitionName: false
+  AfterIfMacros: true
+  AfterOverloadedOperator: false
+  AfterPlacementOperator: true
+  AfterRequiresInClause: false
+  AfterRequiresInExpression: false
+  BeforeNonEmptyParentheses: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: false
+AllowShortLambdasOnASingleLine: All
+BreakBeforeBinaryOperators: None
+FixNamespaceComments: true
+NamespaceIndentation: None
+SortIncludes: false
+IncludeBlocks: Preserve
+MaxEmptyLinesToKeep: 1
