@@ -125,9 +125,7 @@ try {
 
 $db = new PDO('duckdb::memory:');
 $db->exec('CREATE TABLE t1 (i INTEGER)');
-$statement = $db->query("INSERT INTO t1
-    SELECT 42
-    RETURNING *");
+$statement = $db->query("INSERT INTO t1 SELECT 42 RETURNING *");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $count = 0;
@@ -233,18 +231,18 @@ $statement->bindValue(1, 'foo1' . chr(0) . '2', PDO::PARAM_STR);
 $statement->bindValue(2, 'foo2' . chr(0) . '2', PDO::PARAM_STR);
 $statement->execute();
 try {
-  $statement->execute();
+    $statement->execute();
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 $statement->bindValue(1, 'foo1' . chr(0) . '2', PDO::PARAM_STR);
 try {
-  $statement->execute();
+    $statement->execute();
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 try {
-  $statement->execute(['a']);
+    $statement->execute(['a']);
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
@@ -266,20 +264,20 @@ $statement->bindValue(1, 'foo1', PDO::PARAM_STR);
 $statement->bindValue(2, 'foo2', PDO::PARAM_STR);
 $statement->bindValue(3, 'foo3', PDO::PARAM_STR);
 try {
-  $statement->execute();
+    $statement->execute();
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 $statement->bindValue(1, 'foo1', PDO::PARAM_STR);
 try {
-  $statement->execute();
+    $statement->execute();
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
 class Foo {
-  public int $i;
-  public string $s;
+    public int $i;
+    public string $s;
 }
 $foo = new Foo();
 $foo->i = 42;
@@ -322,49 +320,53 @@ $db->exec('create table t1 (i1 integer, v1 varchar)');
 $db->exec("insert into t1 values (1, 'foo'), (2, 'bar')");
 
 $i1 = $v1 = false;
-$stmt = $db->prepare('SELECT * FROM t1');
-$stmt->execute();
-$stmt->bindColumn(1, $i1);
-$stmt->bindColumn(2, $v1);
-while ($stmt->fetch(PDO::FETCH_BOUND)) {
+$statement = $db->prepare('SELECT * FROM t1');
+$statement->execute();
+$statement->bindColumn(1, $i1);
+$statement->bindColumn(2, $v1);
+while ($statement->fetch(PDO::FETCH_BOUND)) {
     var_dump([$i1, $v1]);
 }
 
 $i1 = $v1 = false;
-$stmt = $db->prepare('SELECT * FROM t1');
-$stmt->execute();
-$stmt->bindColumn('i1', $i1);
-$stmt->bindColumn('v1', $v1);
-while ($stmt->fetch(PDO::FETCH_BOUND)) {
+$statement = $db->prepare('SELECT * FROM t1');
+$statement->execute();
+$statement->bindColumn('i1', $i1);
+$statement->bindColumn('v1', $v1);
+while ($statement->fetch(PDO::FETCH_BOUND)) {
     var_dump([$i1, $v1]);
 }
 
 $object = new stdClass();
 $object->myself = $object; // Circular reference
 
-$stmt = $db->prepare('SELECT ?');
+$statement = $db->prepare('SELECT ?');
 try {
-    $stmt->execute([$object]);
+    $statement->execute([$object]);
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
 try {
-    $stmt->bindValue(1, $object, PDO::PARAM_LOB);
+    $statement->bindValue(1, $object, PDO::PARAM_LOB);
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+try {
+    $statement->bindParam(1, $object, PDO::PARAM_LOB);
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
-$stmt = $db->prepare('SELECT :foo');
+$statement = $db->prepare('SELECT :foo');
 try {
-    $stmt->bindValue('foo', $object, PDO::PARAM_LOB);
+    $statement->bindValue('foo', $object, PDO::PARAM_LOB);
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
 $object = new stdClass();
 $object->key = 'value';
-
 $statement = $db->prepare('SELECT ?::json, ?::json, ?::json');
 $statement->bindValue(1, ['a', 1]);
 $statement->bindValue(2, ['key' => 'value']);
@@ -379,10 +381,11 @@ $statement->execute();
 var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
 $value = ['a', 1];
-$value2 = ['foo' => 'bar'];
+$object = new stdClass();
+$object->key = 'value';
 $statement = $db->prepare('SELECT ?::json, ?::json');
-$statement->bindParam(1, $value);
-$statement->bindParam(2, $value2);
+$statement->bindParam(1, $value, PDO::PARAM_LOB);
+$statement->bindParam(2, $object);
 $statement->execute();
 var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
@@ -395,34 +398,34 @@ try {
 }
 
 try {
-  $db = new PDO('duckdb::memory:');
-  $stmt = $db->prepare('SELECT :value');
-  $stmt->execute(['value' => 42]);
-  $stmt->fetchColumn();
-  $stmt->execute(['invalid' => 'x']);
+    $db = new PDO('duckdb::memory:');
+    $statement = $db->prepare('SELECT :value');
+    $statement->execute(['value' => 42]);
+    $statement->fetchColumn();
+    $statement->execute(['invalid' => 'x']);
 } catch (Exception $e) {
     echo 'Caught: ', $e->getMessage(), PHP_EOL;
 }
 try {
-  $db = new PDO('duckdb::memory:');
-  $stmt = $db->prepare('SELECT $value');
-  $stmt->execute(['value' => 42]);
-  $stmt->fetchColumn();
-  $stmt->execute(['invalid' => 'x']);
+    $db = new PDO('duckdb::memory:');
+    $statement = $db->prepare('SELECT $value');
+    $statement->execute(['value' => 42]);
+    $statement->fetchColumn();
+    $statement->execute(['invalid' => 'x']);
 } catch (Exception $e) {
     echo 'Caught: ', $e->getMessage(), PHP_EOL;
 }
 
-$stmt = $db->prepare('SELECT ?');
+$statement = $db->prepare('SELECT ?');
 try {
-    $stmt->execute([-1 => 'aa']);
+    $statement->execute([-1 => 'aa']);
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
-$stmt = $db->prepare('SELECT ?');
+$statement = $db->prepare('SELECT ?');
 try {
-    $stmt->bindValue(-1, 'aa');
+    $statement->bindValue(-1, 'aa');
 } catch (Throwable $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
@@ -452,7 +455,7 @@ try {
 $invalid = $db->prepare('SELECT ?::integer, ?::integer, ?::integer');
 $invalid->execute([42, 'invalid', '42foo']);
 try {
-  $invalid->fetch(PDO::FETCH_ASSOC);
+    $invalid->fetch(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
@@ -462,16 +465,28 @@ $db = new PDO('duckdb::memory:');
 
 $i = 0;
 foreach ($db->query("SELECT * FROM generate_series(1_000_000)", PDO::FETCH_NUM) as $row) {
-  $i += $row[0];
+    $i += $row[0];
 }
 var_dump($i);
 
 $i = 0;
 $statement = $db->query("SELECT * FROM generate_series(1_000_000)");
 while ($row = $statement->fetch()) {
-  $i += $row[0];
+    $i += $row[0];
 }
 var_dump($i);
+
+$statement = $db->prepare('SELECT ?::integer');
+try {
+    $statement->execute();
+} catch (Exception $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
+$statement->execute([42]);
+var_dump($statement->fetchColumn());
+$statement->execute([43]);
+var_dump($statement->fetchColumn());
+
 
 ?>
 --EXPECTF--
@@ -1023,6 +1038,7 @@ array(2) {
 Caught: SQLSTATE[HY000]: could not encode parameter 1 as JSON
 Caught: SQLSTATE[HY000]: could not encode parameter as JSON
 Caught: SQLSTATE[HY000]: could not encode parameter as JSON
+Caught: SQLSTATE[HY000]: could not encode parameter as JSON
 array(3) {
   ["CAST($1 AS "json")"]=>
   array(2) {
@@ -1064,8 +1080,8 @@ array(2) {
   }
   ["CAST($2 AS "json")"]=>
   array(1) {
-    ["foo"]=>
-    string(3) "bar"
+    ["key"]=>
+    string(5) "value"
   }
 }
 Caught: SQLSTATE[HY000]: could not encode parameter as JSON
@@ -1085,3 +1101,6 @@ LINE 1: SELECT ?::integer, ?::integer, ?::integer
                             ^^^^^^^^^
 int(500000500000)
 int(500000500000)
+Caught: SQLSTATE[HY000]: Invalid Input Error: Values were not provided for the following parameters: 1
+int(42)
+int(43)
