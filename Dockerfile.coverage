@@ -21,11 +21,10 @@ RUN <<EOF
     apt-get -y update
     apt-get -y --no-install-recommends install apt-transport-https curl ca-certificates unzip build-essential llvm clang libclang-rt-dev autoconf tzdata
     ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
-    curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/static-php85.asc
-    echo "deb [signed-by=/etc/apt/keyrings/static-php85.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | \
-    tee -a /etc/apt/sources.list.d/static-php85.list
+    echo "deb https://packages.sury.org/php/ noble main" >/etc/apt/sources.list.d/ondrej-php.list
+    curl -s https://packages.sury.org/php/apt.gpg >/etc/apt/trusted.gpg.d/php.gpg
     apt-get -y update
-    apt-get -y --no-install-recommends install php-zts-cli php-zts-pdo php-zts-devel
+    apt-get -y --no-install-recommends install php8.5-cli php8.5-sqlite3 php8.5-swoole php8.5-curl php8.5-dev
 EOF
 
 COPY ./ ./pdo-duckdb-php
@@ -37,18 +36,16 @@ RUN <<EOF
     curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-static-libs-linux-amd64.tar.gz" -o duckdb-static-libs-linux-amd64.tar.gz
     tar xvzf duckdb-static-libs-linux-amd64.tar.gz
     tar xvzf libduckdb-src.tar.gz
-    phpize-zts
-    ./configure --with-pdo-duckdb --with-php-config=php-config-zts
+    phpize
+    ./configure --with-pdo-duckdb
     make -j$(nproc)
-    NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -j$(nproc)" make test
-
-    apt-get -y --no-install-recommends install php-zts-swoole
-    php -m | grep swoole
-    TEST_EXTENSIONS="mysqlnd swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -j$(nproc)" make test
+    TEST_EXTENSIONS="pdo_sqlite" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -j$(nproc)" make test
+    TEST_EXTENSIONS="sockets curl mysqlnd pdo_sqlite swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -j$(nproc)" make test
 
     llvm-profdata merge -sparse /tmp/*.profraw -o /tmp/coverage.profdata
     llvm-cov report modules/pdo_duckdb.so -instr-profile=/tmp/coverage.profdata -ignore-filename-regex='\.(h|hpp)$' | tee /tmp/report.txt
     awk '/^TOTAL/ {print "Code Coverage: " $10}' /tmp/report.txt
+    rm -rf coverage
     llvm-cov show modules/pdo_duckdb.so -instr-profile=/tmp/coverage.profdata -format=html -output-dir=coverage -ignore-filename-regex='\.(h|hpp)$'
     apt-get upgrade -y && apt-get clean
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*

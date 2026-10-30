@@ -87,6 +87,7 @@ extern "C" {
  * must load before this extension or calls run synchronously. */
 int pdo_duckdb_swoole_loaded(void);     /* 1 iff Swoole loaded before this extension */
 void *pdo_duckdb_thread_lock_new(void); /* new busy-flag lock, or NULL when Swoole unavailable */
+void pdo_duckdb_thread_lock_free(void *lock); /* release a lock from pdo_duckdb_thread_lock_new() */
 /* DuckDB calls serialized through `lock` via Swoole's async thread pool. */
 duckdb_state pdo_duckdb_swoole_get_or_create_from_cache(void *lock, duckdb_instance_cache instance_cache, const char *path, duckdb_database *out_database, duckdb_config config, char **out_error);
 duckdb_state pdo_duckdb_swoole_connect(void *lock, duckdb_database database, duckdb_connection *out_connection);
