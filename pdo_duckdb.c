@@ -23,8 +23,8 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options);
 
 /* Driver definition */
 static pdo_driver_t pdo_duckdb_driver = {
-    PDO_DRIVER_HEADER(duckdb),
-    duckdb_handle_factory};
+	PDO_DRIVER_HEADER(duckdb),
+	duckdb_handle_factory};
 
 /* Process-wide DuckDB instance cache — see php_pdo_duckdb.h */
 duckdb_instance_cache pdo_duckdb_instance_cache = NULL;
@@ -42,8 +42,7 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 {
 	pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(ZEND_THIS);
 
-	if (!pdo_stmt->driver_data ||
-	    pdo_stmt->methods != &duckdb_stmt_methods) {
+	if (!pdo_stmt->driver_data || pdo_stmt->methods != &duckdb_stmt_methods) {
 		original_pdo_stmt_execute(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 		return;
 	}
@@ -87,7 +86,7 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 
 	original_pdo_stmt_execute(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 
-	duckdb_clear_bindings(((pdo_duckdb_stmt *)pdo_stmt->driver_data)->stmt);
+	duckdb_clear_bindings(((pdo_duckdb_stmt *) pdo_stmt->driver_data)->stmt);
 
 	if (pdo_stmt->bound_params) {
 		zend_hash_clean(pdo_stmt->bound_params);
@@ -99,8 +98,7 @@ static void pdo_duckdb_stmt_bind_value_override(INTERNAL_FUNCTION_PARAMETERS)
 {
 	pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(ZEND_THIS);
 
-	if (!pdo_stmt->driver_data ||
-	    pdo_stmt->methods != &duckdb_stmt_methods) {
+	if (!pdo_stmt->driver_data || pdo_stmt->methods != &duckdb_stmt_methods) {
 		original_pdo_stmt_bind_value(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 		return;
 	}
@@ -133,8 +131,7 @@ static void pdo_duckdb_stmt_bind_param_override(INTERNAL_FUNCTION_PARAMETERS)
 {
 	pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(ZEND_THIS);
 
-	if (!pdo_stmt->driver_data ||
-	    pdo_stmt->methods != &duckdb_stmt_methods) {
+	if (!pdo_stmt->driver_data || pdo_stmt->methods != &duckdb_stmt_methods) {
 		original_pdo_stmt_bind_param(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 		return;
 	}
@@ -166,8 +163,8 @@ static void pdo_duckdb_stmt_bind_param_override(INTERNAL_FUNCTION_PARAMETERS)
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(pdo_duckdb)
 {
-	(void)type;
-	(void)module_number;
+	(void) type;
+	(void) module_number;
 
 	ZEND_TSRMLS_CACHE_UPDATE();
 
@@ -190,9 +187,9 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 	pdo_duckdb_instance_cache = duckdb_create_instance_cache();
 
 	/* Register driver-specific class constants */
-	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_UNBUFFERED", sizeof("DUCKDB_ATTR_UNBUFFERED") - 1, (zend_long)PDO_DUCKDB_ATTR_UNBUFFERED);
-	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_CONFIG", sizeof("DUCKDB_ATTR_CONFIG") - 1, (zend_long)PDO_DUCKDB_ATTR_CONFIG);
-	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_INIT_COMMAND", sizeof("DUCKDB_ATTR_INIT_COMMAND") - 1, (zend_long)PDO_DUCKDB_ATTR_INIT_COMMAND);
+	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_UNBUFFERED", sizeof("DUCKDB_ATTR_UNBUFFERED") - 1, (zend_long) PDO_DUCKDB_ATTR_UNBUFFERED);
+	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_CONFIG", sizeof("DUCKDB_ATTR_CONFIG") - 1, (zend_long) PDO_DUCKDB_ATTR_CONFIG);
+	zend_declare_class_constant_long(php_pdo_get_dbh_ce(), "DUCKDB_ATTR_INIT_COMMAND", sizeof("DUCKDB_ATTR_INIT_COMMAND") - 1, (zend_long) PDO_DUCKDB_ATTR_INIT_COMMAND);
 
 	/* Override PDOStatement::{execute,bindValue,bindParam} once at module init (single-threaded).
 	   This replaces the global handler for ALL PDO drivers, but our wrapper
@@ -202,17 +199,17 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 		zend_function *func = zend_hash_str_find_ptr(&pdo_stmt_ce->function_table, "execute", sizeof("execute") - 1);
 		if (func) {
 			original_pdo_stmt_execute = func->internal_function.handler;
-			func->internal_function.handler = (zif_handler)pdo_duckdb_stmt_execute_override;
+			func->internal_function.handler = (zif_handler) pdo_duckdb_stmt_execute_override;
 		}
 		func = zend_hash_str_find_ptr(&pdo_stmt_ce->function_table, "bindvalue", sizeof("bindvalue") - 1);
 		if (func) {
 			original_pdo_stmt_bind_value = func->internal_function.handler;
-			func->internal_function.handler = (zif_handler)pdo_duckdb_stmt_bind_value_override;
+			func->internal_function.handler = (zif_handler) pdo_duckdb_stmt_bind_value_override;
 		}
 		func = zend_hash_str_find_ptr(&pdo_stmt_ce->function_table, "bindparam", sizeof("bindparam") - 1);
 		if (func) {
 			original_pdo_stmt_bind_param = func->internal_function.handler;
-			func->internal_function.handler = (zif_handler)pdo_duckdb_stmt_bind_param_override;
+			func->internal_function.handler = (zif_handler) pdo_duckdb_stmt_bind_param_override;
 		}
 	}
 
@@ -222,8 +219,8 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 /* {{{ PHP_RINIT_FUNCTION */
 PHP_RINIT_FUNCTION(pdo_duckdb)
 {
-	(void)type;
-	(void)module_number;
+	(void) type;
+	(void) module_number;
 	return SUCCESS;
 }
 /* }}} */
@@ -231,8 +228,8 @@ PHP_RINIT_FUNCTION(pdo_duckdb)
 /* {{{ PHP_MSHUTDOWN_FUNCTION */
 PHP_MSHUTDOWN_FUNCTION(pdo_duckdb)
 {
-	(void)type;
-	(void)module_number;
+	(void) type;
+	(void) module_number;
 
 	php_pdo_unregister_driver(&pdo_duckdb_driver);
 	duckdb_destroy_instance_cache(&pdo_duckdb_instance_cache);
@@ -243,8 +240,8 @@ PHP_MSHUTDOWN_FUNCTION(pdo_duckdb)
 /* {{{ PHP_RSHUTDOWN_FUNCTION */
 PHP_RSHUTDOWN_FUNCTION(pdo_duckdb)
 {
-	(void)type;
-	(void)module_number;
+	(void) type;
+	(void) module_number;
 	return SUCCESS;
 }
 /* }}} */
@@ -252,7 +249,7 @@ PHP_RSHUTDOWN_FUNCTION(pdo_duckdb)
 /* {{{ PHP_MINFO_FUNCTION */
 PHP_MINFO_FUNCTION(pdo_duckdb)
 {
-	(void)zend_module;
+	(void) zend_module;
 	php_info_print_table_start();
 	php_info_print_table_header(2, "PDO Driver for DuckDB", "enabled");
 	php_info_print_table_row(2, "DuckDB Library Version", duckdb_library_version());
