@@ -30,6 +30,18 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT map_extract(MAP {'key1': 5, 'key2': 43}, 'key1')");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$statement = $db->query("select MAP {['key1a', 'key1b']: 42}");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("select MAP {[['key1a', 'key1b'], ['key1c', 'key1d']]: 42}");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("select MAP {['key1a', 'key1b']: [42, 21]}");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
+$statement = $db->query("select MAP {[null]: 5}");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(1) {
@@ -132,6 +144,51 @@ array(1) {
     ["map_extract("map"(list_value('key1', 'key2'), list_value(5, 43)), 'key1')"]=>
     array(1) {
       [0]=>
+      int(5)
+    }
+  }
+}
+array(1) {
+  [0]=>
+  array(1) {
+    [""map"(list_value(list_value('key1a', 'key1b')), list_value(42))"]=>
+    array(1) {
+      ["key1a, key1b"]=>
+      int(42)
+    }
+  }
+}
+array(1) {
+  [0]=>
+  array(1) {
+    [""map"(list_value(list_value(list_value('key1a', 'key1b'), list_value('key1c', 'key1d'))), list_value(42))"]=>
+    array(1) {
+      ["key1a, key1b, key1c, key1d"]=>
+      int(42)
+    }
+  }
+}
+array(1) {
+  [0]=>
+  array(1) {
+    [""map"(list_value(list_value('key1a', 'key1b')), list_value(list_value(42, 21)))"]=>
+    array(1) {
+      ["key1a, key1b"]=>
+      array(2) {
+        [0]=>
+        int(42)
+        [1]=>
+        int(21)
+      }
+    }
+  }
+}
+array(1) {
+  [0]=>
+  array(1) {
+    [""map"(list_value(list_value(NULL)), list_value(5))"]=>
+    array(1) {
+      [""]=>
       int(5)
     }
   }
