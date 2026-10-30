@@ -937,8 +937,8 @@ php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
 php run-tests.php --show-diff --show-clean -q
 php-zts run-tests.php --show-diff --show-clean -q
 
-# code formatting
 clang-format-20 -i *.c *.cpp php_pdo_duckdb.h
+intercept-build-20 make && run-clang-tidy-20 -p . -quiet
 
 # code coverage
 docker build --progress=plain -f Dockerfile.coverage -t pdo_duckdb_coverage .

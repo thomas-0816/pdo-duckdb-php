@@ -300,8 +300,8 @@ jobs:
           coverage: none
         env:
           update: true
-      - name: Install clang-tidy
-        run: sudo apt-get update && sudo apt-get install -y clang-tidy-20
+      - name: Install clang-format and clang-tidy
+        run: sudo apt-get update && sudo apt-get install -y clang-format-20 clang-tidy-20
       - name: Build & Analyze
         run: |
           clang-format-20 --style=file --dry-run --Werror *.c *.cpp *.h
@@ -310,8 +310,8 @@ jobs:
           tar xvzf libduckdb-src.tar.gz
           phpize
           ./configure --with-pdo-duckdb
-          intercept-build-20 make -j"$(nproc)"
-          run-clang-tidy-20 -p . -quiet -j"$(nproc)"
+          intercept-build-20 make -j$(nproc)
+          run-clang-tidy-20 -p . -quiet -j$(nproc)
 
   clang-coverage:
     name: clang-coverage
