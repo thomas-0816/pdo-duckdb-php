@@ -325,11 +325,9 @@ jobs:
           persist-credentials: false
       - name: Build container and extract coverage report
         run: |
-          docker build --progress=plain -f Dockerfile.coverage -t pdo_duckdb_coverage . 2>&1 | tee "$RUNNER_TEMP/clang-coverage-build.log"
-          total=$(grep -oE 'TOTAL LINE COVERAGE: [0-9]+(\.[0-9]+)?%' "$RUNNER_TEMP/clang-coverage-build.log" | tail -n 1 | awk '{print $4}' || true)
-          echo "total_line_coverage=${total%\%}" >> "$GITHUB_OUTPUT"
-          echo "TOTAL LINE COVERAGE: ${total}" >> "$GITHUB_STEP_SUMMARY"
-          echo "::notice title=TOTAL LINE COVERAGE::$total"
+          docker build --progress=plain -f Dockerfile.coverage -t pdo_duckdb_coverage . 2>&1 | tee "$RUNNER_TEMP/clang-coverage.log"
+          total=$(grep -oE 'Code Coverage: [0-9]+(\.[0-9]+)?%' "$RUNNER_TEMP/clang-coverage.log" | tail -n 1 | awk '{print $4}' || true)
+          echo "Code Coverage: ${total}" >> "$GITHUB_STEP_SUMMARY"
 
   intree:
     name: InTree
