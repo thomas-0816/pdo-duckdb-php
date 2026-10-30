@@ -567,16 +567,7 @@ static int duckdb_stmt_describe_col(pdo_stmt_t *stmt, int colno)
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
 	duckdb_result *res = &S->result;
 	const char *name = duckdb_column_name(res, colno);
-
-	/* Allocate and set column name */
-	if (stmt->columns[colno].name == NULL) {
-		stmt->columns[colno].name = zend_string_init(name, strlen(name), 0);
-	} else {
-		zend_string_release(stmt->columns[colno].name);
-		stmt->columns[colno].name = zend_string_init(name, strlen(name), 0);
-	}
-
-	/* Set reasonable defaults */
+	stmt->columns[colno].name = zend_string_init(name, strlen(name), 0);
 	stmt->columns[colno].maxlen = 0;
 	stmt->columns[colno].precision = 0;
 
