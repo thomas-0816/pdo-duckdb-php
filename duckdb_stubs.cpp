@@ -3,7 +3,8 @@
 
 using namespace duckdb;
 
-extern "C" int duckdb_has_active_transaction(duckdb_connection conn) {
+extern "C" int duckdb_has_active_transaction(duckdb_connection conn)
+{
 	try {
 		auto *conn_ptr = reinterpret_cast<duckdb::Connection *>(conn);
 		return conn_ptr->context->transaction.HasActiveTransaction() ? 1 : 0;
@@ -13,7 +14,8 @@ extern "C" int duckdb_has_active_transaction(duckdb_connection conn) {
 }
 
 extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector vec, idx_t row,
-                                         duckdb_vector *out_vec, duckdb_logical_type *out_type) {
+                                        duckdb_vector *out_vec, duckdb_logical_type *out_type)
+{
 	(void)conn;
 	try {
 		auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
@@ -36,13 +38,15 @@ extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector ve
 	}
 }
 
-extern "C" void duckdb_free_vector(duckdb_vector vec) {
+extern "C" void duckdb_free_vector(duckdb_vector vec)
+{
 	if (vec) {
 		delete reinterpret_cast<duckdb::Vector *>(vec);
 	}
 }
 
-extern "C" char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, idx_t row) {
+extern "C" char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, idx_t row)
+{
 	if (!vec) return NULL;
 
 	try {
@@ -66,7 +70,8 @@ extern "C" char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, id
 	}
 }
 
-extern "C" char *duckdb_logical_type_to_string(duckdb_logical_type logical_type) {
+extern "C" char *duckdb_logical_type_to_string(duckdb_logical_type logical_type)
+{
 	if (!logical_type) return NULL;
 
 	try {
