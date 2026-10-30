@@ -847,9 +847,8 @@ $statement->bindValue('i', 3, PDO::PARAM_INT);
 $statement->execute();
 $value = 1;
 $value2 = 'foo';
-$statement = $db->prepare('INSERT INTO t VALUES (?, ?)');
+$statement = $db->prepare('INSERT INTO t VALUES (?)');
 $statement->bindParam(1, $value);
-$statement->bindParam(2, $value2);
 $statement->execute();
 $statement = $db->query('SELECT * FROM t', PDO::FETCH_NUM);
 while ($row = $statement->fetch()) { var_dump($row); }
