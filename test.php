@@ -674,14 +674,7 @@ try {
 }
 
 $db = new PDO('duckdb::memory:');
-try {
-    // https://github.com/duckdb/duckdb/issues/26875
-    $statement = $db->query('SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE installed = 1 OR loaded = 1');
-} catch (Exception $e) {
-    usleep(1000);
-    $statement = $db->query('SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE installed = 1 OR loaded = 1');
-}
-
+$statement = $db->query('SELECT extension_name, loaded, installed FROM duckdb_extensions() WHERE installed = 1 OR loaded = 1');
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $count = 0;

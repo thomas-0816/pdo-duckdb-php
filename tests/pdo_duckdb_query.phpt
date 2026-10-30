@@ -537,6 +537,20 @@ try {
     echo 'Caught: ', $e->getMessage(), PHP_EOL;
 }
 
+$db = new PDO('duckdb::memory:');
+$stmt = $db->query('SELECT 42');
+var_dump($stmt->fetchAll(PDO::FETCH_COLUMN));
+var_dump($stmt->fetchAll(PDO::FETCH_COLUMN));
+$stmt = $db->query('SELECT 43');
+var_dump($stmt->fetchColumn());
+var_dump($stmt->fetch()); // false
+
+$stmt = $db->query('SELECT 42 AS a');
+$row = $stmt->fetch(PDO::FETCH_LAZY);
+var_dump($row->a);
+var_dump($stmt->fetch());
+var_dump($row->a);
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -1212,3 +1226,14 @@ array(3) {
 Caught: SQLSTATE[HY000]: parameter binding failed for parameter 1
 Caught: SQLSTATE[HY000]: parameter binding failed for parameter :value
 Caught: SQLSTATE[HY000]: parameter binding failed for parameter 2
+array(1) {
+  [0]=>
+  int(42)
+}
+array(0) {
+}
+int(43)
+bool(false)
+int(42)
+bool(false)
+NULL
