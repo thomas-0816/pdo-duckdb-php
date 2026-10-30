@@ -14,7 +14,7 @@ extern "C" int duckdb_has_active_transaction(duckdb_connection conn)
 }
 
 extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector vec, idx_t row,
-                                        duckdb_vector *out_vec, duckdb_logical_type *out_type)
+										duckdb_vector *out_vec, duckdb_logical_type *out_type)
 {
 	(void) conn;
 	try {
