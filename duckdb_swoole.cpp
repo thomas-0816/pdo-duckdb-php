@@ -11,8 +11,9 @@
 
 #include "php.h"
 #include "php_pdo_duckdb.h"
-#include <cstdlib>
+#include <atomic>
 #include <functional>
+#include <new>
 
 #if defined(__GNUC__) || defined(__clang__)
 #include <sched.h>
@@ -48,8 +49,8 @@ void swoole_run(void *lock, const std::function<void()> &fn)
 		return;
 	}
 
-	unsigned char *busy = static_cast<unsigned char *>(lock);
-	while (__atomic_test_and_set(busy, __ATOMIC_ACQUIRE)) {
+	std::atomic_flag *busy = static_cast<std::atomic_flag *>(lock);
+	while (busy->test_and_set(std::memory_order_acquire)) {
 		/* Connection in use by another coroutine; yield instead of spinning. */
 		if (swoole_coroutine_usleep != NULL) {
 			swoole_coroutine_usleep(50);
@@ -66,7 +67,7 @@ void swoole_run(void *lock, const std::function<void()> &fn)
 		fn();
 	}
 
-	__atomic_clear(busy, __ATOMIC_RELEASE);
+	busy->clear(std::memory_order_release);
 #else
 	(void) lock;
 	fn();
@@ -88,24 +89,28 @@ int pdo_duckdb_swoole_loaded(void)
 #endif
 }
 
-/* Per-connection serialization lock for the Swoole async dispatch. Plain C11
- * busy flag implemented with GCC/Clang __atomic builtins. Returns NULL when
- * Swoole is not loaded (or support is compiled out), marking the connection as
- * not Swoole-async capable. */
+/* Per-connection serialization lock for the Swoole async dispatch. Standard
+ * C++ atomic busy flag. Returns NULL when Swoole is not loaded (or support is
+ * compiled out), marking the connection as not Swoole-async capable. */
 void *pdo_duckdb_thread_lock_new(void)
 {
 #if defined(__GNUC__) || defined(__clang__)
 	if (swoole_coroutine_is_in == NULL) {
 		return NULL;
 	}
-	unsigned char *lock = (unsigned char *) malloc(sizeof(unsigned char));
+	std::atomic_flag *lock = new (std::nothrow) std::atomic_flag;
 	if (lock) {
-		__atomic_clear(lock, __ATOMIC_RELAXED);
+		lock->clear(std::memory_order_relaxed);
 	}
 	return lock;
 #else
 	return NULL;
 #endif
+}
+
+void pdo_duckdb_thread_lock_free(void *lock)
+{
+	delete static_cast<std::atomic_flag *>(lock);
 }
 
 duckdb_state pdo_duckdb_swoole_get_or_create_from_cache(void *lock, duckdb_instance_cache instance_cache, const char *path, duckdb_database *out_database, duckdb_config config, char **out_error)

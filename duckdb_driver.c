@@ -98,7 +98,7 @@ static void duckdb_handle_closer(pdo_dbh_t *dbh)
 			H->db = NULL;
 		}
 		if (H->thread_lock) {
-			free(H->thread_lock);
+			pdo_duckdb_thread_lock_free(H->thread_lock);
 		}
 		efree(H);
 		dbh->driver_data = NULL;
@@ -174,7 +174,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 		zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: Could not open DuckDB database: %s", err ? err : "unknown error");
 		if (err) duckdb_free(err);
 		if (H->thread_lock) {
-			free(H->thread_lock);
+			pdo_duckdb_thread_lock_free(H->thread_lock);
 		}
 		efree(init_command);
 		efree(dbname);
@@ -194,7 +194,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 		duckdb_close(&H->db);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: Could not create DuckDB connection");
 		if (H->thread_lock) {
-			free(H->thread_lock);
+			pdo_duckdb_thread_lock_free(H->thread_lock);
 		}
 		efree(init_command);
 		dbh->driver_data = NULL;
