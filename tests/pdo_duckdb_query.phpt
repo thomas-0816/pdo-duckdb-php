@@ -551,6 +551,13 @@ var_dump($row->a);
 var_dump($stmt->fetch());
 var_dump($row->a);
 
+/* Re-executing destroys the previous result set and the loaded chunk. */
+$stmt = $db->prepare('SELECT 42');
+var_dump($stmt->execute());
+var_dump($stmt->fetchColumn());
+var_dump($stmt->execute());
+var_dump($stmt->fetchColumn());
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -1237,3 +1244,7 @@ bool(false)
 int(42)
 bool(false)
 NULL
+bool(true)
+int(42)
+bool(true)
+int(42)

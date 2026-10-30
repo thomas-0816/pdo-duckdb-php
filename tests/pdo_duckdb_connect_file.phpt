@@ -85,9 +85,6 @@ $restore = new PDO('duckdb::memory:');
 $restore->exec("IMPORT DATABASE '{$backupFolder}1'");
 var_dump($restore->query('SELECT count(*) from t1')->fetchColumn());
 
-// TODO v2 ATTACH 'my_file.db' AS mmaped_db (IO_MODE 'MMAP');
-// TODO v2 ATTACH 'my_file.db' AS mmaped_db (IO_MODE 'DIRECT_IO');
-
 ?>
 --EXPECTF--
 array(4) {

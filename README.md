@@ -32,9 +32,9 @@ explain (sql), deferred constraints and many more
 
 For a complete list, see [What's New in the Docs for 2.0](https://duckdb.org/docs/preview/whats_new_in_the_docs).
 
-More information about [migrating to DuckDB v2.0](https://duckdb.org/docs/preview/operations_manual/migration).
+More information about [migrating to DuckDB 2.0](https://duckdb.org/docs/preview/operations_manual/migration).
 
-v2 backward compatibility settings:
+2.x backward compatibility settings:
 
 ```sql
 SET error_on_division_by_zero = false;
@@ -554,7 +554,7 @@ $url = 'https://httpbin.org/headers';
 $db = new PDO('duckdb::memory:');
 
 $db->exec("CREATE SECRET http_auth (TYPE http, SCOPE '{$url}', BEARER_TOKEN 'some secret')");
-# $db->exec("CREATE SECRET http_auth IN connection (TYPE http, SCOPE '{$url}', BEARER_TOKEN 'some secret')"); // DuckDB v2
+# $db->exec("CREATE SECRET http_auth IN connection (TYPE http, SCOPE '{$url}', BEARER_TOKEN 'some secret')"); // DuckDB 2.x
 
 $rows = $db->query("SELECT * FROM read_json('{$url}')");
 print_r($rows->fetchAll(PDO::FETCH_ASSOC));
@@ -590,7 +590,7 @@ $db = new PDO('duckdb::memory:');
 $db->exec("CREATE SECRET rustfs (TYPE s3, ENDPOINT '127.0.0.1:9000', USE_SSL false,
     URL_STYLE 'path', KEY_ID 'access-key', SECRET 'secret-key')");
 // $db->exec("CREATE SECRET rustfs IN connection (TYPE s3, ENDPOINT '127.0.0.1:9000', USE_SSL false,
-//     URL_STYLE 'path', KEY_ID 'access-key', SECRET 'secret-key')"); // DuckDB v2
+//     URL_STYLE 'path', KEY_ID 'access-key', SECRET 'secret-key')"); // DuckDB 2.x
 // write data to S3
 $db->exec("COPY ( select 'bar' as foo ) TO 's3://my-bucket/numbers.parquet' (FORMAT parquet)");
 // read data from S3
@@ -700,17 +700,17 @@ SET lock_configuration = true;
 # Disable compression
 SET force_compression='uncompressed';
 
-# Query timeout (DuckDB v2, e.g. 30s)
+# Query timeout (DuckDB 2.x, e.g. 30s)
 SET max_execution_time = 30000;
 
-# Request a checkpoint on database detach (DuckDB v2)
+# Request a checkpoint on database detach (DuckDB 2.x)
 SET checkpoint_on_detach = 'ENABLED';
 
-# Async IO resource limits (DuckDB v2)
+# Async IO resource limits (DuckDB 2.x)
 SET async_threads = 4;
 SET http_client_pool_capacity = 4;
 
-# Disable fsync (DuckDB v2)
+# Disable fsync (DuckDB 2.x)
 SET fsync_mode = 'none';
 ```
 
