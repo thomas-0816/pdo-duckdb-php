@@ -13,6 +13,9 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT 1/0, -1/0, 1//0, -1//0"); // inf, -inf, null, null
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$statement = $db->query("SELECT 1/0::float, -1/0::float, 0/0::float"); // inf, -inf, -nan
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 $statement = $db->query("select 0.9::float, pi(), 9223372036854775808, -9223372036854775809");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
@@ -81,6 +84,17 @@ array(1) {
     NULL
     ["(-1 // 0)"]=>
     NULL
+  }
+}
+array(1) {
+  [0]=>
+  array(3) {
+    ["(1 / CAST(0 AS FLOAT))"]=>
+    float(INF)
+    ["(-1 / CAST(0 AS FLOAT))"]=>
+    float(-INF)
+    ["(0 / CAST(0 AS FLOAT))"]=>
+    float(NAN)
   }
 }
 array(1) {

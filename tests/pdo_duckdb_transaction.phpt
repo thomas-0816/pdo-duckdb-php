@@ -139,6 +139,7 @@ try {
 var_dump($db->getAttribute(PDO::ATTR_AUTOCOMMIT));
 $db->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
 var_dump($db->getAttribute(PDO::ATTR_AUTOCOMMIT));
+$db->setAttribute(PDO::ATTR_AUTOCOMMIT, false);
 
 ?>
 --EXPECTF--

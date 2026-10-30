@@ -12,8 +12,8 @@ $statement = $db->query("SELECT
   null::uinteger, null::ubigint, null::float, null::double, null::timestamp, null::date, null::time, null::interval,
   null::hugeint, null::uhugeint, null::varchar, null::blob, null::decimal, null::timestamp_s, null::timestamp_ms,
   null::timestamp_ns, null::enum('a'), null::struct(duck integer), null::integer[], null::integer[1], map_from_entries(null),
-  null::union(str varchar), null::uuid, null::bit, null::timetz, null::timestamptz, null::time_ns, null::geometry,
-  null::variant, null::bignum, null::struct, row() AS s;
+  null::union(str varchar), null::uuid, null::bit, null::timetz, null::timestamptz, null::timestamptz_ns, null::time_ns, null::geometry,
+  null::variant, null::bignum, null::struct, row(), null::map(int, int);
 ");
 $columnCount = $statement->columnCount();
 for ($i = 0; $i < $columnCount; $i++) {
@@ -57,15 +57,17 @@ string(4) "uuid"
 string(3) "bit"
 string(6) "timetz"
 string(11) "timestamptz"
+string(14) "timestamptz_ns"
 string(7) "time_ns"
 string(8) "geometry"
 string(4) "json"
 string(6) "bignum"
 string(6) "struct"
 string(6) "struct"
+string(3) "map"
 array(1) {
   [0]=>
-  array(40) {
+  array(42) {
     ["NULL"]=>
     NULL
     ["CAST(NULL AS BOOLEAN)"]=>
@@ -134,6 +136,8 @@ array(1) {
     NULL
     ["CAST(NULL AS timestamptz)"]=>
     NULL
+    ["CAST(NULL AS timestamptz_ns)"]=>
+    NULL
     ["CAST(NULL AS time_ns)"]=>
     NULL
     ["CAST(NULL AS GEOMETRY)"]=>
@@ -144,8 +148,10 @@ array(1) {
     NULL
     ["CAST(NULL AS STRUCT)"]=>
     NULL
-    ["s"]=>
+    [""row"()"]=>
     array(0) {
     }
+    ["CAST(NULL AS MAP(INTEGER, INTEGER))"]=>
+    NULL
   }
 }
