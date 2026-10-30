@@ -17,6 +17,9 @@
 /* Forward declaration of statement methods (defined in duckdb_statement.c) */
 extern struct pdo_stmt_methods duckdb_stmt_methods;
 
+/* Check DuckDB's internal transaction state from the connection context */
+extern int duckdb_has_active_transaction(duckdb_connection conn);
+
 /* Strip null bytes and replace :name with $name for DuckDB compatibility.
    DuckDB uses $style named parameters, not :style. */
 static inline char *zstr_prepare(zend_string *str)
@@ -83,7 +86,6 @@ static void pdo_duckdb_error(pdo_dbh_t *dbh, duckdb_result *res)
 	memcpy(dbh->error_code, "HY000", sizeof(pdo_error_type));
 }
 
-/* ---------------- connection closer ---------------- */
 static void duckdb_handle_closer(pdo_dbh_t *dbh)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
@@ -106,7 +108,6 @@ static void duckdb_handle_closer(pdo_dbh_t *dbh)
 }
 
 /* ---------------- connection factory ---------------- */
-
 int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 {
 	if (dbh->is_persistent) {
@@ -240,7 +241,6 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	return 1;
 }
 
-/* ---------------- preparer ---------------- */
 static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql, pdo_stmt_t *stmt, zval *driver_options)
 {
 	(void) driver_options;
@@ -282,9 +282,6 @@ static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql, pdo_stmt_t 
 	return true;
 }
 
-/* Check DuckDB's internal transaction state from the connection context */
-extern int duckdb_has_active_transaction(duckdb_connection conn);
-
 /* ---------------- exec (direct, non‑prepared) ---------------- */
 static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 {
@@ -309,7 +306,6 @@ static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 	return (zend_long) rows;
 }
 
-/* ---------------- quoter ---------------- */
 static zend_string *duckdb_handle_quoter(pdo_dbh_t *dbh, const zend_string *unquoted, enum pdo_param_type param_type)
 {
 	(void) dbh;
@@ -330,7 +326,6 @@ static zend_string *duckdb_handle_quoter(pdo_dbh_t *dbh, const zend_string *unqu
 	return q;
 }
 
-/* ---------------- transaction support (via SQL commands) ---------------- */
 static bool duckdb_handle_begin(pdo_dbh_t *dbh)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
@@ -388,7 +383,6 @@ static bool duckdb_handle_rollback(pdo_dbh_t *dbh)
 	return true;
 }
 
-/* ---------------- last insert id ---------------- */
 static zend_string *duckdb_handle_last_id(pdo_dbh_t *dbh, const zend_string *name)
 {
 	(void) dbh;
@@ -398,7 +392,6 @@ static zend_string *duckdb_handle_last_id(pdo_dbh_t *dbh, const zend_string *nam
 	return zend_string_init("0", 1, 0);
 }
 
-/* ---------------- fetch error information ---------------- */
 static void duckdb_fetch_error(pdo_dbh_t *dbh, pdo_stmt_t *stmt, zval *info)
 {
 	(void) stmt;
@@ -407,7 +400,6 @@ static void duckdb_fetch_error(pdo_dbh_t *dbh, pdo_stmt_t *stmt, zval *info)
 	add_next_index_string(info, (H == NULL || H->error_msg[0] == '\0') ? "no error" : H->error_msg);
 }
 
-/* ---------------- set/get driver attributes ---------------- */
 static bool duckdb_set_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
@@ -444,26 +436,6 @@ static int duckdb_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 	}
 }
 
-/* ---------------- check liveness ---------------- */
-static zend_result duckdb_check_liveness(pdo_dbh_t *dbh)
-{
-	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
-	duckdb_result res;
-	duckdb_state st;
-	if (H->thread_lock) {
-		st = pdo_duckdb_swoole_query(H->thread_lock, H->conn, "SELECT 1", &res);
-	} else {
-		st = duckdb_query(H->conn, "SELECT 1", &res);
-	}
-	if (st != DuckDBSuccess) {
-		duckdb_destroy_result(&res);
-		return FAILURE;
-	}
-	duckdb_destroy_result(&res);
-	return SUCCESS;
-}
-
-/* ---------------- in_transaction callback ---------------- */
 static bool duckdb_handle_in_transaction(pdo_dbh_t *dbh)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
@@ -483,7 +455,7 @@ struct pdo_dbh_methods duckdb_methods = {
 	duckdb_handle_last_id,
 	duckdb_fetch_error,
 	duckdb_get_attribute,
-	duckdb_check_liveness,
+	NULL, /* check_liveness */
 	NULL, /* get_driver_methods */
 	NULL, /* persistent_shutdown */
 	duckdb_handle_in_transaction,
