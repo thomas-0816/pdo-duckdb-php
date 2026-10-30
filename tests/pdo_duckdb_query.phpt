@@ -79,7 +79,7 @@ $statement = $db->prepare('INSERT INTO t VALUES (?, ?, ?, ?, ?)');
 $statement->bindValue(1, '', PDO::PARAM_NULL);
 $statement->bindValue(2, '202', PDO::PARAM_INT);
 $statement->bindValue(3, 300);
-$statement->bindValue(4, 42.21);
+$statement->bindValue(4, 42.21, PDO::PARAM_INT);
 $statement->bindValue(5, 'test', PDO::PARAM_LOB);
 $statement->execute();
 $statement = $db->prepare('INSERT INTO t VALUES (:aa, :bb, :cc, :dd, :ee)');
@@ -296,6 +296,15 @@ $db->exec('CREATE TABLE t (b BLOB)');
 $stream = fopen('php://memory', 'r+');
 fwrite($stream, "\xAA\xAB\xAC");
 rewind($stream);
+$statement = $db->prepare('INSERT INTO t VALUES (?)');
+$statement->bindValue(1, $stream, PDO::PARAM_LOB);
+$statement->execute();
+fclose($stream);
+var_dump($db->query('SELECT * FROM t')->fetchColumn());
+
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE TABLE t (b BLOB)');
+$stream = fopen('php://memory', 'r');
 $statement = $db->prepare('INSERT INTO t VALUES (?)');
 $statement->bindValue(1, $stream, PDO::PARAM_LOB);
 $statement->execute();
@@ -1013,6 +1022,7 @@ array(3) {
   }
 }
 string(3) "%s"
+string(0) ""
 array(1) {
   [0]=>
   array(4) {
