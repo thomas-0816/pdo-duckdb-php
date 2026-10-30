@@ -75,13 +75,11 @@ static inline char *zstr_strip_zerobytes(zend_string *str)
 }
 
 /* ---------------- error handling helper ---------------- */
-static void pdo_duckdb_error(pdo_dbh_t *dbh)
+static void pdo_duckdb_error(pdo_dbh_t *dbh, duckdb_result *res)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
-	/* DuckDB doesn't have per-connection error retrieval, so we pull
-	   from the last operation if we stored it. In practice we’d keep
-	   a buffer in H. For simplicity, we report a generic error. */
-	strncpy(H->error_msg, "unknown error", sizeof(H->error_msg) - 1);
+	const char *err = res ? duckdb_result_error(res) : NULL;
+	snprintf(H->error_msg, sizeof(H->error_msg), err != NULL && err[0] != '\0' ? "%s" : "unknown error", err);
 	memcpy(dbh->error_code, "HY000", sizeof(pdo_error_type));
 }
 
@@ -343,11 +341,12 @@ static bool duckdb_handle_begin(pdo_dbh_t *dbh)
 	} else {
 		st = duckdb_query(H->conn, "BEGIN TRANSACTION", &res);
 	}
-	duckdb_destroy_result(&res);
 	if (st != DuckDBSuccess) {
-		pdo_duckdb_error(dbh);
+		pdo_duckdb_error(dbh, &res);
+		duckdb_destroy_result(&res);
 		return false;
 	}
+	duckdb_destroy_result(&res);
 	return true;
 }
 
@@ -361,11 +360,12 @@ static bool duckdb_handle_commit(pdo_dbh_t *dbh)
 	} else {
 		st = duckdb_query(H->conn, "COMMIT", &res);
 	}
-	duckdb_destroy_result(&res);
 	if (st != DuckDBSuccess) {
-		pdo_duckdb_error(dbh);
+		pdo_duckdb_error(dbh, &res);
+		duckdb_destroy_result(&res);
 		return false;
 	}
+	duckdb_destroy_result(&res);
 	return true;
 }
 
@@ -379,11 +379,12 @@ static bool duckdb_handle_rollback(pdo_dbh_t *dbh)
 	} else {
 		st = duckdb_query(H->conn, "ROLLBACK", &res);
 	}
-	duckdb_destroy_result(&res);
 	if (st != DuckDBSuccess) {
-		pdo_duckdb_error(dbh);
+		pdo_duckdb_error(dbh, &res);
+		duckdb_destroy_result(&res);
 		return false;
 	}
+	duckdb_destroy_result(&res);
 	return true;
 }
 
@@ -402,15 +403,8 @@ static void duckdb_fetch_error(pdo_dbh_t *dbh, pdo_stmt_t *stmt, zval *info)
 {
 	(void) stmt;
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
-	if (H == NULL || H->error_msg[0] == '\0') {
-		add_next_index_string(info, "00000");
-		add_next_index_null(info);
-		add_next_index_string(info, "no error");
-	} else {
-		add_next_index_string(info, dbh->error_code[0] ? dbh->error_code : "HY000");
-		add_next_index_null(info);
-		add_next_index_string(info, H->error_msg);
-	}
+	add_next_index_long(info, 0);
+	add_next_index_string(info, (H == NULL || H->error_msg[0] == '\0') ? "no error" : H->error_msg);
 }
 
 /* ---------------- set/get driver attributes ---------------- */
@@ -444,8 +438,7 @@ static int duckdb_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 			return 1;
 		case PDO_ATTR_DRIVER_NAME:
 			ZVAL_STRINGL(val, "duckdb", sizeof("duckdb") - 1);
-			break;
-
+			return 1;
 		case PDO_DUCKDB_ATTR_UNBUFFERED:
 			ZVAL_BOOL(val, H->unbuffered);
 			return 1;

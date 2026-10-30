@@ -76,6 +76,42 @@ var_dump($db->inTransaction());
 
 var_dump($db->query('SELECT count(*) FROM t1')->fetchColumn());
 
+try {
+    $db->rollBack();
+}
+catch (Exception $e) {
+    echo 'Caught: ' . $e->getMessage(), PHP_EOL;
+}
+try {
+  $db->commit();
+}
+catch (Exception $e) {
+    echo 'Caught: ' . $e->getMessage(), PHP_EOL;
+}
+$db->beginTransaction();
+try {
+  $db->beginTransaction();
+}
+catch (Exception $e) {
+    echo 'Caught: ' . $e->getMessage(), PHP_EOL;
+}
+
+// triggers duckdb_fetch_error
+$tmpFile = tempnam(sys_get_temp_dir(), 'connect') . '.db';
+$db = new PDO('duckdb:' . $tmpFile);
+$db->exec('CREATE TABLE t (i INTEGER)');
+$db->exec("SET debug_checkpoint_abort = 'before_truncate'");
+try { $db->exec('CHECKPOINT'); } catch (PDOException $e) {}
+try {
+    $db->beginTransaction();
+} catch (PDOException $e) {
+    echo 'Caught: ' . $e->getMessage(), PHP_EOL;
+}
+
+var_dump($db->getAttribute(PDO::ATTR_AUTOCOMMIT));
+$db->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
+var_dump($db->getAttribute(PDO::ATTR_AUTOCOMMIT));
+
 ?>
 --EXPECTF--
 bool(false)
@@ -122,3 +158,10 @@ LINE 1: SELECT INVALID
 bool(true)
 bool(false)
 int(3)
+Caught: There is no active transaction
+Caught: There is no active transaction
+Caught: There is already an active transaction
+Caught: SQLSTATE[HY000]: General error: FATAL Error: Failed: database has been invalidated %s
+Original error: "Failed to create checkpoint because of error: Checkpoint aborted before truncate because of PR
+int(0)
+int(1)
