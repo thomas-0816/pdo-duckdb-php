@@ -16,7 +16,7 @@ extern "C" int duckdb_has_active_transaction(duckdb_connection conn)
 extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector vec, idx_t row,
                                         duckdb_vector *out_vec, duckdb_logical_type *out_type)
 {
-	(void)conn;
+	(void) conn;
 	try {
 		auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
 
@@ -58,7 +58,7 @@ extern "C" char *duckdb_get_string(duckdb_connection conn, duckdb_vector vec, id
 		auto *conn_ptr = reinterpret_cast<duckdb::Connection *>(conn);
 		auto str = value.CastAs(*conn_ptr->context, duckdb::LogicalType::VARCHAR).ToString();
 
-		auto *result = (char *)duckdb_malloc(str.size() + 1);
+		auto *result = (char *) duckdb_malloc(str.size() + 1);
 		if (result) {
 			memcpy(result, str.c_str(), str.size());
 			result[str.size()] = '\0';
@@ -78,7 +78,7 @@ extern "C" char *duckdb_logical_type_to_string(duckdb_logical_type logical_type)
 		auto *type_ptr = reinterpret_cast<duckdb::LogicalType *>(logical_type);
 		auto str = type_ptr->ToString();
 
-		auto *result = (char *)duckdb_malloc(str.size() + 1);
+		auto *result = (char *) duckdb_malloc(str.size() + 1);
 		if (result) {
 			memcpy(result, str.c_str(), str.size());
 			result[str.size()] = '\0';
