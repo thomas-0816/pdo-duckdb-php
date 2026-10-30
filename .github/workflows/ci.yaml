@@ -268,7 +268,7 @@ jobs:
           ./configure --with-pdo-duckdb
           make
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
+          NO_INTERACTION=1 REPORT_EXIT_STATUS=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
           TEST_EXTENSIONS="sockets curl mysqlnd swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
 
   zizmor:
