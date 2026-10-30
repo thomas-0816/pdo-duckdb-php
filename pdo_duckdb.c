@@ -255,6 +255,8 @@ PHP_MINFO_FUNCTION(pdo_duckdb)
 	php_info_print_table_row(2, "DuckDB Library Version", duckdb_library_version());
 	if (zend_hash_str_exists(&module_registry, "swoole", sizeof("swoole") - 1)) {
 		php_info_print_table_row(2, "Swoole", pdo_duckdb_swoole_loaded() ? "OK" : "FAIL: loaded after pdo_duckdb");
+	} else {
+		php_info_print_table_row(2, "Swoole", "no");
 	}
 	php_info_print_table_end();
 }

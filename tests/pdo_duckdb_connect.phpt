@@ -5,6 +5,9 @@ pdo_duckdb
 --FILE--
 <?php
 
+$ext = new ReflectionExtension('pdo_duckdb');
+$ext->info();
+
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
 
@@ -104,6 +107,11 @@ $server->exec("CALL quack_stop('quack:127.0.0.1:9494')");
 
 ?>
 --EXPECTF--
+pdo_duckdb
+
+PDO Driver for DuckDB => enabled
+DuckDB Library Version => v2.0.0
+Swoole => %s
 array(4) {
   ["i"]=>
   int(1)

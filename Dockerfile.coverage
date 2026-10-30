@@ -39,12 +39,12 @@ RUN <<EOF
     tar xvzf libduckdb-src.tar.gz
     phpize-zts
     ./configure --with-pdo-duckdb --with-php-config=php-config-zts
-    make
-    NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+    make -j$(nproc)
+    NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -j$(nproc)" make test
 
     apt-get -y --no-install-recommends install php-zts-swoole
     php -m | grep swoole
-    TEST_EXTENSIONS="mysqlnd swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+    TEST_EXTENSIONS="mysqlnd swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -j$(nproc)" make test
 
     llvm-profdata merge -sparse /tmp/*.profraw -o /tmp/coverage.profdata
     llvm-cov report modules/pdo_duckdb.so -instr-profile=/tmp/coverage.profdata -ignore-filename-regex='\.(h|hpp)$' | tee /tmp/report.txt
