@@ -21,7 +21,7 @@ Supported CPU architectures: x86_64/amd64 for Linux and Windows, aarch64/arm64 f
 
 Supported SAPIs: php-cli, php-fpm, mod_php, FrankenPHP, TrueAsync, Swoole
 
-Support end: macOS 14 (August 2026), PHP 8.2 (Jan 2027), Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
+Support end: macOS 14 (August 2026), PHP 8.2 (January 2027), Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
 
 ## DuckDB 2.0
 
