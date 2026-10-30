@@ -4,7 +4,7 @@ PDO_duckdb: Test excel
 pdo_duckdb
 --SKIPIF--
 <?php
-if (getenv('ZEND_DONT_UNLOAD_MODULES') === '1') {
+if (!empty(getenv('ASAN_OPTIONS'))) {
     die('skip Excel extension is currently not memory safe');
 }
 ?>

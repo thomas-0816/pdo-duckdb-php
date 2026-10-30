@@ -40,7 +40,34 @@ Swoole\Coroutine\run(function() {
     echo 'done', PHP_EOL;
 });
 
+Swoole\Coroutine\run(function() {
+    $pdo = new PDO('duckdb::memory:');
+    $wg = new Swoole\Coroutine\WaitGroup();
+
+    /* Hold the connection lock with a slow query. The second coroutine
+     * reaches swoole_run() while the lock is taken, so it has to wait in
+     * the busy loop (swoole_coroutine_usleep branch). */
+    Swoole\Coroutine::create(function () use ($wg, $pdo) {
+        $wg->add();
+        $pdo->query('SELECT sleep_ms(500)')->fetchAll();
+        echo 'slow', PHP_EOL;
+        $wg->done();
+    });
+    Swoole\Coroutine::create(function () use ($wg, $pdo) {
+        $wg->add();
+        Swoole\Coroutine::sleep(0.1);
+        echo $pdo->query('SELECT 42')->fetchColumn(), PHP_EOL;
+        $wg->done();
+    });
+
+    $wg->wait(10);
+    echo 'done', PHP_EOL;
+});
+
 ?>
 --EXPECTF--
 43210done
 43210done
+slow
+42
+done
