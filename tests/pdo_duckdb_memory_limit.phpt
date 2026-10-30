@@ -5,7 +5,7 @@ pdo_duckdb
 --SKIPIF--
 <?php
 if (getenv('ZEND_DONT_UNLOAD_MODULES') === '1') {
-    die('valgrind-mode has no memory-limit');
+    die('skip valgrind-mode has no memory-limit');
 }
 ?>
 --FILE--
