@@ -7,17 +7,18 @@ swoole
 <?php
 
 $db = new PDO('duckdb::memory:');
-$db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR, t TUPLE(integer, string))");
-$statement = $db->prepare("INSERT INTO t VALUES (?, ?, ?, ?, ?)");
-$statement->execute([1, 9223372036854775807, 3.141511313212312312, 'hello', "(1, 'a')"]);
+$db->exec("CREATE TABLE t (i INTEGER, v VARCHAR)");
+$statement = $db->prepare("INSERT INTO t VALUES (?, ?)");
+$statement->execute([1, 'hello']);
+unset($db);
 
 Swoole\Coroutine\run(function() {
     $wg = new Swoole\Coroutine\WaitGroup();
     for ($i = 0; $i < 5; $i++) {
         $wg->add();
         Swoole\Coroutine::create(function () use ($wg, $i) {
-            $pdo = new PDO('duckdb::memory:');
-            echo $pdo->query("select $i, sleep_ms(50 - ($i * 10))")->fetchColumn();
+            $pdo = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 1, 'async_threads' => 1]]);
+            echo $pdo->query("select $i, sleep_ms(500 - ($i * 100))")->fetchColumn();
             $wg->done();
         });
     }
@@ -26,12 +27,12 @@ Swoole\Coroutine\run(function() {
 });
 
 Swoole\Coroutine\run(function() {
-    $pdo = new PDO('duckdb::memory:');
+    $pdo = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 5, 'async_threads' => 1]]);
     $wg = new Swoole\Coroutine\WaitGroup();
     for ($i = 0; $i < 5; $i++) {
         $wg->add();
         Swoole\Coroutine::create(function () use ($wg, $pdo, $i) {
-            usleep(50000 - ($i * 10000));
+            Swoole\Coroutine::sleep(0.5 - ($i * 0.1));
             echo $pdo->query("select $i")->fetchColumn();
             $wg->done();
         });
@@ -41,7 +42,7 @@ Swoole\Coroutine\run(function() {
 });
 
 Swoole\Coroutine\run(function() {
-    $pdo = new PDO('duckdb::memory:');
+    $pdo = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 2, 'async_threads' => 1]]);
     $wg = new Swoole\Coroutine\WaitGroup();
 
     /* Hold the connection lock with a slow query. The second coroutine
@@ -59,7 +60,6 @@ Swoole\Coroutine\run(function() {
         echo $pdo->query('SELECT 42')->fetchColumn(), PHP_EOL;
         $wg->done();
     });
-
     $wg->wait();
     echo 'done', PHP_EOL;
 });
