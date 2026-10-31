@@ -6,7 +6,7 @@ swoole
 --FILE--
 <?php
 
-$db = new PDO('duckdb::memory:');
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 1]]);
 $db->exec("CREATE TABLE t (i INTEGER, v VARCHAR)");
 $statement = $db->prepare("INSERT INTO t VALUES (?, ?)");
 $statement->execute([1, 'hello']);
@@ -17,7 +17,7 @@ Swoole\Coroutine\run(function() {
     for ($i = 0; $i < 5; $i++) {
         $wg->add();
         Swoole\Coroutine::create(function () use ($wg, $i) {
-            $pdo = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 1, 'async_threads' => 1]]);
+            $pdo = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 1]]);
             echo $pdo->query("select $i, sleep_ms(500 - ($i * 100))")->fetchColumn();
             $wg->done();
         });
@@ -27,7 +27,7 @@ Swoole\Coroutine\run(function() {
 });
 
 Swoole\Coroutine\run(function() {
-    $pdo = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 5, 'async_threads' => 1]]);
+    $pdo = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 5]]);
     $wg = new Swoole\Coroutine\WaitGroup();
     for ($i = 0; $i < 5; $i++) {
         $wg->add();
@@ -42,7 +42,7 @@ Swoole\Coroutine\run(function() {
 });
 
 Swoole\Coroutine\run(function() {
-    $pdo = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 2, 'async_threads' => 1]]);
+    $pdo = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 2]]);
     $wg = new Swoole\Coroutine\WaitGroup();
 
     /* Hold the connection lock with a slow query. The second coroutine

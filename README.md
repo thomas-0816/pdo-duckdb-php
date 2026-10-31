@@ -41,6 +41,8 @@ SET error_on_division_by_zero = false;
 SET default_transaction_invalidation_policy = 'SYNTACTIC_ERRORS_DO_NOT_INVALIDATE';
 ```
 
+pdo_duckdb sets `async_threads` by default to 0 to avoid resource shortage on many concurrent requests, see [Security](#security).
+
 __Do I need to update to DuckDB 2.0 immediately?__
 
 DuckDB 1.5.x will be supported until 2027-03-01. More about the [release calendar](https://duckdb.org/release_calendar).
@@ -708,20 +710,28 @@ SET checkpoint_on_detach = 'ENABLED';
 
 # Async IO resource limits (DuckDB 2.x)
 SET async_threads = 4;
+SET read_ahead_depth = 4;
 SET http_client_pool_capacity = 4;
 
 # Disable fsync (DuckDB 2.x)
 SET fsync_mode = 'none';
 ```
 
-A complete list is available in the DuckDB documentation: [Securing DuckDB](https://duckdb.org/docs/current/operations_manual/securing_duckdb/overview).
+A complete list is available in the DuckDB documentation: [Securing DuckDB](https://duckdb.org/docs/current/operations_manual/securing_duckdb/overview).\
+Asynchronous I/O is described [here](https://duckdb.org/docs/2.0/data/io).
 
-Alternatively, you can run SQL statements when the connection is estabilshed using PDO::DUCKDB_ATTR_INIT_COMMAND:
+You can also run SQL statements when the connection is estabilshed using PDO::DUCKDB_ATTR_INIT_COMMAND:
 
 ```php
-$db = new PDO('duckdb::memory:', null, null, [
-    PDO::DUCKDB_ATTR_INIT_COMMAND =>
-        "SET threads = 2; SET memory_limit = '4GB';"]);
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND =>
+    "SET threads = 2; SET async_threads = 4; SET memory_limit = '4GB';"]);
+```
+
+or use the PDO::DUCKDB_ATTR_CONFIG connection options array:
+
+```php
+$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG =>
+    ['threads' => 2, 'async_threads' => 4, 'memory_limit' => '4GB']]);
 ```
 
 The DuckDB security model is described [here](https://duckdb.org/security).

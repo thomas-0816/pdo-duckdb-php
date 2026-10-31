@@ -129,8 +129,11 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	/* Extract path — PDO passes the part after the first colon */
 	dbname = estrdup(data_source);
 
+	/* DuckDB 2.x defaults to a large async I/O thread pool (4x CPU cores, max 256), causes instability. */
+	duckdb_create_config(&config);
+	duckdb_set_config(config, "async_threads", "0");
+
 	if (driver_options && Z_TYPE_P(driver_options) == IS_ARRAY) {
-		duckdb_create_config(&config);
 		zval *config_zval = zend_hash_index_find(Z_ARRVAL_P(driver_options), PDO_DUCKDB_ATTR_CONFIG);
 		if (config_zval && Z_TYPE_P(config_zval) == IS_ARRAY && config) {
 			zend_string *key;
