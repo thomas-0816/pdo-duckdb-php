@@ -571,6 +571,19 @@ $statement = $db->prepare('SELECT $foo as a, :foo as b');
 $statement->execute();
 echo json_encode($statement->fetch(PDO::FETCH_ASSOC)), PHP_EOL;
 
+class Person
+{
+    public string $name;
+    public array $numbers;
+    public array $categories;
+}
+
+$db = new PDO('duckdb::memory:');
+$db->exec('CREATE TABLE t1 (name varchar, numbers integer[], categories varchar[])');
+$db->exec("INSERT INTO t1 VALUES ('foo', [42, 21], ['bar', 'baz'])");
+$statement = $db->query('SELECT * FROM t1');
+var_dump($statement->fetchObject(Person::class));
+
 ?>
 --EXPECTF--
 string(1) "0"
@@ -1264,3 +1277,21 @@ int(42)
 {"a":42,"b":42,"c":21,"d":21}
 {"a":"21","b":"21"}
 {"a":42,"b":42}
+object(Person)#14 (3) {
+  ["name"]=>
+  string(3) "foo"
+  ["numbers"]=>
+  array(2) {
+    [0]=>
+    int(42)
+    [1]=>
+    int(21)
+  }
+  ["categories"]=>
+  array(2) {
+    [0]=>
+    string(3) "bar"
+    [1]=>
+    string(3) "baz"
+  }
+}

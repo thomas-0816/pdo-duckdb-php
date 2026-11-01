@@ -11,10 +11,10 @@ if (getenv('ZEND_DONT_UNLOAD_MODULES') === '1') {
 --FILE--
 <?php
 
-ini_set('memory_limit', '32M');
+ini_set('memory_limit', '4M');
 $db = new PDO('duckdb::memory:');
-$result = $db->query("SELECT * FROM generate_series(100_000)")->fetchAll(PDO::FETCH_ASSOC);
+$result = $db->query('SELECT * FROM generate_series(10_000)')->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 --EXPECTF--
-Fatal error: Allowed memory size of 33554432 bytes exhausted %s in %s on line 5
+Fatal error: Allowed memory size of 4194304 bytes exhausted %s in %s on line 5
