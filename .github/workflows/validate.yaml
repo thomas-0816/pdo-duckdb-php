@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   linux_macos_windows:
-    name: Linux, MacOS, Windows
+    name: Install
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
@@ -208,6 +208,7 @@ jobs:
         run: |
           docker build --pull --no-cache -f Dockerfile.php -t pdo_duckdb_php .
           docker build --pull --no-cache -f Dockerfile.php_alpine -t pdo_duckdb_php_alpine .
+          docker build --pull --no-cache -f Dockerfile.php_debian -t pdo_duckdb_php_debian .
 
   nginx_fpm:
     name: "Docker: php nginx fpm"

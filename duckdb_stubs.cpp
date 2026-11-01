@@ -18,19 +18,14 @@ extern "C" int duckdb_variant_to_vector(duckdb_connection conn, duckdb_vector ve
 {
 	(void) conn;
 	try {
-		auto *vec_ptr = reinterpret_cast<duckdb::Vector *>(vec);
-
-		// GetValue on a VARIANT vector already returns the inner value, unwrapped to
-		// its concrete type (INTEGER, DECIMAL(width,scale), TIMESTAMP_NS, BIGNUM, ...).
-		// Unwrap once more defensively; it is a no-op for already-typed values.
-		auto value = VariantValue::GetValue(vec_ptr->GetValue(row));
-		if (value.IsNull()) {
+		// Vector::GetValue() returns the still-wrapped VARIANT value.
+		// VariantValue::GetValue converts it to the concrete inner type (INTEGER, DECIMAL(width,scale), ...).
+		auto raw = reinterpret_cast<duckdb::Vector *>(vec)->GetValue(row);
+		if (raw.IsNull()) {
 			return 0;
 		}
-
-		auto *tmp_vec = new duckdb::Vector(value.type(), 1);
-		tmp_vec->SetValue(0, value);
-		*out_vec = reinterpret_cast<duckdb_vector>(tmp_vec);
+		auto value = VariantValue::GetValue(raw);
+		*out_vec = reinterpret_cast<duckdb_vector>(new duckdb::Vector(value, count_t(1)));
 		*out_type = reinterpret_cast<duckdb_logical_type>(new duckdb::LogicalType(value.type()));
 		return 1;
 	} catch (...) {
