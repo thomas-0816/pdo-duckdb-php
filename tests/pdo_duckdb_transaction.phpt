@@ -141,6 +141,16 @@ $db->setAttribute(PDO::ATTR_AUTOCOMMIT, true);
 var_dump($db->getAttribute(PDO::ATTR_AUTOCOMMIT));
 $db->setAttribute(PDO::ATTR_AUTOCOMMIT, false);
 
+$tmpFile = tempnam(sys_get_temp_dir(), 'connect_config') . '.db';
+$a = new PDO('duckdb:' . $tmpFile);
+$b = new PDO('duckdb:' . $tmpFile);
+$a->exec('create table t1 (i1 integer)');
+$a->beginTransaction();
+$a->exec('insert into t1 values (42)');
+var_dump($b->query('select count(*) from t1')->fetchColumn());
+$a->commit();
+var_dump($b->query('select count(*) from t1')->fetchColumn());
+
 ?>
 --EXPECTF--
 bool(false)
@@ -195,5 +205,7 @@ Original error: "Failed to create checkpoint because of error: Checkpoint aborte
 Caught: SQLSTATE[HY000]: General error: FATAL Error: Simulated crash before WAL_FLUSH write
 Caught: SQLSTATE[HY000]: General error: FATAL Error: Failed: database has been invalidated %s
 Original error: "Failed to create checkpoint because of error: Checkpoint aborted before truncate because of PR
+int(0)
+int(1)
 int(0)
 int(1)

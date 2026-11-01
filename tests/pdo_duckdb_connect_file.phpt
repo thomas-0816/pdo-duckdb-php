@@ -85,6 +85,14 @@ $restore = new PDO('duckdb::memory:');
 $restore->exec("IMPORT DATABASE '{$backupFolder}1'");
 var_dump($restore->query('SELECT count(*) from t1')->fetchColumn());
 
+$tmpFile = tempnam(sys_get_temp_dir(), 'connect_config') . '.db';
+$a = new PDO('duckdb:' . $tmpFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 1]]);
+try {
+    $b = new PDO('duckdb:' . $tmpFile, null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 2]]);
+} catch (Exception $e) {
+    echo "Caught: " . trim($e->getMessage()) . "\n";
+}
+
 ?>
 --EXPECTF--
 array(4) {
@@ -117,3 +125,4 @@ string(7) "v1.5.0+"
 string(6) "v1.5.6"
 int(1001)
 int(1001)
+Caught: SQLSTATE[HY000]: Could not open DuckDB database: Connection Error: Can't open a connection to same database file with a different configuration than existing connections
