@@ -404,7 +404,7 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 				duckdb_val_from_vector(conn, val_vec, val_type, i, &val_val);
 
 				zend_string *key_str = zval_to_map_key(&key_val);
-				add_assoc_zval(result, ZSTR_VAL(key_str), &val_val);
+				add_assoc_zval_ex(result, ZSTR_VAL(key_str), ZSTR_LEN(key_str), &val_val);
 				zend_string_release(key_str);
 				zval_ptr_dtor(&key_val);
 			}
