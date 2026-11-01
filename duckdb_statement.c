@@ -288,15 +288,12 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 			if (alias && strcmp(alias, "JSON") == 0) {
 				duckdb_free(alias);
 				duckdb_string_t str = ((duckdb_string_t *) duckdb_vector_get_data(vec))[row_idx];
-				const char *str_data = duckdb_string_t_data(&str);
-				size_t str_len = duckdb_string_t_length(str);
-				char *json_copy = emalloc(str_len + 1);
-				memcpy(json_copy, str_data, str_len);
-				json_copy[str_len] = '\0';
-				if (php_json_decode_ex(result, json_copy, str_len, PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
-					ZVAL_STRINGL(result, json_copy, str_len);
+				zend_string *json = zend_string_init(duckdb_string_t_data(&str), duckdb_string_t_length(str), 0);
+				if (php_json_decode_ex(result, ZSTR_VAL(json), ZSTR_LEN(json), PHP_JSON_OBJECT_AS_ARRAY | PHP_JSON_BIGINT_AS_STRING, 512) != SUCCESS) {
+					ZVAL_STR(result, json);
+				} else {
+					zend_string_release(json);
 				}
-				efree(json_copy);
 			} else {
 				duckdb_free(alias);
 				duckdb_string_t str = ((duckdb_string_t *) duckdb_vector_get_data(vec))[row_idx];

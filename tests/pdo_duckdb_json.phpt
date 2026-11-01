@@ -64,6 +64,17 @@ $db->exec('SET force_download=true');
 $row = $db->query("SELECT headers.authorization FROM read_json('{$url}')");
 var_dump($row->fetchColumn());
 
+$json = '{"a":42,"a":-0,"\u0000":1.20e+03,"s":"\ud83d\ude00\n","x":[],"y":{},"z":[null,true,false]}';
+echo json_encode($db->query("select '$json'::json")->fetchColumn()), PHP_EOL;
+
+$db = new PDO('duckdb::memory:');
+$statement = $db->query("SELECT 'NaN'::DOUBLE::json,'Infinity'::DOUBLE::json,'-Infinity'::DOUBLE::json");
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
+$db = new PDO('duckdb::memory:');
+$statement = $db->query("SELECT 'NaN'::DOUBLE::variant,'Infinity'::DOUBLE::variant,'-Infinity'::DOUBLE::variant");
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(1) {
@@ -150,3 +161,20 @@ array(1) {
   string(8) "log text"
 }
 string(18) "Bearer some secret"
+{"a":0,"\u0000":1200,"s":"\ud83d\ude00\n","x":[],"y":[],"z":[null,true,false]}
+array(3) {
+  ["CAST(CAST('NaN' AS DOUBLE) AS "json")"]=>
+  string(3) "NaN"
+  ["CAST(CAST('Infinity' AS DOUBLE) AS "json")"]=>
+  string(8) "Infinity"
+  ["CAST(CAST('-Infinity' AS DOUBLE) AS "json")"]=>
+  string(9) "-Infinity"
+}
+array(3) {
+  ["CAST(CAST('NaN' AS DOUBLE) AS VARIANT)"]=>
+  float(NAN)
+  ["CAST(CAST('Infinity' AS DOUBLE) AS VARIANT)"]=>
+  float(INF)
+  ["CAST(CAST('-Infinity' AS DOUBLE) AS VARIANT)"]=>
+  float(-INF)
+}

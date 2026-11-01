@@ -25,9 +25,10 @@ $statement = $db->query('select null::varchar union select null::integer[] union
 var_dump($statement->fetch(PDO::FETCH_ASSOC));
 var_dump($statement->getColumnMeta(0));
 
-$statement = $db->query("select 'null'::JSON");
+$statement = $db->query("select 'null'::JSON, NULL::JSON");
 var_dump($statement->fetch(PDO::FETCH_ASSOC));
 var_dump($statement->getColumnMeta(0));
+var_dump($statement->getColumnMeta(1));
 
 ?>
 --EXPECTF--
@@ -187,8 +188,10 @@ array(7) {
   ["precision"]=>
   int(0)
 }
-array(1) {
+array(2) {
   ["CAST('null' AS "JSON")"]=>
+  NULL
+  ["CAST(NULL AS "JSON")"]=>
   NULL
 }
 array(7) {
@@ -203,6 +206,23 @@ array(7) {
   }
   ["name"]=>
   string(22) "CAST('null' AS "JSON")"
+  ["len"]=>
+  int(0)
+  ["precision"]=>
+  int(0)
+}
+array(7) {
+  ["native_type"]=>
+  string(4) "json"
+  ["pdo_type"]=>
+  int(3)
+  ["duckdb:decl_type"]=>
+  string(4) "JSON"
+  ["flags"]=>
+  array(0) {
+  }
+  ["name"]=>
+  string(20) "CAST(NULL AS "JSON")"
   ["len"]=>
   int(0)
   ["precision"]=>
