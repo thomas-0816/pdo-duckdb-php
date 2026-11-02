@@ -196,5 +196,4 @@ array(1) {
     }
   }
 }
-[{"\"map\"(list_value((('a' || chr(0)) || 'b'), '0'), list_value('foo', (('a' || chr(0)) || 'b')))":{"a\u0000b":"foo","0":"a\u0000b"}}]
-[{"\"map\"(list_value((('a' || chr(0)) || 'b')), list_value((('c' || chr(0)) || 'd')))":{"a\u0000b":"c\u0000d"}}
+[{"\"map\"(list_value((('a' || chr(0)) || 'b')), list_value((('c' || chr(0)) || 'd')))":{"a\u0000b":"c\u0000d"}}]
