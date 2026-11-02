@@ -217,10 +217,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Build container
-        run: |
-          docker build --pull --no-cache -f Dockerfile.asan -t pdo_duckdb_asan .
-          docker build --pull --no-cache -f Dockerfile.asan_zts -t pdo_duckdb_asan_zts .
+      - name: ASAN Tests
+        run: docker build --pull --no-cache -f Dockerfile.asan -t pdo_duckdb_asan .
+      - name: ASAN Tests zts
+        run: docker build --pull --no-cache -f Dockerfile.asan_zts -t pdo_duckdb_asan_zts .
 
   asan-swoole:
     name: ASAN Swoole
@@ -230,10 +230,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Build container
-        run: |
-          docker build --pull --no-cache -f Dockerfile.asan_swoole -t pdo_duckdb_asan_swoole .
-          docker build --pull --no-cache -f Dockerfile.asan_swoole_zts -t pdo_duckdb_asan_swoole_zts .
+      - name: ASAN Swoole Tests
+        run: docker build --pull --no-cache -f Dockerfile.asan_swoole -t pdo_duckdb_asan_swoole .
+      - name: ASAN Swoole Tests zts
+        run: docker build --pull --no-cache -f Dockerfile.asan_swoole_zts -t pdo_duckdb_asan_swoole_zts .
 
   valgrind:
     name: Valgrind

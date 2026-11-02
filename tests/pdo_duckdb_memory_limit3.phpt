@@ -14,7 +14,8 @@ if (getenv('ZEND_DONT_UNLOAD_MODULES') === '1') {
 ini_set('memory_limit', '10M');
 $db = new PDO('duckdb::memory:');
 
-$result = $db->query("SELECT range(500_000)")->fetchAll(PDO::FETCH_ASSOC);
+$result = $db->query("SELECT range(500_000)::json")->fetchAll(PDO::FETCH_ASSOC);
+$result2 = $db->query("SELECT range(500_000)::json")->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 --EXPECTF--
