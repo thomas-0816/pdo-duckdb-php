@@ -42,6 +42,9 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("select MAP {[null]: 5}");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$statement = $db->query("SELECT MAP(['a'||chr(0)||'b'], ['c'||chr(0)||'d'])");
+echo json_encode($statement->fetchAll(PDO::FETCH_ASSOC)), PHP_EOL;
+
 ?>
 --EXPECTF--
 array(1) {
@@ -193,3 +196,5 @@ array(1) {
     }
   }
 }
+[{"\"map\"(list_value((('a' || chr(0)) || 'b'), '0'), list_value('foo', (('a' || chr(0)) || 'b')))":{"a\u0000b":"foo","0":"a\u0000b"}}]
+[{"\"map\"(list_value((('a' || chr(0)) || 'b')), list_value((('c' || chr(0)) || 'd')))":{"a\u0000b":"c\u0000d"}}
