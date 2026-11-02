@@ -41,7 +41,7 @@ SET error_on_division_by_zero = false;
 SET default_transaction_invalidation_policy = 'SYNTACTIC_ERRORS_DO_NOT_INVALIDATE';
 ```
 
-pdo_duckdb sets `async_threads` by default to 0 to avoid resource shortage on many concurrent requests, see [Security](#security).
+pdo_duckdb sets `async_threads` by default to 0 to avoid resource shortage on many concurrent PHP requests, see [Security](#security).
 
 __Do I need to update to DuckDB 2.0 immediately?__
 
