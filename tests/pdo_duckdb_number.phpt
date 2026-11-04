@@ -63,16 +63,22 @@ $statement = $db->query("SELECT 10::SMALLINT, 11::USMALLINT, 12::HUGEINT, 13::UH
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT ('1'||repeat('2', 36)||'3.'||repeat('4', 38))::DECIMAL(38,0)");
-var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT ('-1'||repeat('2', 36)||'3.'||repeat('4', 38))::DECIMAL(38,0)");
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT ('1'||repeat('2', 35)||'3.'||repeat('4', 38))::DECIMAL(38,1)");
-var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT ('-1'||repeat('2', 35)||'3.'||repeat('4', 38))::DECIMAL(38,1)");
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
 $statement = $db->query("SELECT ('1.2'||repeat('3', 35)||'45')::DECIMAL(38,37)");
-var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT ('-1.2'||repeat('3', 35)||'45')::DECIMAL(38,37)");
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT 5 / 3, 0.2::double + 0.7::double, '1.1111111111111111'::double", '-1.1111111111111111'::double");
-var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+$statement = $db->query("SELECT 5 / 3, -5 / 3, 0.2::double + 0.7::double, -0.2::double + 0.7::double, '1.1111111111111111'::double, '-1.1111111111111111'::double");
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
 ?>
 --EXPECTF--
@@ -265,34 +271,40 @@ array(1) {
   }
 }
 array(1) {
-  [0]=>
-  array(1) {
-    ["CAST(((('1' || repeat('2', 36)) || '3.') || repeat('4', 38)) AS DECIMAL(38, 0))"]=>
-    string(38) "12222222222222222222222222222222222223"
-  }
+  ["CAST(((('1' || repeat('2', 36)) || '3.') || repeat('4', 38)) AS DECIMAL(38, 0))"]=>
+  string(38) "12222222222222222222222222222222222223"
 }
 array(1) {
-  [0]=>
-  array(1) {
-    ["CAST(((('1' || repeat('2', 35)) || '3.') || repeat('4', 38)) AS DECIMAL(38, 1))"]=>
-    string(39) "1222222222222222222222222222222222223.4"
-  }
+  ["CAST(((('-1' || repeat('2', 36)) || '3.') || repeat('4', 38)) AS DECIMAL(38, 0))"]=>
+  string(39) "-12222222222222222222222222222222222223"
 }
 array(1) {
-  [0]=>
-  array(1) {
-    ["CAST((('1.2' || repeat('3', 35)) || '45') AS DECIMAL(38, 37))"]=>
-    string(39) "1.2333333333333333333333333333333333335"
-  }
+  ["CAST(((('1' || repeat('2', 35)) || '3.') || repeat('4', 38)) AS DECIMAL(38, 1))"]=>
+  string(39) "1222222222222222222222222222222222223.4"
 }
 array(1) {
-  [0]=>
-  array(3) {
-    ["(5 / 3)"]=>
-    float(1.6666666666666667)
-    ["(CAST(0.2 AS double) + CAST(0.7 AS double))"]=>
-    float(0.8999999999999999)
-    ["CAST('1.1111111111111111' AS double)"]=>
-    float(1.1111111111111112)
-  }
+  ["CAST(((('-1' || repeat('2', 35)) || '3.') || repeat('4', 38)) AS DECIMAL(38, 1))"]=>
+  string(40) "-1222222222222222222222222222222222223.4"
+}
+array(1) {
+  ["CAST((('1.2' || repeat('3', 35)) || '45') AS DECIMAL(38, 37))"]=>
+  string(39) "1.2333333333333333333333333333333333335"
+}
+array(1) {
+  ["CAST((('-1.2' || repeat('3', 35)) || '45') AS DECIMAL(38, 37))"]=>
+  string(40) "-1.2333333333333333333333333333333333335"
+}
+array(6) {
+  ["(5 / 3)"]=>
+  float(1.6666666666666667)
+  ["(-5 / 3)"]=>
+  float(-1.6666666666666667)
+  ["(CAST(0.2 AS double) + CAST(0.7 AS double))"]=>
+  float(0.8999999999999999)
+  ["((-(CAST(0.2 AS double))) + CAST(0.7 AS double))"]=>
+  float(0.49999999999999994)
+  ["CAST('1.1111111111111111' AS double)"]=>
+  float(1.1111111111111112)
+  ["CAST('-1.1111111111111111' AS double)"]=>
+  float(-1.1111111111111112)
 }
