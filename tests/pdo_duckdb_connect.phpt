@@ -115,7 +115,14 @@ var_dump($client2->query('SELECT * FROM table1')->fetchAll(PDO::FETCH_ASSOC));
 
 $server->exec("CALL quack_stop('quack:127.0.0.1:9494')");
 
-// TODO v2 ATTACH ':memory:' AS memory_compressed (COMPRESS)
+
+$db = new PDO('duckdb::memory:');
+$db->exec("ATTACH ':memory:' AS db (COMPRESS)");
+$db->exec("USE db");
+$db->exec('CREATE TABLE t AS SELECT range AS i, range % 10 AS j FROM range(1_000)');
+var_dump($db->query("SELECT distinct compression FROM pragma_storage_info('t')")->fetchAll(PDO::FETCH_COLUMN));
+$db->exec('CHECKPOINT');
+var_dump($db->query("SELECT distinct compression FROM pragma_storage_info('t')")->fetchAll(PDO::FETCH_COLUMN));
 
 ?>
 --EXPECTF--
@@ -229,4 +236,14 @@ array(1) {
     ["v2"]=>
     string(3) "bar"
   }
+}
+array(1) {
+  [0]=>
+  string(12) "Uncompressed"
+}
+array(2) {
+  [0]=>
+  string(10) "BitPacking"
+  [1]=>
+  string(8) "Constant"
 }
