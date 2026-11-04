@@ -71,7 +71,7 @@ var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 $statement = $db->query("SELECT ('1.2'||repeat('3', 35)||'45')::DECIMAL(38,37)");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-$statement = $db->query("SELECT 5 / 3, 0.2::double + 0.7::double, '1.1111111111111111'::double");
+$statement = $db->query("SELECT 5 / 3, 0.2::double + 0.7::double, '1.1111111111111111'::double", '-1.1111111111111111'::double");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 ?>
