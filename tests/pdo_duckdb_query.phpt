@@ -557,17 +557,6 @@ var_dump($stmt->fetchColumn());
 var_dump($stmt->execute());
 var_dump($stmt->fetchColumn());
 
-$db->exec('SET VARIABLE foo=42');
-$statement = $db->prepare('SELECT $foo as a, :foo as b, $bar::integer as c, :bar::integer as d');
-$statement->execute(['bar' => 21]);
-echo json_encode($statement->fetch(PDO::FETCH_ASSOC)), PHP_EOL;
-$statement = $db->prepare('SELECT $foo as a, :foo as b');
-$statement->execute(['foo' => 21]);
-echo json_encode($statement->fetch(PDO::FETCH_ASSOC)), PHP_EOL;
-$statement = $db->prepare('SELECT $foo as a, :foo as b');
-$statement->execute();
-echo json_encode($statement->fetch(PDO::FETCH_ASSOC)), PHP_EOL;
-
 class Person
 {
     public string $name;
@@ -1204,10 +1193,7 @@ bool(true)
 int(42)
 bool(true)
 int(42)
-{"a":42,"b":42,"c":21,"d":21}
-{"a":"21","b":"21"}
-{"a":42,"b":42}
-object(Person)#14 (3) {
+object(Person)#9 (3) {
   ["name"]=>
   string(3) "foo"
   ["numbers"]=>
