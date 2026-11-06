@@ -332,7 +332,7 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 					hugeint_val = ((duckdb_hugeint *) duckdb_vector_get_data(vec))[row_idx];
 					break;
 				}
-				case DUCKDB_TYPE_BIGNUM: {
+				default: {
 					/* Wide decimals (width > 38) are stored as BIGNUM blobs, https://github.com/duckdb/duckdb/pull/26955 */
 					char *str = duckdb_get_string(conn, vec, row_idx);
 					if (str == NULL) {
@@ -341,11 +341,6 @@ inline void duckdb_val_from_vector(duckdb_connection conn, duckdb_vector vec, du
 						ZVAL_STRING(result, str);
 						duckdb_free(str);
 					}
-					return;
-				}
-				default: {
-					zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: unknown internal decimal type %d", (int) internal_type);
-					ZVAL_NULL(result);
 					return;
 				}
 			}
