@@ -24,8 +24,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options);
 /* Driver definition */
 static pdo_driver_t pdo_duckdb_driver = {
 	PDO_DRIVER_HEADER(duckdb),
-	duckdb_handle_factory
-};
+	duckdb_handle_factory};
 
 /* Process-wide DuckDB instance cache — see php_pdo_duckdb.h */
 duckdb_instance_cache pdo_duckdb_instance_cache = NULL;
@@ -43,8 +42,7 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 {
 	pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(ZEND_THIS);
 
-	if (!pdo_stmt->driver_data ||
-	    pdo_stmt->methods != &duckdb_stmt_methods) {
+	if (!pdo_stmt->driver_data || pdo_stmt->methods != &duckdb_stmt_methods) {
 		original_pdo_stmt_execute(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 		return;
 	}
@@ -76,7 +74,8 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 						RETURN_THROWS();
 					}
 				}
-			} ZEND_HASH_FOREACH_END();
+			}
+			ZEND_HASH_FOREACH_END();
 
 			zval *arg = ZEND_CALL_ARG(execute_data, 1);
 			zval_ptr_dtor(arg);
@@ -99,8 +98,7 @@ static void pdo_duckdb_stmt_bind_value_override(INTERNAL_FUNCTION_PARAMETERS)
 {
 	pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(ZEND_THIS);
 
-	if (!pdo_stmt->driver_data ||
-	    pdo_stmt->methods != &duckdb_stmt_methods) {
+	if (!pdo_stmt->driver_data || pdo_stmt->methods != &duckdb_stmt_methods) {
 		original_pdo_stmt_bind_value(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 		return;
 	}
@@ -133,8 +131,7 @@ static void pdo_duckdb_stmt_bind_param_override(INTERNAL_FUNCTION_PARAMETERS)
 {
 	pdo_stmt_t *pdo_stmt = Z_PDO_STMT_P(ZEND_THIS);
 
-	if (!pdo_stmt->driver_data ||
-	    pdo_stmt->methods != &duckdb_stmt_methods) {
+	if (!pdo_stmt->driver_data || pdo_stmt->methods != &duckdb_stmt_methods) {
 		original_pdo_stmt_bind_param(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 		return;
 	}
@@ -166,7 +163,8 @@ static void pdo_duckdb_stmt_bind_param_override(INTERNAL_FUNCTION_PARAMETERS)
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(pdo_duckdb)
 {
-	(void)type; (void)module_number;
+	(void) type;
+	(void) module_number;
 
 	ZEND_TSRMLS_CACHE_UPDATE();
 
@@ -179,6 +177,14 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 		_putenv_s("QUERY_FARM_TELEMETRY_OPT_OUT", "1");
 #else
 		setenv("QUERY_FARM_TELEMETRY_OPT_OUT", "1", 0);
+#endif
+	}
+
+	if (!getenv("DATAZOO_DISABLE_TELEMETRY")) {
+#ifdef _WIN32
+		_putenv_s("DATAZOO_DISABLE_TELEMETRY", "1");
+#else
+		setenv("DATAZOO_DISABLE_TELEMETRY", "1", 0);
 #endif
 	}
 
@@ -221,7 +227,8 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 /* {{{ PHP_RINIT_FUNCTION */
 PHP_RINIT_FUNCTION(pdo_duckdb)
 {
-	(void)type; (void)module_number;
+	(void) type;
+	(void) module_number;
 	return SUCCESS;
 }
 /* }}} */
@@ -229,7 +236,8 @@ PHP_RINIT_FUNCTION(pdo_duckdb)
 /* {{{ PHP_MSHUTDOWN_FUNCTION */
 PHP_MSHUTDOWN_FUNCTION(pdo_duckdb)
 {
-	(void)type; (void)module_number;
+	(void) type;
+	(void) module_number;
 
 	php_pdo_unregister_driver(&pdo_duckdb_driver);
 	duckdb_destroy_instance_cache(&pdo_duckdb_instance_cache);
@@ -240,7 +248,8 @@ PHP_MSHUTDOWN_FUNCTION(pdo_duckdb)
 /* {{{ PHP_RSHUTDOWN_FUNCTION */
 PHP_RSHUTDOWN_FUNCTION(pdo_duckdb)
 {
-	(void)type; (void)module_number;
+	(void) type;
+	(void) module_number;
 	return SUCCESS;
 }
 /* }}} */
@@ -254,6 +263,8 @@ PHP_MINFO_FUNCTION(pdo_duckdb)
 	php_info_print_table_row(2, "DuckDB Library Version", duckdb_library_version());
 	if (zend_hash_str_exists(&module_registry, "swoole", sizeof("swoole") - 1)) {
 		php_info_print_table_row(2, "Swoole", pdo_duckdb_swoole_loaded() ? "OK" : "FAIL: loaded after pdo_duckdb");
+	} else {
+		php_info_print_table_row(2, "Swoole", "no");
 	}
 	php_info_print_table_end();
 }
@@ -266,12 +277,11 @@ zend_module_entry pdo_duckdb_module_entry = {
 	NULL,                           /* functions */
 	PHP_MINIT(pdo_duckdb),
 	PHP_MSHUTDOWN(pdo_duckdb),
-	PHP_RINIT(pdo_duckdb),          /* RINIT */
-	PHP_RSHUTDOWN(pdo_duckdb),      /* RSHUTDOWN */
+	PHP_RINIT(pdo_duckdb),
+	PHP_RSHUTDOWN(pdo_duckdb),
 	PHP_MINFO(pdo_duckdb),
 	PHP_PDO_DUCKDB_VERSION,
-	STANDARD_MODULE_PROPERTIES
-};
+	STANDARD_MODULE_PROPERTIES};
 /* }}} */
 
 #ifdef COMPILE_DL_PDO_DUCKDB

@@ -10,6 +10,9 @@ echo "AlertEncrypted yes" >> /etc/clamav/clamd.conf
 echo "AlertEncryptedArchive yes" >> /etc/clamav/clamd.conf
 echo "AlertEncryptedDoc yes" >> /etc/clamav/clamd.conf
 echo "AlertExceedsMax yes" >> /etc/clamav/clamd.conf
+echo "MaxScanTime 1200000" >> /etc/clamav/clamd.conf
+echo "MaxScanSize 256M" >> /etc/clamav/clamd.conf
+echo "MaxFileSize 256M" >> /etc/clamav/clamd.conf
 echo "ExcludePath ^/app/.git/" >> /etc/clamav/clamd.conf
 
 freshclam

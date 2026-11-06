@@ -54,6 +54,11 @@ $statement = $db->query('
 ');
 var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
+echo json_encode($db->query('SELECT
+[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+{foo:42}::variant
+]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]] as a')->fetchAll(PDO::FETCH_COLUMN)), PHP_EOL;
+
 ?>
 --EXPECTF--
 array(1) {
@@ -254,3 +259,4 @@ array(2) {
   ["distance"]=>
   float(0.0001407%d)
 }
+[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[{"foo":42}]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]

@@ -8,7 +8,7 @@ pdo_duckdb
 $db = new PDO('duckdb::memory:');
 
 $statement = $db->query("SELECT
-  null::boolean, null::tinyint, null::smallint, null::integer, null::bigint, null::utinyint, null::usmallint,
+  null, null::boolean, null::tinyint, null::smallint, null::integer, null::bigint, null::utinyint, null::usmallint,
   null::uinteger, null::ubigint, null::float, null::double, null::timestamp, null::date, null::time, null::interval,
   null::hugeint, null::uhugeint, null::varchar, null::blob, null::decimal, null::timestamp_s, null::timestamp_ms,
   null::timestamp_ns, null::enum('a'), null::struct(duck integer), null::integer[], null::integer[1], map_from_entries(null),
@@ -21,36 +21,18 @@ for ($i = 0; $i < $columnCount; $i++) {
 }
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
-/*
-// TODO v2
-SELECT null::variant, null::bignum
-SELECT row(), struct_pack()
-SELECT typeof(row())
-SELECT typeof(NULL::STRUCT)
-SELECT NULL::STRUCT()
-SELECT NULL::STRUCT, row()::STRUCT
-CREATE TABLE t(i INTEGER, s STRUCT)
-INSERT INTO t VALUES (1, row()), (2, NULL), (3, row())
-SELECT i, s FROM t ORDER BY i
-SELECT count(*) FROM t WHERE s IS NOT NULL
-SELECT i FROM t ORDER BY s, i
-SELECT s, count(*) FROM t WHERE s IS NOT NULL GROUP BY s
-SELECT count(*) FROM (SELECT DISTINCT s FROM t)
-SELECT row() = row(), row() IS NOT DISTINCT FROM row()
-SELECT t1.i, t2.i, t1.s FROM t t1 JOIN t t2 USING (s) WHERE t1.s IS NOT NULL AND t1.i < t2.i ORDER BY 1, 2
-SELECT {'a': row(), 'b': 1}, [row(), row()], typeof({'a': row()})
-SELECT row()::VARCHAR
-SELECT struct_concat(row(), row()), struct_concat(row(), {'x': 1}), struct_concat({'x': 1}, row())
-SELECT struct_concat(row(), row(1, 2))
-SELECT struct_contains(row(), 'a'), struct_contains(row(), 5)
-SELECT struct_extract(row(), 'a')
-SELECT row()[1]
-SELECT unnest(row())
-SELECT i, s FROM t ORDER BY i
-*/
+$statement = $db->query('select null::varchar union select null::integer[] union select null::struct(i1 integer)');
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+var_dump($statement->getColumnMeta(0));
+
+$statement = $db->query("select 'null'::JSON, NULL::JSON");
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+var_dump($statement->getColumnMeta(0));
+var_dump($statement->getColumnMeta(1));
 
 ?>
 --EXPECTF--
+string(7) "integer"
 string(7) "boolean"
 string(7) "tinyint"
 string(8) "smallint"
@@ -90,7 +72,9 @@ string(4) "json"
 string(6) "bignum"
 array(1) {
   [0]=>
-  array(37) {
+  array(38) {
+    ["NULL"]=>
+    NULL
     ["CAST(NULL AS BOOLEAN)"]=>
     NULL
     ["CAST(NULL AS "TINYINT")"]=>
@@ -166,4 +150,65 @@ array(1) {
     ["CAST(NULL AS "BIGNUM")"]=>
     NULL
   }
+}
+array(1) {
+  ["CAST(NULL AS VARCHAR)"]=>
+  NULL
+}
+array(7) {
+  ["native_type"]=>
+  string(4) "list"
+  ["pdo_type"]=>
+  int(3)
+  ["duckdb:decl_type"]=>
+  string(9) "INTEGER[]"
+  ["flags"]=>
+  array(0) {
+  }
+  ["name"]=>
+  string(21) "CAST(NULL AS VARCHAR)"
+  ["len"]=>
+  int(0)
+  ["precision"]=>
+  int(0)
+}
+array(2) {
+  ["CAST('null' AS "JSON")"]=>
+  NULL
+  ["CAST(NULL AS "JSON")"]=>
+  NULL
+}
+array(7) {
+  ["native_type"]=>
+  string(4) "json"
+  ["pdo_type"]=>
+  int(3)
+  ["duckdb:decl_type"]=>
+  string(4) "JSON"
+  ["flags"]=>
+  array(0) {
+  }
+  ["name"]=>
+  string(22) "CAST('null' AS "JSON")"
+  ["len"]=>
+  int(0)
+  ["precision"]=>
+  int(0)
+}
+array(7) {
+  ["native_type"]=>
+  string(4) "json"
+  ["pdo_type"]=>
+  int(3)
+  ["duckdb:decl_type"]=>
+  string(4) "JSON"
+  ["flags"]=>
+  array(0) {
+  }
+  ["name"]=>
+  string(20) "CAST(NULL AS "JSON")"
+  ["len"]=>
+  int(0)
+  ["precision"]=>
+  int(0)
 }

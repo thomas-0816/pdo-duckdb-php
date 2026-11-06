@@ -1,4 +1,4 @@
-# docker build --no-cache --progress=plain -f Dockerfile.asan -t pdo_duckdb_asan .
+# docker build --no-cache -f Dockerfile.asan -t pdo_duckdb_asan .
 # docker run --rm -it pdo_duckdb_asan
 
 FROM ubuntu:24.04

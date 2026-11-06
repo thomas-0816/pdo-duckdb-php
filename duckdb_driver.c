@@ -17,6 +17,9 @@
 /* Forward declaration of statement methods (defined in duckdb_statement.c) */
 extern struct pdo_stmt_methods duckdb_stmt_methods;
 
+/* Check DuckDB's internal transaction state from the connection context */
+extern int duckdb_has_active_transaction(duckdb_connection conn);
+
 /* Strip null bytes and replace :name with $name for DuckDB compatibility.
    DuckDB uses $style named parameters, not :style. */
 static inline char* zstr_prepare(zend_string *str)
@@ -75,17 +78,14 @@ static inline char* zstr_strip_zerobytes(zend_string *str)
 }
 
 /* ---------------- error handling helper ---------------- */
-static void pdo_duckdb_error(pdo_dbh_t *dbh)
+static void pdo_duckdb_error(pdo_dbh_t *dbh, duckdb_result *res)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
-	/* DuckDB doesn't have per-connection error retrieval, so we pull
-	   from the last operation if we stored it. In practice we’d keep
-	   a buffer in H. For simplicity, we report a generic error. */
-	strncpy(H->error_msg, "unknown error", sizeof(H->error_msg) - 1);
+	const char *err = res ? duckdb_result_error(res) : NULL;
+	snprintf(H->error_msg, sizeof(H->error_msg), err != NULL && err[0] != '\0' ? "%s" : "unknown error", err);
 	memcpy(dbh->error_code, "HY000", sizeof(pdo_error_type));
 }
 
-/* ---------------- connection closer ---------------- */
 static void duckdb_handle_closer(pdo_dbh_t *dbh)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
@@ -100,7 +100,7 @@ static void duckdb_handle_closer(pdo_dbh_t *dbh)
 			H->db = NULL;
 		}
 		if (H->thread_lock) {
-			free(H->thread_lock);
+			pdo_duckdb_thread_lock_free(H->thread_lock);
 		}
 		efree(H);
 		dbh->driver_data = NULL;
@@ -108,12 +108,10 @@ static void duckdb_handle_closer(pdo_dbh_t *dbh)
 }
 
 /* ---------------- connection factory ---------------- */
-
 int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 {
 	if (dbh->is_persistent) {
-		zend_throw_exception_ex(php_pdo_get_exception(), 0,
-			"SQLSTATE[IM001]: pdo_duckdb does not support persistent connections");
+		zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[IM001]: pdo_duckdb does not support persistent connections");
 		return 0;
 	}
 
@@ -156,13 +154,15 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 						init_command = emalloc(ZSTR_LEN(str_val) + 20);
 						sprintf(init_command, "SET TimeZone = '%s'; ", ZSTR_VAL(str_val));
 					} else if (strcasecmp(ZSTR_VAL(key), "force_mbedtls_unsafe") == 0) { // crashes, skip
+						zend_string_release(str_val);
 						continue;
 					} else {
 						duckdb_set_config(config, ZSTR_VAL(key), ZSTR_VAL(str_val));
 					}
 					zend_string_release(str_val);
 				}
-			} ZEND_HASH_FOREACH_END();
+			}
+			ZEND_HASH_FOREACH_END();
 		}
 	}
 
@@ -177,12 +177,10 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	}
 
 	if (state != DuckDBSuccess) {
-		zend_throw_exception_ex(php_pdo_get_exception(), 0,
-			"SQLSTATE[HY000]: Could not open DuckDB database: %s",
-			err ? err : "unknown error");
+		zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: Could not open DuckDB database: %s", err ? err : "unknown error");
 		if (err) duckdb_free(err);
 		if (H->thread_lock) {
-			free(H->thread_lock);
+			pdo_duckdb_thread_lock_free(H->thread_lock);
 		}
 		efree(init_command);
 		efree(dbname);
@@ -200,10 +198,9 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	}
 	if (state != DuckDBSuccess) {
 		duckdb_close(&H->db);
-		zend_throw_exception_ex(php_pdo_get_exception(), 0,
-			"SQLSTATE[HY000]: Could not create DuckDB connection");
+		zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: Could not create DuckDB connection");
 		if (H->thread_lock) {
-			free(H->thread_lock);
+			pdo_duckdb_thread_lock_free(H->thread_lock);
 		}
 		efree(init_command);
 		dbh->driver_data = NULL;
@@ -232,9 +229,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 		}
 		if (state != DuckDBSuccess) {
 			const char *err = duckdb_result_error(&res);
-			zend_throw_exception_ex(php_pdo_get_exception(), 0,
-				"SQLSTATE[HY000]: Could not execute init command: %s",
-				err ? err : "unknown error");
+			zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: Could not execute init command: %s", err ? err : "unknown error");
 			duckdb_destroy_result(&res);
 			efree(init_command);
 			duckdb_handle_closer(dbh);
@@ -251,9 +246,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	return 1;
 }
 
-/* ---------------- preparer ---------------- */
-static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql,
-                                  pdo_stmt_t *stmt, zval *driver_options)
+static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql, pdo_stmt_t *stmt, zval *driver_options)
 {
 	(void)driver_options;
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
@@ -280,8 +273,7 @@ static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql,
 
 	if (state != DuckDBSuccess) {
 		const char *err = S->stmt ? duckdb_prepare_error(S->stmt) : NULL;
-		zend_throw_exception_ex(php_pdo_get_exception(), 0,
-			"SQLSTATE[HY000]: %s", err ? err : "prepare error");
+		zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: %s", err ? err : "prepare error");
 		if (S->stmt) {
 			duckdb_destroy_prepare(&S->stmt);
 		}
@@ -294,9 +286,6 @@ static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql,
 	stmt->supports_placeholders = PDO_PLACEHOLDER_POSITIONAL | PDO_PLACEHOLDER_NAMED;
 	return true;
 }
-
-/* Check DuckDB's internal transaction state from the connection context */
-extern int duckdb_has_active_transaction(duckdb_connection conn);
 
 /* ---------------- exec (direct, non‑prepared) ---------------- */
 static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
@@ -313,8 +302,7 @@ static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 	efree(prepared_sql);
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&result);
-		zend_throw_exception_ex(php_pdo_get_exception(), 0,
-			"SQLSTATE[HY000]: %s", err ? err : "query error");
+		zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: %s", err ? err : "query error");
 		duckdb_destroy_result(&result);
 		return -1;
 	}
@@ -323,10 +311,10 @@ static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 	return (zend_long) rows;
 }
 
-/* ---------------- quoter ---------------- */
 static zend_string* duckdb_handle_quoter(pdo_dbh_t *dbh, const zend_string *unquoted, enum pdo_param_type param_type)
 {
-	(void)dbh; (void)param_type;
+	(void) dbh;
+	(void) param_type;
 	zend_string *q = zend_string_alloc(ZSTR_LEN(unquoted) * 2 + 3, 0);
 	char *p = ZSTR_VAL(q);
 	size_t i, j = 1;
@@ -343,7 +331,6 @@ static zend_string* duckdb_handle_quoter(pdo_dbh_t *dbh, const zend_string *unqu
 	return q;
 }
 
-/* ---------------- transaction support (via SQL commands) ---------------- */
 static bool duckdb_handle_begin(pdo_dbh_t *dbh)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
@@ -354,11 +341,12 @@ static bool duckdb_handle_begin(pdo_dbh_t *dbh)
 	} else {
 		st = duckdb_query(H->conn, "BEGIN TRANSACTION", &res);
 	}
-	duckdb_destroy_result(&res);
 	if (st != DuckDBSuccess) {
-		pdo_duckdb_error(dbh);
+		pdo_duckdb_error(dbh, &res);
+		duckdb_destroy_result(&res);
 		return false;
 	}
+	duckdb_destroy_result(&res);
 	return true;
 }
 
@@ -372,11 +360,12 @@ static bool duckdb_handle_commit(pdo_dbh_t *dbh)
 	} else {
 		st = duckdb_query(H->conn, "COMMIT", &res);
 	}
-	duckdb_destroy_result(&res);
 	if (st != DuckDBSuccess) {
-		pdo_duckdb_error(dbh);
+		pdo_duckdb_error(dbh, &res);
+		duckdb_destroy_result(&res);
 		return false;
 	}
+	duckdb_destroy_result(&res);
 	return true;
 }
 
@@ -390,40 +379,32 @@ static bool duckdb_handle_rollback(pdo_dbh_t *dbh)
 	} else {
 		st = duckdb_query(H->conn, "ROLLBACK", &res);
 	}
-	duckdb_destroy_result(&res);
 	if (st != DuckDBSuccess) {
-		pdo_duckdb_error(dbh);
+		pdo_duckdb_error(dbh, &res);
+		duckdb_destroy_result(&res);
 		return false;
 	}
+	duckdb_destroy_result(&res);
 	return true;
 }
 
-/* ---------------- last insert id ---------------- */
 static zend_string* duckdb_handle_last_id(pdo_dbh_t *dbh, const zend_string *name)
 {
-	(void)dbh; (void)name;
+	(void) dbh;
+	(void) name;
 	/* DuckDB doesn't maintain a global last rowid; we can use sequences
 	   if the user creates them. This is a placeholder. */
 	return zend_string_init("0", 1, 0);
 }
 
-/* ---------------- fetch error information ---------------- */
 static void duckdb_fetch_error(pdo_dbh_t *dbh, pdo_stmt_t *stmt, zval *info)
 {
 	(void)stmt;
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
-	if (H == NULL || H->error_msg[0] == '\0') {
-		add_next_index_string(info, "00000");
-		add_next_index_null(info);
-		add_next_index_string(info, "no error");
-	} else {
-		add_next_index_string(info, dbh->error_code[0] ? dbh->error_code : "HY000");
-		add_next_index_null(info);
-		add_next_index_string(info, H->error_msg);
-	}
+	add_next_index_long(info, 0);
+	add_next_index_string(info, (H == NULL || H->error_msg[0] == '\0') ? "no error" : H->error_msg);
 }
 
-/* ---------------- set/get driver attributes ---------------- */
 static bool duckdb_set_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
@@ -452,40 +433,14 @@ static int duckdb_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 		case PDO_ATTR_AUTOCOMMIT:
 			ZVAL_LONG(val, H->auto_commit);
 			return 1;
-		case PDO_ATTR_DRIVER_NAME:
-			ZVAL_STRINGL(val, "duckdb", sizeof("duckdb") - 1);
-			break;
-
 		case PDO_DUCKDB_ATTR_UNBUFFERED:
 			ZVAL_BOOL(val, H->unbuffered);
 			return 1;
 		default:
 			return 0;
 	}
-	return 0;
 }
 
-/* ---------------- check liveness ---------------- */
-static zend_result duckdb_check_liveness(pdo_dbh_t *dbh)
-{
-	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
-	/* A simple query to test connection */
-	duckdb_result res;
-	duckdb_state st;
-	if (H->thread_lock) {
-		st = pdo_duckdb_swoole_query(H->thread_lock, H->conn, "SELECT 1", &res);
-	} else {
-		st = duckdb_query(H->conn, "SELECT 1", &res);
-	}
-	if (st != DuckDBSuccess) {
-		duckdb_destroy_result(&res);
-		return FAILURE;
-	}
-	duckdb_destroy_result(&res);
-	return SUCCESS;
-}
-
-/* ---------------- in_transaction callback ---------------- */
 static bool duckdb_handle_in_transaction(pdo_dbh_t *dbh)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
@@ -505,12 +460,12 @@ struct pdo_dbh_methods duckdb_methods = {
 	duckdb_handle_last_id,
 	duckdb_fetch_error,
 	duckdb_get_attribute,
-	duckdb_check_liveness,
-	NULL,                   /* get_driver_methods */
-	NULL,                   /* persistent_shutdown */
+	NULL, /* check_liveness */
+	NULL, /* get_driver_methods */
+	NULL, /* persistent_shutdown */
 	duckdb_handle_in_transaction,
 	NULL, /* get_gc */
 #if PHP_VERSION_ID >= 80400
-	NULL  /* scanner */
+	NULL /* scanner */
 #endif
 };

@@ -2,12 +2,15 @@
 build/
 modules/
 autom4te.cache/
+coverage/
 *.dep
 *.lo
 *.la
 *.a
 *.hpp
+*.h
 *.zip
+*.tar.gz
 config.*
 Makefile*
 configure*

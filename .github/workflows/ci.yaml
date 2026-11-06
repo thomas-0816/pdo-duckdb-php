@@ -50,12 +50,6 @@ jobs:
         thread-safety:
           - zts
           - nts
-        variant:
-          - plain
-          - swoole
-        exclude:
-          - php-version: 8.6
-            variant: swoole
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -65,7 +59,6 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
-          extensions: ${{ matrix.variant == 'swoole' && 'swoole' || '' }}
         env:
           phpts: ${{ matrix.thread-safety }}
           update: true
@@ -90,11 +83,23 @@ jobs:
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-          if [ "$variant" = "swoole" ]; then
-            php -m
-            php -m | grep swoole
-            php -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
-          fi
+      - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }} ${{ matrix.variant }} Swoole
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        if: matrix.php-version != '8.6'
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+          extensions: swoole
+        env:
+          phpts: ${{ matrix.thread-safety }}
+          update: true
+      - name: Test extension with Swoole
+        if: matrix.php-version != '8.6'
+        run: |
+          TEST_EXTENSIONS="sockets curl mysqlnd swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
+          php -m
+          php -m | grep swoole
+          php -d extension=$(pwd)/modules/pdo_duckdb.so test_swoole.php
 
   windows:
     name: Windows
@@ -144,10 +149,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Build container
-        run: |
-          docker build --pull --no-cache -f Dockerfile.asan -t pdo_duckdb_asan .
-          docker build --pull --no-cache -f Dockerfile.asan_zts -t pdo_duckdb_asan_zts .
+      - name: ASAN Tests
+        run: docker build --pull --no-cache -f Dockerfile.asan -t pdo_duckdb_asan .
+      - name: ASAN Tests zts
+        run: docker build --pull --no-cache -f Dockerfile.asan_zts -t pdo_duckdb_asan_zts .
 
   asan-swoole:
     name: ASAN Swoole
@@ -157,10 +162,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Build container
-        run: |
-          docker build --pull --no-cache -f Dockerfile.asan_swoole -t pdo_duckdb_asan_swoole .
-          docker build --pull --no-cache -f Dockerfile.asan_swoole_zts -t pdo_duckdb_asan_swoole_zts .
+      - name: ASAN Swoole Tests
+        run: docker build --pull --no-cache -f Dockerfile.asan_swoole -t pdo_duckdb_asan_swoole .
+      - name: ASAN Swoole Tests zts
+        run: docker build --pull --no-cache -f Dockerfile.asan_swoole_zts -t pdo_duckdb_asan_swoole_zts .
 
   valgrind:
     name: Valgrind
@@ -172,9 +177,6 @@ jobs:
         thread-safety:
           - nts
           - zts
-        variant:
-          - plain
-          - swoole
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -184,7 +186,6 @@ jobs:
         with:
           php-version: 8.5
           coverage: none
-          extensions: ${{ matrix.variant == 'swoole' && 'swoole' || '' }}
         env:
           phpts: ${{ matrix.thread-safety }}
           update: true
@@ -199,9 +200,9 @@ jobs:
           phpize
           ./configure --with-pdo-duckdb
           make
-          php -m | grep swoole || true
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
-          NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
+          NO_INTERACTION=1 REPORT_EXIT_STATUS=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
+          TEST_EXTENSIONS="sockets curl mysqlnd swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q -m -j$(nproc)" make test
 
   zizmor:
     name: zizmor

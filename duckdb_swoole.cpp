@@ -11,8 +11,9 @@
 
 #include "php.h"
 #include "php_pdo_duckdb.h"
-#include <cstdlib>
+#include <atomic>
 #include <functional>
+#include <new>
 
 #if defined(__GNUC__) || defined(__clang__)
     #include <sched.h>
@@ -40,15 +41,16 @@ namespace {
  * or synchronously when Swoole is not available / not inside a coroutine.
  * The connection lock is held for the whole call. On MSVC Swoole support is
  * compiled out entirely, so run inline. */
-void swoole_run(void *lock, const std::function<void()> &fn) {
+void swoole_run(void *lock, const std::function<void()> &fn)
+{
 #if defined(__GNUC__) || defined(__clang__)
     if (swoole_coroutine_is_in == NULL || swoole_coroutine_is_in() == 0) {
         fn();
         return;
     }
 
-    unsigned char *busy = static_cast<unsigned char *>(lock);
-    while (__atomic_test_and_set(busy, __ATOMIC_ACQUIRE)) {
+	std::atomic_flag *busy = static_cast<std::atomic_flag *>(lock);
+	while (busy->test_and_set(std::memory_order_acquire)) {
         /* Connection in use by another coroutine; yield instead of spinning. */
         if (swoole_coroutine_usleep != NULL) {
             swoole_coroutine_usleep(50);
@@ -65,7 +67,7 @@ void swoole_run(void *lock, const std::function<void()> &fn) {
         fn();
     }
 
-    __atomic_clear(busy, __ATOMIC_RELEASE);
+	busy->clear(std::memory_order_release);
 #else
     (void)lock;
     fn();
@@ -78,7 +80,8 @@ extern "C" {
 
 /* Whether the Swoole runtime is present (i.e. its symbols resolved at load
  * time). Used by PHP_MINFO(). */
-int pdo_duckdb_swoole_loaded(void) {
+int pdo_duckdb_swoole_loaded(void)
+{
 #if defined(__GNUC__) || defined(__clang__)
     return swoole_coroutine_is_in != NULL;
 #else
@@ -86,18 +89,18 @@ int pdo_duckdb_swoole_loaded(void) {
 #endif
 }
 
-/* Per-connection serialization lock for the Swoole async dispatch. Plain C11
- * busy flag implemented with GCC/Clang __atomic builtins. Returns NULL when
- * Swoole is not loaded (or support is compiled out), marking the connection as
- * not Swoole-async capable. */
-void *pdo_duckdb_thread_lock_new(void) {
+/* Per-connection serialization lock for the Swoole async dispatch. Standard
+ * C++ atomic busy flag. Returns NULL when Swoole is not loaded (or support is
+ * compiled out), marking the connection as not Swoole-async capable. */
+void *pdo_duckdb_thread_lock_new(void)
+{
 #if defined(__GNUC__) || defined(__clang__)
     if (swoole_coroutine_is_in == NULL) {
         return NULL;
     }
-    unsigned char *lock = (unsigned char *)malloc(sizeof(unsigned char));
+	std::atomic_flag *lock = new (std::nothrow) std::atomic_flag;
     if (lock) {
-        __atomic_clear(lock, __ATOMIC_RELAXED);
+		lock->clear(std::memory_order_relaxed);
     }
     return lock;
 #else
@@ -105,55 +108,62 @@ void *pdo_duckdb_thread_lock_new(void) {
 #endif
 }
 
-duckdb_state pdo_duckdb_swoole_get_or_create_from_cache(
-    void *lock, duckdb_instance_cache instance_cache, const char *path, duckdb_database *out_database, duckdb_config config, char **out_error) {
+void pdo_duckdb_thread_lock_free(void *lock)
+{
+	delete static_cast<std::atomic_flag *>(lock);
+}
+
+duckdb_state pdo_duckdb_swoole_get_or_create_from_cache(void *lock, duckdb_instance_cache instance_cache, const char *path, duckdb_database *out_database, duckdb_config config, char **out_error)
+{
     duckdb_state state = DuckDBError;
     swoole_run(lock, [&]() { state = duckdb_get_or_create_from_cache(instance_cache, path, out_database, config, out_error); });
     return state;
 }
 
-duckdb_state pdo_duckdb_swoole_connect(void *lock, duckdb_database database, duckdb_connection *out_connection) {
+duckdb_state pdo_duckdb_swoole_connect(void *lock, duckdb_database database, duckdb_connection *out_connection)
+{
     duckdb_state state = DuckDBError;
     swoole_run(lock, [&]() { state = duckdb_connect(database, out_connection); });
     return state;
 }
 
-duckdb_state pdo_duckdb_swoole_prepare(
-    void *lock, duckdb_connection connection, const char *query, duckdb_prepared_statement *out_statement) {
+duckdb_state pdo_duckdb_swoole_prepare(void *lock, duckdb_connection connection, const char *query, duckdb_prepared_statement *out_statement)
+{
     duckdb_state state = DuckDBError;
     swoole_run(lock, [&]() { state = duckdb_prepare(connection, query, out_statement); });
     return state;
 }
 
-duckdb_state pdo_duckdb_swoole_execute_prepared(
-    void *lock, duckdb_connection connection, duckdb_prepared_statement statement, duckdb_result *out_result) {
+duckdb_state pdo_duckdb_swoole_execute_prepared(void *lock, duckdb_connection connection, duckdb_prepared_statement statement, duckdb_result *out_result)
+{
     duckdb_state state = DuckDBError;
     swoole_run(lock, [&]() { state = duckdb_execute_prepared(statement, out_result); });
     return state;
 }
 
-duckdb_state pdo_duckdb_swoole_execute_prepared_streaming(
-    void *lock, duckdb_connection connection, duckdb_prepared_statement statement, duckdb_result *out_result) {
+duckdb_state pdo_duckdb_swoole_execute_prepared_streaming(void *lock, duckdb_connection connection, duckdb_prepared_statement statement, duckdb_result *out_result)
+{
     duckdb_state state = DuckDBError;
     swoole_run(lock, [&]() { state = duckdb_execute_prepared_streaming(statement, out_result); });
     return state;
 }
 
-duckdb_state pdo_duckdb_swoole_query(
-    void *lock, duckdb_connection connection, const char *query, duckdb_result *out_result) {
+duckdb_state pdo_duckdb_swoole_query(void *lock, duckdb_connection connection, const char *query, duckdb_result *out_result)
+{
     duckdb_state state = DuckDBError;
     swoole_run(lock, [&]() { state = duckdb_query(connection, query, out_result); });
     return state;
 }
 
-duckdb_data_chunk pdo_duckdb_swoole_fetch_chunk(void *lock, duckdb_connection connection, duckdb_result result) {
+duckdb_data_chunk pdo_duckdb_swoole_fetch_chunk(void *lock, duckdb_connection connection, duckdb_result result)
+{
     duckdb_data_chunk chunk = NULL;
     swoole_run(lock, [&]() { chunk = duckdb_fetch_chunk(result); });
     return chunk;
 }
 
-duckdb_data_chunk pdo_duckdb_swoole_result_get_chunk(
-    void *lock, duckdb_connection connection, duckdb_result result, idx_t chunk_index) {
+duckdb_data_chunk pdo_duckdb_swoole_result_get_chunk(void *lock, duckdb_connection connection, duckdb_result result, idx_t chunk_index)
+{
     duckdb_data_chunk chunk = NULL;
     swoole_run(lock, [&]() { chunk = duckdb_result_get_chunk(result, chunk_index); });
     return chunk;

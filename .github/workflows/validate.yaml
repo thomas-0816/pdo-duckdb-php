@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   linux_macos_windows:
-    name: Linux, MacOS, Windows
+    name: Install
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
@@ -132,8 +132,13 @@ jobs:
 
   alpine:
     name: "Docker: Alpine"
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 5
+    strategy:
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -154,8 +159,13 @@ jobs:
 
   amazon:
     name: "Docker: Amazon Linux"
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 5
+    strategy:
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -208,8 +218,9 @@ jobs:
         run: |
           docker build --pull --no-cache -f Dockerfile.php -t pdo_duckdb_php .
           docker build --pull --no-cache -f Dockerfile.php_alpine -t pdo_duckdb_php_alpine .
+          docker build --pull --no-cache -f Dockerfile.php_debian -t pdo_duckdb_php_debian .
 
-  nginx:
+  nginx_fpm:
     name: "Docker: php nginx fpm"
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -218,7 +229,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Build container
-        run: docker build --pull --no-cache -f Dockerfile.php_nginx -t pdo_duckdb_php_nginx .
+        run: docker build --pull --no-cache -f Dockerfile.php_nginx_fpm -t pdo_duckdb_php_nginx_fpm .
 
   apache:
     name: "Docker: php apache mod_php"
@@ -233,8 +244,13 @@ jobs:
 
   debian:
     name: "Docker: Debian"
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 5
+    strategy:
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -243,19 +259,26 @@ jobs:
         run: |
           docker build --pull --no-cache -f Dockerfile.debian12 -t pdo_duckdb_debian12 .
           docker build --pull --no-cache -f Dockerfile.debian13 -t pdo_duckdb_debian13 .
+          docker build --pull --no-cache -f Dockerfile.debian14 -t pdo_duckdb_debian14 .
 
   ubuntu:
     name: "Docker: Ubuntu"
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 5
+    strategy:
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container
         run: |
-          docker build --pull --no-cache -f Dockerfile.ubuntu24 -t pdo_duckdb_ubuntu24 .
-          docker build --pull --no-cache -f Dockerfile.ubuntu26 -t pdo_duckdb_ubuntu26 .
+          docker build --pull --no-cache -f Dockerfile.ubuntu2404 -t pdo_duckdb_ubuntu2404 .
+          docker build --pull --no-cache -f Dockerfile.ubuntu2604 -t pdo_duckdb_ubuntu2604 .
+          docker build --pull --no-cache -f Dockerfile.ubuntu2610 -t pdo_duckdb_ubuntu2610 .
 
   opensuse:
     name: "Docker: openSUSE"
@@ -271,7 +294,7 @@ jobs:
   clamav:
     name: "Docker: clamAV"
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

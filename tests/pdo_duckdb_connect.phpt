@@ -5,6 +5,9 @@ pdo_duckdb
 --FILE--
 <?php
 
+$ext = new ReflectionExtension('pdo_duckdb');
+$ext->info();
+
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
 
@@ -60,6 +63,12 @@ var_dump($statement->fetch(PDO::FETCH_ASSOC));
 var_dump($db->getAttribute(PDO::ATTR_CLIENT_VERSION));
 var_dump($db->getAttribute(PDO::ATTR_SERVER_VERSION));
 var_dump($db->getAttribute(PDO::ATTR_DRIVER_NAME));
+var_dump($db->getAttribute(PDO::ATTR_AUTOCOMMIT));
+try {
+    var_dump($db->getAttribute(-1));
+} catch (PDOException $e) {
+    echo "Caught: " . $e->getMessage() . "\n";
+}
 
 $db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['autoload_known_extensions' => true, 'autoinstall_known_extensions' => false, 'allow_community_extensions' => false]]);
 $statement = $db->query("select name, value from duckdb_settings() where name in ('autoload_known_extensions', 'autoinstall_known_extensions', 'allow_community_extensions')");
@@ -71,8 +80,11 @@ try {
     echo "Caught: " . $e->getMessage() . "\n";
 }
 
-$db = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND => 'SET threads = 2']);
-var_dump($db->query("SELECT value FROM duckdb_settings() WHERE name = 'threads'")->fetchColumn());
+$db = new PDO('duckdb::memory:', null, null, [
+    PDO::DUCKDB_ATTR_INIT_COMMAND => 'SET threads = 2',
+    PDO::DUCKDB_ATTR_CONFIG => ['timezone' => 'Europe/Berlin', 'force_mbedtls_unsafe' => false]
+]);
+var_dump($db->query("SELECT value FROM duckdb_settings() WHERE name IN ('threads', 'TimeZone')")->fetchAll(PDO::FETCH_COLUMN));
 
 try {
     new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_INIT_COMMAND => "SELECT INVALID"]);
@@ -101,6 +113,11 @@ $server->exec("CALL quack_stop('quack:127.0.0.1:9494')");
 
 ?>
 --EXPECTF--
+pdo_duckdb
+
+PDO Driver for DuckDB => enabled
+DuckDB Library Version => v1.5.6
+Swoole => %s
 array(4) {
   ["i"]=>
   int(1)
@@ -168,6 +185,8 @@ array(1) {
 string(6) "v1.5.6"
 string(6) "v1.5.6"
 string(6) "duckdb"
+int(0)
+Caught: SQLSTATE[IM001]: Driver does not support this function: driver does not support that attribute
 array(3) {
   ["allow_community_extensions"]=>
   string(5) "false"
@@ -177,7 +196,12 @@ array(3) {
   string(4) "true"
 }
 Caught: SQLSTATE[IM001]: pdo_duckdb does not support persistent connections
-string(1) "2"
+array(2) {
+  [0]=>
+  string(13) "Europe/Berlin"
+  [1]=>
+  string(1) "2"
+}
 Caught: SQLSTATE[HY000]: Could not execute init command: Binder Error: Referenced column "INVALID" was not found because the FROM clause is missing
 
 LINE 1: SELECT INVALID

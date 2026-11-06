@@ -49,7 +49,7 @@ case $host_os in
     dnl On arm64, the DuckDB static lib references __aarch64_ldadd* LSE atomic
     dnl IFUNC resolvers. The GCC driver adds -lgcc_s but not -lgcc for -shared
     dnl builds, and the resolvers are only in libgcc.a, so link it explicitly.
-    dhl -Wl,--exclude-libs,ALL could reduce the filesize but gives less information on stack traces
+    dnl -Wl,--exclude-libs,ALL could reduce the filesize but gives less information on stack traces
     PDO_DUCKDB_SHARED_LIBADD="-Wl,--whole-archive $PDO_DUCKDB_ARCHIVE_FLAGS -Wl,--no-whole-archive -Wl,-Bsymbolic-functions -Wl,-lstdc++ -Wl,-lc -Wl,--no-as-needed -Wl,-lgcc -Wl,-ldl -Wl,--as-needed -Wl,-z,relro,-z,now -Wl,-z,noexecstack -Wl,--strip-all"
     ;;
 esac
