@@ -180,6 +180,14 @@ PHP_MINIT_FUNCTION(pdo_duckdb)
 #endif
 	}
 
+	if (!getenv("DATAZOO_DISABLE_TELEMETRY")) {
+#ifdef _WIN32
+		_putenv_s("DATAZOO_DISABLE_TELEMETRY", "1");
+#else
+		setenv("DATAZOO_DISABLE_TELEMETRY", "1", 0);
+#endif
+	}
+
 	if (FAILURE == php_pdo_register_driver(&pdo_duckdb_driver)) {
 		return FAILURE;
 	}
