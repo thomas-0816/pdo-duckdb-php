@@ -14,6 +14,8 @@ jobs:
   linux_macos:
     name: Linux, MacOS
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write # publish release
     strategy:
       fail-fast: false
       matrix:
@@ -61,8 +63,6 @@ jobs:
           tar xvzf libduckdb-src.tar.gz
       - name: Build and upload prebuilt binary
         uses: php/pie-ext-binary-builder@cbe134360897f23793f23c2edc7602261d205a25 # 0.0.4
-        permissions:
-          contents: write # publish release
         with:
           release-tag: ${{ github.event.release.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -71,6 +71,8 @@ jobs:
   linux_alpine:
     name: "Linux Alpine"
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write # publish release
     strategy:
       fail-fast: false
       matrix:
@@ -82,8 +84,6 @@ jobs:
         with:
           persist-credentials: false
       - name: Build the extension and upload zip archive
-        permissions:
-          contents: write # publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.event.release.tag_name }}
@@ -96,6 +96,8 @@ jobs:
   windows_84_85_86:
     name: Windows PHP 8.4-8.6
     runs-on: ${{ (matrix.php-version == '8.6' && 'windows-2025-vs2026') || 'windows-2022' }}
+    permissions:
+      contents: write # publish release
     strategy:
       fail-fast: false
       matrix:
@@ -127,8 +129,6 @@ jobs:
           args: --with-pdo-duckdb
           test-workers: 1
       - name: Upload as a release asset
-        permissions:
-          contents: write # publish release
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -139,6 +139,8 @@ jobs:
   windows_82_83:
     name: Windows PHP 8.2-8.3
     runs-on: windows-2022
+    permissions:
+      contents: write # publish release
     strategy:
       fail-fast: false
       matrix:
@@ -170,8 +172,6 @@ jobs:
           args: --with-pdo-duckdb
           test-workers: 1
       - name: Bundle duckdb.dll, upload as a release asset
-        permissions:
-          contents: write # publish release
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
