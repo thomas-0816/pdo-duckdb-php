@@ -72,8 +72,6 @@ jobs:
   linux_alpine:
     name: "Linux Alpine"
     runs-on: ${{ matrix.os }}
-    permissions:
-      contents: write # publish release
     strategy:
       fail-fast: false
       matrix:
@@ -85,6 +83,8 @@ jobs:
         with:
           persist-credentials: false
       - name: Build the extension and upload zip archive
+        permissions:
+          contents: write # publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.event.release.tag_name }}
