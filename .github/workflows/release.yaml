@@ -14,6 +14,8 @@ jobs:
   linux_macos:
     name: Linux, MacOS
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write # publish release
     strategy:
       fail-fast: false
       matrix:
@@ -62,8 +64,6 @@ jobs:
           unzip -o libduckdb.zip -d ./
       - name: Build and upload prebuilt binary
         uses: php/pie-ext-binary-builder@cbe134360897f23793f23c2edc7602261d205a25 # 0.0.4
-        permissions:
-          contents: write # publish release
         with:
           release-tag: ${{ github.event.release.tag_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -72,6 +72,8 @@ jobs:
   linux_alpine:
     name: "Linux Alpine"
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write # publish release
     strategy:
       fail-fast: false
       matrix:
@@ -83,8 +85,6 @@ jobs:
         with:
           persist-credentials: false
       - name: Build the extension and upload zip archive
-        permissions:
-          contents: write # publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.event.release.tag_name }}
@@ -97,6 +97,8 @@ jobs:
   windows:
     name: Windows
     runs-on: ${{ (matrix.php-version == '8.6' && 'windows-2025-vs2026') || 'windows-2022' }}
+    permissions:
+      contents: write # publish release
     strategy:
       fail-fast: false
       matrix:
@@ -134,8 +136,6 @@ jobs:
           test-workers: 1
       - name: Bundle duckdb.dll, name to the release tag, upload as a release asset
         shell: pwsh
-        permissions:
-          contents: write # publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.event.release.tag_name }}
