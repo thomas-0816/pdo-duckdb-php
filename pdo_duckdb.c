@@ -24,8 +24,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options);
 /* Driver definition */
 static pdo_driver_t pdo_duckdb_driver = {
 	PDO_DRIVER_HEADER(duckdb),
-	duckdb_handle_factory
-};
+	duckdb_handle_factory};
 
 /* Process-wide DuckDB instance cache — see php_pdo_duckdb.h */
 duckdb_instance_cache pdo_duckdb_instance_cache = NULL;
