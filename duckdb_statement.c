@@ -14,50 +14,6 @@
 #include "ext/json/php_json.h"
 #include "Zend/zend_smart_str.h"
 
-/* Helper: fetch the next data chunk (handles both streaming and non-streaming) */
-static inline int fetch_next_chunk(pdo_duckdb_stmt *S)
-{
-	duckdb_result *res = &S->result;
-
-	/* Accumulate total rows consumed before replacing the current chunk */
-	if (S->chunk) {
-		S->total_rows += S->chunk_size;
-		duckdb_destroy_data_chunk(&S->chunk);
-		S->chunk = NULL;
-	}
-
-	if (S->is_streaming) {
-		if (S->thread_lock) {
-			S->chunk = pdo_duckdb_swoole_fetch_chunk(S->thread_lock, NULL, *res);
-		} else {
-			S->chunk = duckdb_fetch_chunk(*res);
-		}
-	} else {
-		if (S->next_chunk_index >= duckdb_result_chunk_count(*res)) {
-			S->chunk = NULL;
-		} else if (S->thread_lock) {
-			S->chunk = pdo_duckdb_swoole_result_get_chunk(S->thread_lock, NULL, *res, S->next_chunk_index++);
-		} else {
-			S->chunk = duckdb_result_get_chunk(*res, S->next_chunk_index++);
-		}
-	}
-
-	if (S->chunk == NULL) {
-		const char *err = duckdb_result_error(res);
-		if (err) {
-			zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: %s", err);
-		}
-		S->chunk_size = 0;
-		S->chunk_idx = 0;
-		S->done = 1;
-		return 0;
-	}
-
-	S->chunk_size = duckdb_data_chunk_get_size(S->chunk);
-	S->chunk_idx = 0;
-	return 1;
-}
-
 /* ---------------- statement execute ---------------- */
 static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 {
@@ -546,7 +502,6 @@ static int duckdb_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum p
 	return 1;
 }
 
-/* ---------------- statement fetch (single row) ---------------- */
 static int duckdb_stmt_fetch(pdo_stmt_t *stmt, enum pdo_fetch_orientation ori, zend_long offset)
 {
 	(void) ori;
@@ -562,15 +517,49 @@ static int duckdb_stmt_fetch(pdo_stmt_t *stmt, enum pdo_fetch_orientation ori, z
 
 	/* If the current chunk is exhausted, try to load the next one */
 	if (S->chunk == NULL || S->chunk_idx >= S->chunk_size) {
-		if (!fetch_next_chunk(S)) {
+		duckdb_result *res = &S->result;
+
+		/* Accumulate total rows consumed before replacing the current chunk */
+		if (S->chunk) {
+			S->total_rows += S->chunk_size;
+			duckdb_destroy_data_chunk(&S->chunk);
+			S->chunk = NULL;
+		}
+
+		if (S->is_streaming) {
+			if (S->thread_lock) {
+				S->chunk = pdo_duckdb_swoole_fetch_chunk(S->thread_lock, NULL, *res);
+			} else {
+				S->chunk = duckdb_fetch_chunk(*res);
+			}
+		} else {
+			if (S->next_chunk_index >= duckdb_result_chunk_count(*res)) {
+				S->chunk = NULL;
+			} else if (S->thread_lock) {
+				S->chunk = pdo_duckdb_swoole_result_get_chunk(S->thread_lock, NULL, *res, S->next_chunk_index++);
+			} else {
+				S->chunk = duckdb_result_get_chunk(*res, S->next_chunk_index++);
+			}
+		}
+
+		if (S->chunk == NULL) {
+			const char *err = duckdb_result_error(res);
+			if (err) {
+				zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: %s", err);
+			}
+			S->chunk_size = 0;
+			S->chunk_idx = 0;
+			S->done = 1;
 			return 0; /* no more rows */
 		}
+
+		S->chunk_size = duckdb_data_chunk_get_size(S->chunk);
+		S->chunk_idx = 0;
 	}
 
 	return 1;
 }
 
-/* ---------------- describe column (called by PDO after execute) ---------------- */
 static int duckdb_stmt_describe_col(pdo_stmt_t *stmt, int colno)
 {
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
@@ -583,7 +572,6 @@ static int duckdb_stmt_describe_col(pdo_stmt_t *stmt, int colno)
 	return 1;
 }
 
-/* ---------------- get column meta ---------------- */
 static int duckdb_stmt_get_col_meta(pdo_stmt_t *stmt, zend_long colno, zval *return_value)
 {
 	pdo_duckdb_stmt *S = (pdo_duckdb_stmt *) stmt->driver_data;
@@ -946,7 +934,6 @@ static int duckdb_stmt_dtor(pdo_stmt_t *stmt)
 	return 1;
 }
 
-/* ---------------- statement method table ---------------- */
 struct pdo_stmt_methods duckdb_stmt_methods = {
 	duckdb_stmt_dtor,         /* dtor */
 	duckdb_stmt_execute,      /* executer */
