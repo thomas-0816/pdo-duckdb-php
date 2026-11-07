@@ -77,15 +77,6 @@ static inline char *zstr_strip_zerobytes(zend_string *str)
 	return dst;
 }
 
-/* ---------------- error handling helper ---------------- */
-static void pdo_duckdb_error(pdo_dbh_t *dbh, duckdb_result *res)
-{
-	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
-	const char *err = res ? duckdb_result_error(res) : NULL;
-	snprintf(H->error_msg, sizeof(H->error_msg), err != NULL && err[0] != '\0' ? "%s" : "unknown error", err);
-	memcpy(dbh->error_code, "HY000", sizeof(pdo_error_type));
-}
-
 static void duckdb_handle_closer(pdo_dbh_t *dbh)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
@@ -340,7 +331,9 @@ static bool duckdb_handle_begin(pdo_dbh_t *dbh)
 		st = duckdb_query(H->conn, "BEGIN TRANSACTION", &res);
 	}
 	if (st != DuckDBSuccess) {
-		pdo_duckdb_error(dbh, &res);
+		const char *err = duckdb_result_error(&res);
+		snprintf(H->error_msg, sizeof(H->error_msg), err != NULL && err[0] != '\0' ? "%s" : "unknown error", err);
+		memcpy(dbh->error_code, "HY000", sizeof(pdo_error_type));
 		duckdb_destroy_result(&res);
 		return false;
 	}
@@ -359,7 +352,9 @@ static bool duckdb_handle_commit(pdo_dbh_t *dbh)
 		st = duckdb_query(H->conn, "COMMIT", &res);
 	}
 	if (st != DuckDBSuccess) {
-		pdo_duckdb_error(dbh, &res);
+		const char *err = duckdb_result_error(&res);
+		snprintf(H->error_msg, sizeof(H->error_msg), err != NULL && err[0] != '\0' ? "%s" : "unknown error", err);
+		memcpy(dbh->error_code, "HY000", sizeof(pdo_error_type));
 		duckdb_destroy_result(&res);
 		return false;
 	}
@@ -378,7 +373,9 @@ static bool duckdb_handle_rollback(pdo_dbh_t *dbh)
 		st = duckdb_query(H->conn, "ROLLBACK", &res);
 	}
 	if (st != DuckDBSuccess) {
-		pdo_duckdb_error(dbh, &res);
+		const char *err = duckdb_result_error(&res);
+		snprintf(H->error_msg, sizeof(H->error_msg), err != NULL && err[0] != '\0' ? "%s" : "unknown error", err);
+		memcpy(dbh->error_code, "HY000", sizeof(pdo_error_type));
 		duckdb_destroy_result(&res);
 		return false;
 	}
