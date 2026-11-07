@@ -698,7 +698,7 @@ The DuckDB security model is described [here](https://duckdb.org/security).
 ## Compile NTS
 
 ```bash
-git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
+git clone --depth=1 --branch=v1_5 https://github.com/thomas-0816/pdo-duckdb.git
 cd pdo_duckdb
 
 wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip
@@ -724,7 +724,7 @@ php test.php
 ## Compile ZTS
 
 ```bash
-git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
+git clone --depth=1 --branch=v1_5 https://github.com/thomas-0816/pdo-duckdb.git
 cd pdo_duckdb
 
 wget https://github.com/duckdb/duckdb/releases/download/v1.5.6/libduckdb-src.zip
