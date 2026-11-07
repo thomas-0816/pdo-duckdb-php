@@ -7,7 +7,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}_15
   cancel-in-progress: false
 
 jobs:
