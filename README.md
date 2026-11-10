@@ -15,11 +15,13 @@ This extension supports all DuckDB types: Text, Numeric, Date, Time, Interval, J
 
 Supported PHP versions (nts & zts): 8.2 8.3 8.4 8.5 8.6
 
-Supported operating systems: Ubuntu 22+, Debian 12+, Fedora 42+, openSUSE 16+, AmazonLinux, Arch, Alma, Rocky, Alpine, Wolfi OS, Windows Server 2022/2025 (x64), macOS 15+ (arm64)
+Supported operating systems: Ubuntu 22+, Debian 12+, Fedora 42+, openSUSE 16+, AmazonLinux, Arch, Alma, Rocky, Alpine, Wolfi OS, Windows Server 2022/2025, macOS 15+
+
+Supported CPU architectures: x86_64/amd64 for Linux and Windows (AVX2-compatible), aarch64/arm64 for Linux and MacOS
 
 Supported SAPIs: php-cli, php-fpm, mod_php, FrankenPHP, TrueAsync, Swoole
 
-Support end: macOS 14 (August 2026), Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
+Support end: macOS 14 (August 2026), PHP 8.2 (January 2027), Ubuntu 22.04 (April 2027), Debian 12 (April 2027)
 
 ## Install and setup with 🥧 [PIE](https://github.com/php/pie)
 
