@@ -627,6 +627,12 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 
 For more information about the Quack Remote Protocol, see the [documentation](https://duckdb.org/docs/current/quack/overview).
 
+## More about DuckDB SQL
+
+- [Ducks in a Column (Advanced DuckDB SQL)](https://duckdb.org/2026/11/10/ducks-in-a-column)
+
+- [DuckDB Friendly SQL](https://duckdb.org/docs/current/sql/dialect/friendly_sql)
+
 ## Community extensions
 
 open_prompt integrates LLMs into your SQL queries:
