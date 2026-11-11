@@ -87,6 +87,14 @@ function getContent(string $currentFile, array &$writtenFiles, array $includePat
 	$writtenFiles[$currentFile] = true;
 	$text = file_get_contents($currentFile);
 	[$statements, $includes] = getIncludes($text, $includePaths);
+	foreach ($statements as $statement) {
+		$pos = strpos($text, $statement);
+		if ($pos !== false) {
+			// Keep the first include line, drop identical duplicates.
+			$end = $pos + strlen($statement);
+			$text = substr($text, 0, $end) . str_replace($statement, '', substr($text, $end));
+		}
+	}
 	foreach ($includes as $key => $include) {
 		$text = str_replace($statements[$key], getContent($include, $writtenFiles, $includePaths), $text);
 	}
