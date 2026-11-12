@@ -14,10 +14,12 @@ RUN <<EOF
         php83 php83-pdo php83-mbstring php83-dev \
         php84 php84-pdo php84-mbstring php84-dev \
         php85 php85-pdo php85-mbstring php85-dev
-    apk add --no-cache duckdb-dev \
+    apk add --no-cache \
         php82 php82-pdo php82-mbstring php82-dev \
         php86 php86-pdo php86-mbstring php86-dev \
         --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
+    apk add --no-cache duckdb-dev \
+        --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
     ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
     git clone --depth=1 --branch=v1_5 https://github.com/thomas-0816/pdo-duckdb-php.git
 EOF
