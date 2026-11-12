@@ -129,7 +129,7 @@ var_dump($db->query("SELECT distinct compression FROM pragma_storage_info('t')")
 pdo_duckdb
 
 PDO Driver for DuckDB => enabled
-DuckDB Library Version => v2.0.0
+DuckDB Library Version => v2.0.%s
 Swoole => %s
 array(4) {
   ["i"]=>
