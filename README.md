@@ -93,6 +93,8 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 ```php
 $db = new PDO('duckdb::memory:'); // open in-memory database
 
+$db = new PDO('duckdb::memory:label'); // named in-memory database other connections can share
+
 $db = new PDO('duckdb:/tmp/test.db'); // open database file from disk
 
 // open database file as read-only
