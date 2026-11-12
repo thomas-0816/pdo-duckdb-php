@@ -36,12 +36,6 @@ jobs:
         thread-safety:
           - zts
           - nts
-        variant:
-          - plain
-          - swoole
-        exclude:
-          - php-version: 8.6
-            variant: swoole
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -52,7 +46,6 @@ jobs:
           php-version: ${{ matrix.php-version }}
           coverage: none
           tools: composer, pie
-          extensions: ${{ matrix.variant == 'swoole' && (startsWith(matrix.os, 'windows') && 'swoole-alpha' || 'swoole') || '' }}
         env:
           phpts: ${{ matrix.thread-safety }}
           verbose: true
@@ -61,7 +54,7 @@ jobs:
         shell: bash
         env:
           os: ${{ matrix.os }}
-          variant: ${{ matrix.variant }}
+          php_version: ${{ matrix.php-version }}
         run: |
           uname -a
           php -v
@@ -69,7 +62,12 @@ jobs:
           composer --version
           pie --version
           php -m
-          if [ "$variant" = "swoole" ]; then
+          if [ "$php_version" != "8.6" ]; then
+              if [ "$RUNNER_OS" = "Windows" ]; then
+                  pie install -v swoole/swoole:v6.3.0-rc1
+              else
+                  sudo pie install -v swoole/swoole
+              fi
               php -m | grep swoole
           fi
           if [ "$RUNNER_OS" = "Linux" ]; then
