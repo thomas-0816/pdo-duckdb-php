@@ -56,9 +56,9 @@ jobs:
           uname -a
           php -v
           if [ "$RUNNER_OS" = "Windows" ]; then
-              pie install -v thomas-0816/pdo-duckdb-php
+              pie install -v thomas-0816/pdo-duckdb-php:^1
           else
-              sudo pie install -v thomas-0816/pdo-duckdb-php
+              sudo pie install -v thomas-0816/pdo-duckdb-php:^1
           fi
           php -m | grep duckdb
           php <<'EOF'
@@ -88,7 +88,7 @@ jobs:
               sudo tee -a /etc/apt/sources.list.d/static-php85.list
           sudo apt-get update
           sudo apt-get install php-zts-cli php-zts-pdo frankenphp pie-zts
-          sudo pie-zts install -v thomas-0816/pdo-duckdb-php
+          sudo pie-zts install -v thomas-0816/pdo-duckdb-php:^1
           frankenphp php-cli -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
           frankenphp php-server -l 127.0.0.1:8080 -r ./ &
           sleep 3
