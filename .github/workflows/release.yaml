@@ -163,13 +163,18 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: [linux_macos, windows, linux_alpine]
+    permissions:
+      contents: read # download release assets
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container and run clamAV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.event.release.tag_name }}
         run: |
-          gh release download -p "*" -D . -R thomas-0816/pdo-duckdb-php
+          gh release download "$tag" -p "*" -D . -R "$GITHUB_REPOSITORY"
           ls -lisah
           docker run --rm --entrypoint sh -v $(pwd):/app clamav/clamav:latest /app/clamdscan.sh
 
