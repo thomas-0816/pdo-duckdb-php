@@ -59,6 +59,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
+          tools: pie
         env:
           phpts: ${{ matrix.thread-safety }}
           update: true
@@ -82,16 +83,6 @@ jobs:
           php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
           NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
-      - name: Setup PHP ${{ matrix.php-version }} ${{ matrix.thread-safety }} ${{ matrix.variant }} Swoole
-        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
-        if: matrix.php-version != '8.6'
-        with:
-          php-version: ${{ matrix.php-version }}
-          coverage: none
-          tools: pie
-        env:
-          phpts: ${{ matrix.thread-safety }}
-          update: true
       - name: Test extension with Swoole
         if: matrix.php-version != '8.6'
         run: |
