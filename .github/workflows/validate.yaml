@@ -88,7 +88,7 @@ jobs:
               sudo tee -a /etc/apt/sources.list.d/static-php85.list
           sudo apt-get update
           sudo apt-get install php-zts-cli php-zts-pdo frankenphp pie-zts
-          sudo pie-zts install -v thomas-0816/pdo-duckdb-php
+          sudo pie-zts install -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
           frankenphp php-cli -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
           frankenphp php-server -l 127.0.0.1:8080 -r ./ &
           sleep 3
@@ -295,12 +295,16 @@ jobs:
     name: "Docker: clamAV"
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    permissions:
+      contents: read # download the release assets
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Build container and run clamAV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release download -p "*" -D . -R thomas-0816/pdo-duckdb-php
+          gh release download -p "*" -D . -R "$GITHUB_REPOSITORY"
           ls -lisah
           docker run --rm --entrypoint sh -v $(pwd):/app clamav/clamav:latest /app/clamdscan.sh
