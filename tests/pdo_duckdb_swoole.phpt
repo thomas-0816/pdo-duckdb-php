@@ -18,7 +18,7 @@ Swoole\Coroutine\run(function() {
         $wg->add();
         Swoole\Coroutine::create(function () use ($wg, $i) {
             $pdo = new PDO('duckdb::memory:', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['threads' => 1]]);
-            echo $pdo->query("select $i, sleep_ms(500 - ($i * 100))")->fetchColumn();
+            echo $pdo->query("select $i, sleep_ms(1000 - ($i * 200))")->fetchColumn();
             $wg->done();
         });
     }

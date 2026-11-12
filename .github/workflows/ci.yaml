@@ -88,13 +88,14 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
-          extensions: swoole
+          tools: pie
         env:
           phpts: ${{ matrix.thread-safety }}
           update: true
       - name: Test extension with Swoole
         if: matrix.php-version != '8.6'
         run: |
+          sudo pie install -v swoole/swoole
           TEST_EXTENSIONS="sockets curl mysqlnd swoole" NO_INTERACTION=1 TEST_PHP_ARGS="--show-diff --show-clean -q" make test
           php -m
           php -m | grep swoole
