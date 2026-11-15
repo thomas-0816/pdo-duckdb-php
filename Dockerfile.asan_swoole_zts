@@ -23,7 +23,7 @@ RUN <<EOF
     set -euxo pipefail
     apt-get -y update
     apt-get -y --no-install-recommends install git apt-transport-https curl ca-certificates llvm clang re2c bison autoconf unzip build-essential tzdata \
-        libclang-rt-dev pkg-config libssl-dev libcurl4-openssl-dev
+        libclang-rt-dev pkg-config libssl-dev libcurl4-openssl-dev zlib1g-dev
     ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 EOF
 
