@@ -1,9 +1,14 @@
 {
     "name": "thomas-0816/pdo-duckdb-php",
     "type": "php-ext",
-    "license": "MIT",
     "description": "PHP PDO Driver for DuckDB, modern analytics",
     "keywords": ["duckdb", "database", "analytics", "pdo"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Thomas Bley"
+        }
+    ],
     "require": {
         "php": ">=8.2",
         "ext-pdo": "*"

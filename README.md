@@ -711,6 +711,9 @@ SET lock_configuration = true;
 # Disable compression
 SET force_compression='uncompressed';
 
+# external file cache on disk instead of in-memory (DuckDB 2.x)
+SET external_file_cache_spill = true;
+
 # Query timeout (DuckDB 2.x, e.g. 30s)
 SET max_execution_time = 30000;
 
