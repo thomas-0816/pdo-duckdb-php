@@ -108,7 +108,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 
 	pdo_duckdb_db_handle *H;
 	const char *data_source = dbh->data_source;
-	char *dbname = NULL, *err = NULL, *init_command = NULL;
+	char *dbname = NULL, *err = NULL;
 	duckdb_state state;
 	duckdb_config config = NULL;
 
@@ -139,10 +139,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 					} else {
 						str_val = zval_get_string(val);
 					}
-					if (strcasecmp(ZSTR_VAL(key), "timezone") == 0) {
-						init_command = emalloc(ZSTR_LEN(str_val) + 20);
-						sprintf(init_command, "SET TimeZone = '%s'; ", ZSTR_VAL(str_val));
-					} else if (strcasecmp(ZSTR_VAL(key), "force_mbedtls_unsafe") == 0) { // crashes, skip
+					if (strcasecmp(ZSTR_VAL(key), "force_mbedtls_unsafe") == 0) { // crashes, skip
 						zend_string_release(str_val);
 						continue;
 					} else {
@@ -171,7 +168,6 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 		if (H->thread_lock) {
 			pdo_duckdb_thread_lock_free(H->thread_lock);
 		}
-		efree(init_command);
 		efree(dbname);
 		dbh->driver_data = NULL;
 		efree(H);
@@ -191,42 +187,36 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 		if (H->thread_lock) {
 			pdo_duckdb_thread_lock_free(H->thread_lock);
 		}
-		efree(init_command);
 		dbh->driver_data = NULL;
 		efree(H);
 		return 0;
 	}
 
 	/* execute PDO::DUCKDB_ATTR_INIT_COMMAND */
-	zval *init_zval = NULL;
 	if (driver_options && Z_TYPE_P(driver_options) == IS_ARRAY) {
-		init_zval = zend_hash_index_find(Z_ARRVAL_P(driver_options), PDO_DUCKDB_ATTR_INIT_COMMAND);
+		zval *init_zval = zend_hash_index_find(Z_ARRVAL_P(driver_options), PDO_DUCKDB_ATTR_INIT_COMMAND);
 		if (init_zval && Z_TYPE_P(init_zval) == IS_STRING) {
-			char *prepared_init = zstr_strip_zerobytes(Z_STR_P(init_zval));
-			size_t prev = init_command ? strlen(init_command) : 0;
-			init_command = erealloc(init_command, prev + strlen(prepared_init) + 1);
-			strcpy(init_command + prev, prepared_init);
-			efree(prepared_init);
-		}
-	}
-	if (init_command && strlen(init_command) > 0) {
-		duckdb_result res;
-		if (H->thread_lock) {
-			state = pdo_duckdb_swoole_query(H->thread_lock, H->conn, init_command, &res);
-		} else {
-			state = duckdb_query(H->conn, init_command, &res);
-		}
-		if (state != DuckDBSuccess) {
-			const char *err = duckdb_result_error(&res);
-			zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: Could not execute init command: %s", err ? err : "unknown error");
-			duckdb_destroy_result(&res);
+			char *init_command = zstr_strip_zerobytes(Z_STR_P(init_zval));
+			if (*init_command) {
+				duckdb_result res;
+				if (H->thread_lock) {
+					state = pdo_duckdb_swoole_query(H->thread_lock, H->conn, init_command, &res);
+				} else {
+					state = duckdb_query(H->conn, init_command, &res);
+				}
+				if (state != DuckDBSuccess) {
+					const char *msg = duckdb_result_error(&res);
+					zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: Could not execute init command: %s", msg ? msg : "unknown error");
+					duckdb_destroy_result(&res);
+					efree(init_command);
+					duckdb_handle_closer(dbh);
+					return 0;
+				}
+				duckdb_destroy_result(&res);
+			}
 			efree(init_command);
-			duckdb_handle_closer(dbh);
-			return 0;
 		}
-		duckdb_destroy_result(&res);
 	}
-	efree(init_command);
 
 	/* Assign db handle methods */
 	dbh->methods = &duckdb_methods;
