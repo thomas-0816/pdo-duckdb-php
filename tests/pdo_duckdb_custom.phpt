@@ -20,6 +20,14 @@ $statement = $db->query("SELECT NULL::INET");
 var_dump($statement->fetch(PDO::FETCH_ASSOC));
 var_dump($statement->getColumnMeta(0));
 
+$statement = $db->query("SELECT to_aggregate_state(1, 'sum', ['INTEGER']) AS s");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+var_dump($statement->getColumnMeta(0));
+
+$statement = $db->query("SELECT to_aggregate_state({'precision': 10, 'registers': [1, 2, 3]::UTINYINT[]}, 'approx_count_distinct', ['BIGINT']) AS s");
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+var_dump($statement->getColumnMeta(0));
+
 ?>
 --EXPECT--
 array(6) {
@@ -86,6 +94,54 @@ array(7) {
   }
   ["name"]=>
   string(18) "CAST(NULL AS INET)"
+  ["len"]=>
+  int(0)
+  ["precision"]=>
+  int(0)
+}
+array(1) {
+  [0]=>
+  array(1) {
+    ["s"]=>
+    string(1) "1"
+  }
+}
+array(7) {
+  ["native_type"]=>
+  string(7) "varchar"
+  ["pdo_type"]=>
+  int(2)
+  ["duckdb:decl_type"]=>
+  string(15) "AGGREGATE_STATE"
+  ["flags"]=>
+  array(0) {
+  }
+  ["name"]=>
+  string(1) "s"
+  ["len"]=>
+  int(0)
+  ["precision"]=>
+  int(0)
+}
+array(1) {
+  [0]=>
+  array(1) {
+    ["s"]=>
+    string(41) "{'precision': 10, 'registers': [1, 2, 3]}"
+  }
+}
+array(7) {
+  ["native_type"]=>
+  string(7) "varchar"
+  ["pdo_type"]=>
+  int(2)
+  ["duckdb:decl_type"]=>
+  string(15) "AGGREGATE_STATE"
+  ["flags"]=>
+  array(0) {
+  }
+  ["name"]=>
+  string(1) "s"
   ["len"]=>
   int(0)
   ["precision"]=>
