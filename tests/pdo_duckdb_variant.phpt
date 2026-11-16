@@ -55,6 +55,20 @@ $db->exec("INSERT INTO t1 VALUES ('[1, 2, 3]')");
 $statement = $db->query("SELECT * FROM t1");
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
+$db = new PDO('duckdb::memory:');
+$db->exec('SET variant_minimum_shredding_size = 0');
+$db->exec('CREATE TABLE variant_values (id INTEGER, v VARIANT)');
+$db->exec("INSERT INTO variant_values
+    SELECT i, {'id': i, 'tags': ['a' || i], 'nested': {'v': i * 2}}
+    FROM generate_series(1, 5000) t(i)");
+$db->exec('CHECKPOINT');
+var_dump($db->query('SELECT DISTINCT vector_type(v) FROM variant_values')->fetchAll(PDO::FETCH_COLUMN));
+var_dump($db->query('SELECT count(*) FROM variant_values')->fetchColumn());
+$statement = $db->query('SELECT v FROM variant_values WHERE id = 1');
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+$statement = $db->query('SELECT v FROM variant_values ORDER BY id DESC LIMIT 1');
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
 ?>
 --EXPECTF--
 array(7) {
@@ -378,5 +392,44 @@ array(1) {
   array(1) {
     ["v"]=>
     string(9) "[1, 2, 3]"
+  }
+}
+array(1) {
+  [0]=>
+  string(15) "SHREDDED_VECTOR"
+}
+int(5000)
+array(1) {
+  ["v"]=>
+  array(3) {
+    ["id"]=>
+    int(1)
+    ["nested"]=>
+    array(1) {
+      ["v"]=>
+      int(2)
+    }
+    ["tags"]=>
+    array(1) {
+      [0]=>
+      string(2) "a1"
+    }
+  }
+}
+array(1) {
+  ["v"]=>
+  array(3) {
+    ["id"]=>
+    int(5000)
+    ["nested"]=>
+    array(1) {
+      ["v"]=>
+      int(10000)
+    }
+    ["tags"]=>
+    array(1) {
+      [0]=>
+      string(5) "a5000"
+    }
   }
 }
