@@ -932,9 +932,9 @@ DuckDB normally runs good with 1-4 GB RAM and 2-4 CPU cores.
 
 For logs you normally achieve compression rates of 50-100x.
 
-> Who is maintaining DuckDB?
+> Who is owning DuckDB?
 
-The DuckDB project is owned and maintained by the [DuckDB Foundation](https://duckdb.foundation), a non-profit organization from Amsterdam.
+The DuckDB project is owned by the [DuckDB Foundation](https://duckdb.foundation), a non-profit organization from Amsterdam.
 
 > Can I get support for DuckDB?
 
@@ -970,10 +970,11 @@ docker run --rm -w /pdo-duckdb-php/ pdo_duckdb_coverage /bin/sh -c 'tar -cf - ./
 chromium coverage/coverage/index.html
 ```
 
-## Laravel, Symfony
+## Laravel, Symfony, Quack
 
 - [Laravel Eloquent driver for DuckDB](https://github.com/thomas-0816/laravel-duckdb)
 - [Doctrine DBAL for DuckDB](https://github.com/thomas-0816/doctrine-dbal-duckdb)
+- [(Pure) PHP client for DuckDB Quack Remote Protocol](https://github.com/thomas-0816/duckdb-quack-protocol-php)
 
 ## DuckDB Resources
 
