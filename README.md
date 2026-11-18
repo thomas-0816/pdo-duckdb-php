@@ -53,7 +53,7 @@ DuckDB 1.5.x will be supported until 2027-03-01. More about the [release calenda
 # DuckDB 1.x
 pie install thomas-0816/pdo-duckdb-php:^1
 # DuckDB 2.x
-pie install thomas-0816/pdo-duckdb-php:^2-beta
+pie install thomas-0816/pdo-duckdb-php:^2
 ```
 
 ## Install and load on demand with 🥧 [PIE](https://github.com/php/pie)
@@ -62,7 +62,7 @@ pie install thomas-0816/pdo-duckdb-php:^2-beta
 # DuckDB 1.x
 pie install --skip-enable-extension thomas-0816/pdo-duckdb-php:^1
 # DuckDB 2.x
-pie install --skip-enable-extension thomas-0816/pdo-duckdb-php:^2-beta
+pie install --skip-enable-extension thomas-0816/pdo-duckdb-php:^2
 
 php -d extension=pdo_duckdb some_script.php
 ```
@@ -754,7 +754,7 @@ The DuckDB security model is described [here](https://duckdb.org/security).
 git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
 cd pdo_duckdb
 
-wget https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-static-libs-linux-amd64.tar.gz
+wget https://github.com/duckdb/duckdb/releases/download/v2.0.1/duckdb-static-libs-linux-amd64.tar.gz
 tar xvzf duckdb-static-libs-linux-amd64.tar.gz
 tar xvzf libduckdb-src.tar.gz
 
@@ -778,7 +778,7 @@ php test.php
 git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb.git
 cd pdo_duckdb
 
-wget https://github.com/duckdb/duckdb/releases/download/v2.0.0/duckdb-static-libs-linux-amd64.tar.gz
+wget https://github.com/duckdb/duckdb/releases/download/v2.0.1/duckdb-static-libs-linux-amd64.tar.gz
 tar xvzf duckdb-static-libs-linux-amd64.tar.gz
 tar xvzf libduckdb-src.tar.gz
 

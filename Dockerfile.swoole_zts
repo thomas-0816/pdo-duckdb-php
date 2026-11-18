@@ -21,7 +21,7 @@ RUN <<EOF
     apt-get install -y --no-install-recommends php-zts-cli php-zts-pdo pie-zts php-zts-curl php-zts-devel
     apt-get install -y --no-install-recommends gcc make autoconf pkg-config libtool g++ git libssl-dev libcurl4-openssl-dev
     pie-zts install -v swoole/swoole --enable-swoole-curl --enable-swoole-thread --enable-sockets
-    pie-zts install -v thomas-0816/pdo-duckdb-php:^2.0.0.0-beta
+    pie-zts install -v thomas-0816/pdo-duckdb-php:^2
     mv /etc/php-zts/conf.d/80-swoole.ini /etc/php-zts/conf.d/30-swoole.ini
     php -m | grep duckdb
     php --ri swoole
