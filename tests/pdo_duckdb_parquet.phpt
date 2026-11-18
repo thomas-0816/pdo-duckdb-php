@@ -134,7 +134,7 @@ array(3) {
 }
 array(2) {
   [0]=>
-  array(33) {
+  array(37) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["row_group_id"]=>
@@ -212,9 +212,17 @@ array(2) {
     }
     ["stats_nan_count"]=>
     NULL
+    ["column_index_offset"]=>
+    NULL
+    ["column_index_length"]=>
+    NULL
+    ["offset_index_offset"]=>
+    NULL
+    ["offset_index_length"]=>
+    NULL
   }
   [1]=>
-  array(33) {
+  array(37) {
     ["file_name"]=>
     string(%d) "%s/test_logs2.parquet"
     ["row_group_id"]=>
@@ -291,6 +299,14 @@ array(2) {
       }
     }
     ["stats_nan_count"]=>
+    NULL
+    ["column_index_offset"]=>
+    NULL
+    ["column_index_length"]=>
+    NULL
+    ["offset_index_offset"]=>
+    NULL
+    ["offset_index_length"]=>
     NULL
   }
 }
