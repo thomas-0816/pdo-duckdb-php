@@ -121,7 +121,7 @@ jobs:
           ls -lisa
           MSYS_NO_PATHCONV=1 tzutil /s "W. Europe Standard Time"
       - name: Build extension
-        uses: php/php-windows-builder/extension@29352c0ef9e8ce65264ea9e287881a6f7758a953 # 1.9.0
+        uses: php/php-windows-builder/extension@227d3cb94e4fd9e9ab9459020df2394ee9a00eb4 # 1.10.0
         with:
           php-version: ${{ matrix.php-version }}
           ts: ${{ matrix.ts }}
@@ -164,7 +164,7 @@ jobs:
           MSYS_NO_PATHCONV=1 tzutil /s "W. Europe Standard Time"
           mv config.w32_dynamic config.w32
       - name: Build extension
-        uses: php/php-windows-builder/extension@29352c0ef9e8ce65264ea9e287881a6f7758a953 # 1.9.0
+        uses: php/php-windows-builder/extension@227d3cb94e4fd9e9ab9459020df2394ee9a00eb4 # 1.10.0
         with:
           php-version: ${{ matrix.php-version }}
           ts: ${{ matrix.ts }}
