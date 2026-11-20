@@ -8,6 +8,8 @@ pdo_duckdb
 $ext = new ReflectionExtension('pdo_duckdb');
 $ext->info();
 
+var_dump(phpversion('pdo_duckdb'));
+
 $db = new PDO('duckdb::memory:');
 $db->exec("CREATE TABLE t (i INTEGER, b BIGINT, d DECIMAL(10, 2), v VARCHAR)");
 
@@ -137,6 +139,7 @@ PDO Driver for DuckDB => enabled
 DuckDB Library Version => v2.0.%s
 pdo_duckdb Extension Version => 2.0.%s
 Swoole => %s
+string(%d) "2.0.%s"
 array(4) {
   ["i"]=>
   int(1)
