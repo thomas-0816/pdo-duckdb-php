@@ -23,12 +23,7 @@ $query = "
   SELECT extension_name, loaded, installed FROM duckdb_extensions()
   WHERE extension_name not in ('autocomplete', 'core_functions', 'inet', 'excel', 'vss', 'quack', 'ducklake', 'sqlite_scanner') and (installed = 1 OR loaded = 1)
 ";
-try { // https://github.com/duckdb/duckdb/issues/26875
-    $statement = $db->query($query);
-} catch (Exception $e) {
-    sleep(1);
-    $statement = $db->query($query);
-}
+$statement = $db->query($query);
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
 var_dump(in_array('duckdb', PDO::getAvailableDrivers()));
