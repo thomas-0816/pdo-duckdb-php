@@ -2,7 +2,7 @@
 #define PHP_PDO_DUCKDB_INT_H
 
 /* Version information */
-#define PHP_PDO_DUCKDB_VERSION "1.0.0"
+#define PHP_PDO_DUCKDB_VERSION "2.0.1.0"
 
 PHPAPI extern zend_module_entry pdo_duckdb_module_entry;
 #define phpext_pdo_duckdb_ptr &pdo_duckdb_module_entry

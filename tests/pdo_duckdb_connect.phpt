@@ -135,6 +135,7 @@ pdo_duckdb
 
 PDO Driver for DuckDB => enabled
 DuckDB Library Version => v2.0.%s
+pdo_duckdb Extension Version => 2.0.%s
 Swoole => %s
 array(4) {
   ["i"]=>
