@@ -49,6 +49,7 @@ typedef struct _pdo_duckdb_db_handle {
 	char error_msg[256];     /* last error message */
 	int auto_commit;         /* PDO::ATTR_AUTOCOMMIT */
 	int unbuffered;          /* PDO::DUCKDB_ATTR_UNBUFFERED */
+	int emulate_prepares;    /* PDO::ATTR_EMULATE_PREPARES */
 	void *thread_lock;       /* per-connection async serialization lock */
 } pdo_duckdb_db_handle;
 
