@@ -32,6 +32,25 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 	}
 
 	duckdb_state state;
+	if (stmt->supports_placeholders == PDO_PLACEHOLDER_NONE) {
+		/* Emulated prepare: PDO core expanded the bound parameters into
+		   stmt->active_query_string, so prepare and execute that SQL. */
+		if (H->thread_lock) {
+			state = pdo_duckdb_swoole_prepare(H->thread_lock, H->conn, ZSTR_VAL(stmt->active_query_string), &S->stmt);
+		} else {
+			state = duckdb_prepare(H->conn, ZSTR_VAL(stmt->active_query_string), &S->stmt);
+		}
+
+		if (state != DuckDBSuccess) {
+			const char *err = S->stmt ? duckdb_prepare_error(S->stmt) : NULL;
+			zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: %s", err ? err : "prepare error");
+			if (S->stmt) {
+				duckdb_destroy_prepare(&S->stmt);
+			}
+			return 0;
+		}
+	}
+
 	if (H->unbuffered) {
 		if (H->thread_lock) {
 			state = pdo_duckdb_swoole_execute_prepared_streaming(H->thread_lock, H->conn, S->stmt, &S->result);
@@ -44,6 +63,9 @@ static int duckdb_stmt_execute(pdo_stmt_t *stmt)
 		} else {
 			state = duckdb_execute_prepared(S->stmt, &S->result);
 		}
+	}
+	if (stmt->supports_placeholders == PDO_PLACEHOLDER_NONE && S->stmt) {
+		duckdb_destroy_prepare(&S->stmt);
 	}
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&S->result);
