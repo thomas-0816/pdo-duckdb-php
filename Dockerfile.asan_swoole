@@ -81,6 +81,6 @@ RUN <<EOF
     export TEST_PHP_ARGS="-d extension=swoole.so -d extension=pdo_duckdb.so"
     export NO_INTERACTION=1
     export REPORT_EXIT_STATUS=1
-    php run-tests.php --show-diff --asan --show-clean -g FAIL,BORK,LEAK,XLEAK
+    php run-tests.php --show-diff --asan --show-clean -g PASS,FAIL,XFAIL,BORK,LEAK,XLEAK,SKIP
     php -d extension=swoole.so -d extension=pdo_duckdb.so test_swoole.php
 EOF
