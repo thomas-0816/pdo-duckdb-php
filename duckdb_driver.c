@@ -7,6 +7,7 @@
 #include "ext/standard/info.h"
 #include "ext/pdo/php_pdo.h"
 #include "ext/pdo/php_pdo_driver.h"
+#include "ext/standard/base64.h"
 #include "Zend/zend_exceptions.h"
 #include "php_pdo_duckdb.h"
 #ifdef HAVE_STRINGS_H
@@ -55,25 +56,24 @@ static inline char *zstr_prepare(zend_string *str)
 }
 
 /* strip zero bytes */
-static inline char *zstr_strip_zerobytes(zend_string *str)
+static inline zend_string *zstr_strip_zerobytes(const zend_string *str)
 {
 	const char *src = ZSTR_VAL(str);
 	size_t len = ZSTR_LEN(str);
-	char *dst = emalloc(len + 1);
 
 	if (memchr(src, '\0', len) == NULL) {
-		memcpy(dst, src, len + 1);
-		return dst;
+		return zend_string_copy((zend_string *) str);
 	}
 
+	zend_string *dst = zend_string_alloc(len, 0);
 	size_t j = 0;
 	for (size_t i = 0; i < len; i++) {
-		if (src[i] == '\0') {
-			continue;
+		if (src[i] != '\0') {
+			ZSTR_VAL(dst)[j++] = src[i];
 		}
-		dst[j++] = src[i];
 	}
-	dst[j] = '\0';
+	ZSTR_VAL(dst)[j] = '\0';
+	ZSTR_LEN(dst) = j;
 	return dst;
 }
 
@@ -114,6 +114,7 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 
 	H = ecalloc(1, sizeof(pdo_duckdb_db_handle));
 	H->error_msg[0] = '\0';
+	H->emulate_prepares = (int) pdo_attr_lval(driver_options, PDO_ATTR_EMULATE_PREPARES, 0);
 	H->thread_lock = pdo_duckdb_thread_lock_new();
 	dbh->driver_data = H;
 
@@ -196,25 +197,25 @@ int duckdb_handle_factory(pdo_dbh_t *dbh, zval *driver_options)
 	if (driver_options && Z_TYPE_P(driver_options) == IS_ARRAY) {
 		zval *init_zval = zend_hash_index_find(Z_ARRVAL_P(driver_options), PDO_DUCKDB_ATTR_INIT_COMMAND);
 		if (init_zval && Z_TYPE_P(init_zval) == IS_STRING) {
-			char *init_command = zstr_strip_zerobytes(Z_STR_P(init_zval));
-			if (*init_command) {
+			zend_string *init_command = zstr_strip_zerobytes(Z_STR_P(init_zval));
+			if (ZSTR_LEN(init_command) > 0) {
 				duckdb_result res;
 				if (H->thread_lock) {
-					state = pdo_duckdb_swoole_query(H->thread_lock, H->conn, init_command, &res);
+					state = pdo_duckdb_swoole_query(H->thread_lock, H->conn, ZSTR_VAL(init_command), &res);
 				} else {
-					state = duckdb_query(H->conn, init_command, &res);
+					state = duckdb_query(H->conn, ZSTR_VAL(init_command), &res);
 				}
 				if (state != DuckDBSuccess) {
 					const char *msg = duckdb_result_error(&res);
 					zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: Could not execute init command: %s", msg ? msg : "unknown error");
 					duckdb_destroy_result(&res);
-					efree(init_command);
+					zend_string_release(init_command);
 					duckdb_handle_closer(dbh);
 					return 0;
 				}
 				duckdb_destroy_result(&res);
 			}
-			efree(init_command);
+			zend_string_release(init_command);
 		}
 	}
 
@@ -240,6 +241,19 @@ static bool duckdb_handle_preparer(pdo_dbh_t *dbh, zend_string *sql, pdo_stmt_t 
 	S->chunk = NULL;
 	S->chunk_idx = 0;
 	S->chunk_size = 0;
+
+	if (H->emulate_prepares) {
+		/* Emulated prepare: PDO core expands the bound parameters into stmt->active_query_string at execute time.
+		   duckdb_stmt_execute() then prepares and executes that expanded SQL. Nothing is prepared here.
+		   duckdb_prepare() takes a NUL-terminated string, so strip NULs from the SQL template.
+		   Bound values are stripped the same way by duckdb_handle_quoter(). */
+		stmt->methods = &duckdb_stmt_methods;
+		stmt->supports_placeholders = PDO_PLACEHOLDER_NONE;
+		zend_string *clean = zstr_strip_zerobytes(stmt->query_string);
+		zend_string_release(stmt->query_string);
+		stmt->query_string = clean;
+		return true;
+	}
 
 	char *prepared_sql = zstr_prepare(sql);
 	duckdb_state state;
@@ -271,14 +285,14 @@ static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 {
 	pdo_duckdb_db_handle *H = (pdo_duckdb_db_handle *) dbh->driver_data;
 	duckdb_result result;
-	char *prepared_sql = zstr_strip_zerobytes((zend_string *) sql);
+	zend_string *prepared_sql = zstr_strip_zerobytes(sql);
 	duckdb_state state;
 	if (H->thread_lock) {
-		state = pdo_duckdb_swoole_query(H->thread_lock, H->conn, prepared_sql, &result);
+		state = pdo_duckdb_swoole_query(H->thread_lock, H->conn, ZSTR_VAL(prepared_sql), &result);
 	} else {
-		state = duckdb_query(H->conn, prepared_sql, &result);
+		state = duckdb_query(H->conn, ZSTR_VAL(prepared_sql), &result);
 	}
-	efree(prepared_sql);
+	zend_string_release(prepared_sql);
 	if (state != DuckDBSuccess) {
 		const char *err = duckdb_result_error(&result);
 		zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: %s", err ? err : "query error");
@@ -293,16 +307,29 @@ static zend_long duckdb_handle_doer(pdo_dbh_t *dbh, const zend_string *sql)
 static zend_string *duckdb_handle_quoter(pdo_dbh_t *dbh, const zend_string *unquoted, enum pdo_param_type param_type)
 {
 	(void) dbh;
-	(void) param_type;
+
+	if (PDO_PARAM_TYPE(param_type) == PDO_PARAM_LOB) {
+		/* A BLOB literal round-trips arbitrary bytes, and DuckDB implicitly
+		   casts it for VARCHAR and JSON targets. Used by emulated prepares. */
+		zend_string *encoded = php_base64_encode((const unsigned char *) ZSTR_VAL(unquoted), ZSTR_LEN(unquoted));
+		zend_string *q = zend_strpprintf(0, "from_base64('%s')", ZSTR_VAL(encoded));
+		zend_string_release(encoded);
+		return q;
+	}
+
 	zend_string *q = zend_string_alloc(ZSTR_LEN(unquoted) * 2 + 3, 0);
 	char *p = ZSTR_VAL(q);
 	size_t i, j = 1;
 	p[0] = '\'';
 	for (i = 0; i < ZSTR_LEN(unquoted); i++) {
-		if (ZSTR_VAL(unquoted)[i] == '\'') {
+		char c = ZSTR_VAL(unquoted)[i];
+		if (c == '\0') {
+			continue;
+		}
+		if (c == '\'') {
 			p[j++] = '\'';
 		}
-		p[j++] = ZSTR_VAL(unquoted)[i];
+		p[j++] = c;
 	}
 	p[j++] = '\'';
 	p[j] = '\0';
@@ -398,6 +425,9 @@ static bool duckdb_set_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 		case PDO_ATTR_AUTOCOMMIT:
 			H->auto_commit = zval_get_long(val) ? 1 : 0;
 			return true;
+		case PDO_ATTR_EMULATE_PREPARES:
+			H->emulate_prepares = zend_is_true(val) ? 1 : 0;
+			return true;
 		case PDO_DUCKDB_ATTR_UNBUFFERED:
 			H->unbuffered = zend_is_true(val) ? 1 : 0;
 			return true;
@@ -417,6 +447,9 @@ static int duckdb_get_attribute(pdo_dbh_t *dbh, zend_long attr, zval *val)
 			return 1;
 		case PDO_ATTR_AUTOCOMMIT:
 			ZVAL_LONG(val, H->auto_commit);
+			return 1;
+		case PDO_ATTR_EMULATE_PREPARES:
+			ZVAL_BOOL(val, H->emulate_prepares);
 			return 1;
 		case PDO_DUCKDB_ATTR_UNBUFFERED:
 			ZVAL_BOOL(val, H->unbuffered);
