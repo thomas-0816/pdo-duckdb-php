@@ -617,12 +617,14 @@ Client connect:
 
 ```php
 $client = new PDO('duckdb::memory:', null, null, [
+    PDO::ATTR_EMULATE_PREPARES => true, # important: quack does not support native prepares
     PDO::DUCKDB_ATTR_INIT_COMMAND =>
         "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;"
         # "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); CONNECT remote;" // DuckDB 2.x
 ]);
 $client->exec('CREATE TABLE IF NOT EXISTS table1 (v VARCHAR, v2 VARCHAR)');
-$client->exec("INSERT INTO table1 VALUES ('foo', 'bar')");
+$statement = $client->prepare("INSERT INTO table1 VALUES (?, ?)");
+$statement->execute(['foo', 'bar']);
 
 $statement = $client->query('SELECT * FROM table1');
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
