@@ -9,7 +9,7 @@ $db = new PDO('duckdb::memory:');
 $db->exec('set max_execution_time = 100');
 $start = microtime(true);
 try {
-    $db->query("SELECT COUNT(*) FROM range(1_000_000) t1, range(1_000) t2")->fetchAll(PDO::FETCH_ASSOC);
+    $db->query("SELECT COUNT(*) FROM range(10_000_000) t1, range(1_000) t2")->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
