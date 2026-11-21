@@ -902,6 +902,7 @@ Learn more about [export and import statements](https://duckdb.org/docs/current/
 - Custom UDF table functions: using `select * from json_each('<json_string>')` gives better performance and is easier to use
 - Appender API: using `insert into ... select value->>0, ... from json_each('<json_string>')` is easier to use, gives almost the same performance and provides better error handling
 - open_basedir: only provides security on application level, use real sandboxes like [nono](https://github.com/nolabs-ai/nono) or lightweight VMs like [firecracker](https://github.com/firecracker-microvm/firecracker) instead
+- max_execution_time: similar to curl, max_execution_time from php.ini does not interrupt queries, use the DuckDB setting `set max_execution_time = 1000*seconds;` instead
 - persistent connections: opening a connection to DuckDB is already very fast, a reset function for the database session is currently not available in DuckDB
 - ERRMODE_SILENT, ERRMODE_WARNING: the standard for PHP and all frameworks is ERRMODE_EXCEPTION
 
