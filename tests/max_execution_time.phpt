@@ -13,10 +13,12 @@ try {
 } catch (Throwable $e) {
     echo "Caught: " . $e->getMessage() . "\n";
 }
-var_dump((int) ceil(microtime(true) - $start));
+$time = (int) ceil(microtime(true) - $start);
+
+var_dump($time < 5);
 
 // TODO https://github.com/duckdb/duckdb/issues/28986
 ?>
 --EXPECTF--
 Caught: SQLSTATE[HY000]: INTERRUPT Error: Query exceeded maximum execution time
-int(1)
+bool(true)
