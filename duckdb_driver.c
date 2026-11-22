@@ -66,13 +66,14 @@ static inline zend_string *zstr_strip_zerobytes(const zend_string *str)
 	}
 
 	zend_string *dst = zend_string_alloc(len, 0);
+	char *out = ZSTR_VAL(dst);
 	size_t j = 0;
 	for (size_t i = 0; i < len; i++) {
 		if (src[i] != '\0') {
-			ZSTR_VAL(dst)[j++] = src[i];
+			out[j++] = src[i];
 		}
 	}
-	ZSTR_VAL(dst)[j] = '\0';
+	out[j] = '\0';
 	ZSTR_LEN(dst) = j;
 	return dst;
 }
