@@ -156,6 +156,27 @@ $statement = $db->prepare("SELECT e'it''s ?' AS a, E'line1\nline2 ?' AS b, e'it'
 $statement->execute([42]);
 var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
+$statement = $db->prepare('SELECT 1 /* outer ? :id */ AS x, ? AS value'); // pdo does not support nested comments
+$statement->execute([42]);
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
+$statement = $db->prepare("SELECT {'a': 1} AS a, {'b': true} AS b, :id AS id");
+$statement->execute(['id' => 42]);
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
+$statement = $db->prepare(<<<'SQL'
+    SELECT e'it''s ?' as a, $$?$$ as b, $tag$ ? $tag$ as c, '?' as d
+SQL);
+$statement->execute([]);
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
+$statement = $db->prepare(<<<'SQL'
+    SELECT e'it''s :foo' as a, $$ :foo $$ as b, $tag$ :bar $tag$ as c, ':baz' as d
+SQL);
+$statement->execute([]);
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
+
 // TODO line 236 - 313
 // TODO test non-emulated
 
@@ -354,6 +375,46 @@ line2 ?"
   string(10) "it's :name"
   ["value"]=>
   string(2) "42"
+}
+array(2) {
+  ["x"]=>
+  int(1)
+  ["value"]=>
+  string(2) "42"
+}
+array(3) {
+  ["a"]=>
+  array(1) {
+    ["a"]=>
+    int(1)
+  }
+  ["b"]=>
+  array(1) {
+    ["b"]=>
+    bool(true)
+  }
+  ["id"]=>
+  string(2) "42"
+}
+array(4) {
+  ["a"]=>
+  string(6) "it's ?"
+  ["b"]=>
+  string(1) "?"
+  ["c"]=>
+  string(3) " ? "
+  ["d"]=>
+  string(1) "?"
+}
+array(4) {
+  ["a"]=>
+  string(9) "it's :foo"
+  ["b"]=>
+  string(6) " :foo "
+  ["c"]=>
+  string(6) " :bar "
+  ["d"]=>
+  string(4) ":baz"
 }
 array(3) {
   [0]=>
