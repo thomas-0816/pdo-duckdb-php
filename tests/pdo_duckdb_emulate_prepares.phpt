@@ -33,6 +33,10 @@ $db->exec("set variable foo = 'bar'");
 $statement = $db->prepare('INSERT INTO t VALUES (?, ?, $foo)');
 $statement->execute([5, true]);
 
+$db->exec("set variable bar = 'baz'");
+$statement = $db->prepare('INSERT INTO t VALUES (:i, :b, $bar)');
+$statement->execute(['i' => 6, 'b' => 0]); // TODO fix false
+
 $statement = $db->query('SELECT * FROM t');
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 
@@ -176,9 +180,20 @@ SQL);
 $statement->execute([]);
 var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
+$statement = $db->prepare('SELECT \'$a\' as a, ? as b');
+$statement->execute([1]);
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
-// TODO line 236 - 313
-// TODO test non-emulated
+$statement = $db->prepare("SELECT 1::INT as a, 2.5::DECIMAL(10,2) as b, ? as c");
+$statement->execute([42]);
+var_dump($statement->fetch(PDO::FETCH_ASSOC));
+
+$statement = $db->prepare('SELECT :missing');
+try {
+$statement->execute(['other' => 1]);
+} catch (PDOException $e) {
+    echo 'Caught: ', $e->getMessage(), PHP_EOL;
+}
 
 $server = new PDO('duckdb::memory:');
 $server->exec("CALL quack_serve('quack:127.0.0.1:9494', token='secret')");
@@ -211,7 +226,7 @@ var_dump($db->getAttribute(PDO::ATTR_EMULATE_PREPARES));
 --EXPECTF--
 bool(false)
 bool(true)
-array(5) {
+array(6) {
   [0]=>
   array(3) {
     ["i"]=>
@@ -256,6 +271,15 @@ array(5) {
     bool(true)
     ["v"]=>
     string(3) "bar"
+  }
+  [5]=>
+  array(3) {
+    ["i"]=>
+    int(6)
+    ["b"]=>
+    bool(false)
+    ["v"]=>
+    string(3) "baz"
   }
 }
 array(2) {
@@ -416,6 +440,21 @@ array(4) {
   ["d"]=>
   string(4) ":baz"
 }
+array(2) {
+  ["a"]=>
+  string(2) "$a"
+  ["b"]=>
+  string(1) "1"
+}
+array(3) {
+  ["a"]=>
+  int(1)
+  ["b"]=>
+  float(2.5)
+  ["c"]=>
+  string(2) "42"
+}
+Caught: SQLSTATE[HY093]: Invalid parameter number: parameter was not defined
 array(3) {
   [0]=>
   array(2) {
