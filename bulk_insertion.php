@@ -49,7 +49,7 @@ $db = new PDO('duckdb:/tmp/db.duckdb');
 $db->exec("SET force_compression='uncompressed'");
 $db->exec('CREATE TABLE t1 (id integer, v1 varchar)');
 $start = microtime(true);
-$stmt = $db->prepare("INSERT INTO t1 SELECT value->>0, value->>1 FROM json_each(?)");
-$stmt->execute([$data]);
+$statement = $db->prepare("INSERT INTO t1 SELECT value->>0, value->>1 FROM json_each(?)");
+$statement->execute([$data]);
 echo round(microtime(true) - $start, 2), 's', PHP_EOL;
 print_r($db->query('SELECT count(*), sum(id) from t1')->fetch(PDO::FETCH_NUM)); // 1000000, 499999500000

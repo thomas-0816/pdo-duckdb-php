@@ -501,18 +501,18 @@ var_dump($statement->fetchColumn());
 
 $db = new PDO('duckdb::memory:');
 $db->exec('CREATE TABLE t (bool1 BOOLEAN, bool2 BOOLEAN)');
-$stmt = $db->prepare('INSERT INTO t VALUES (?, ?)');
-$stmt->bindValue(1, true, PDO::PARAM_BOOL);
-$stmt->bindValue(2, false, PDO::PARAM_BOOL);
-$stmt->execute();
-$stmt = $db->prepare('INSERT INTO t VALUES (?, ?)');
-$stmt->bindValue(1, 4, PDO::PARAM_INT);
-$stmt->bindValue(2, '0', PDO::PARAM_BOOL);
-$stmt->execute();
-$stmt = $db->prepare('INSERT INTO t VALUES (?, ?)');
-$stmt->bindValue(1, '1', PDO::PARAM_BOOL);
-$stmt->bindValue(2, '', PDO::PARAM_BOOL);
-$stmt->execute();
+$statement = $db->prepare('INSERT INTO t VALUES (?, ?)');
+$statement->bindValue(1, true, PDO::PARAM_BOOL);
+$statement->bindValue(2, false, PDO::PARAM_BOOL);
+$statement->execute();
+$statement = $db->prepare('INSERT INTO t VALUES (?, ?)');
+$statement->bindValue(1, 4, PDO::PARAM_INT);
+$statement->bindValue(2, '0', PDO::PARAM_BOOL);
+$statement->execute();
+$statement = $db->prepare('INSERT INTO t VALUES (?, ?)');
+$statement->bindValue(1, '1', PDO::PARAM_BOOL);
+$statement->bindValue(2, '', PDO::PARAM_BOOL);
+$statement->execute();
 var_dump($db->query('SELECT * FROM t')->fetchAll(PDO::FETCH_ASSOC));
 
 $statement = $db->prepare('SELECT ?::VARCHAR');
@@ -538,27 +538,27 @@ try {
 }
 
 $db = new PDO('duckdb::memory:');
-$stmt = $db->query('SELECT 42');
-var_dump($stmt->fetchAll(PDO::FETCH_COLUMN));
-var_dump($stmt->fetchAll(PDO::FETCH_COLUMN));
-$stmt = $db->query('SELECT 43');
-var_dump($stmt->fetchColumn());
-var_dump($stmt->fetch()); // false
+$statement = $db->query('SELECT 42');
+var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
+var_dump($statement->fetchAll(PDO::FETCH_COLUMN));
+$statement = $db->query('SELECT 43');
+var_dump($statement->fetchColumn());
+var_dump($statement->fetch()); // false
 
-$stmt = $db->query('SELECT 42 AS a');
-$row = $stmt->fetch(PDO::FETCH_LAZY);
+$statement = $db->query('SELECT 42 AS a');
+$row = $statement->fetch(PDO::FETCH_LAZY);
 var_dump($row->a);
-var_dump($stmt->fetch());
+var_dump($statement->fetch());
 var_dump($row->a);
 
 /* Re-executing after a fetch drops the previous result set and loaded
  * chunk. PHP <= 8.3 leaves the cleanup to the driver; newer PDO versions
  * call the cursor closer first. */
-$stmt = $db->prepare('SELECT 42');
-var_dump($stmt->execute());
-var_dump($stmt->fetchColumn());
-var_dump($stmt->execute());
-var_dump($stmt->fetchColumn());
+$statement = $db->prepare('SELECT 42');
+var_dump($statement->execute());
+var_dump($statement->fetchColumn());
+var_dump($statement->execute());
+var_dump($statement->fetchColumn());
 
 $db->exec('SET VARIABLE foo=42');
 $statement = $db->prepare('SELECT $foo as a, :foo as b, $bar::integer as c, :bar::integer as d');

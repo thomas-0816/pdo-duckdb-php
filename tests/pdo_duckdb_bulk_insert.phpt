@@ -19,16 +19,16 @@ echo $db->query('SELECT count(*) from t1')->fetchColumn(), PHP_EOL;
 /* json-path-associative-prepare */
 $db = new PDO('duckdb::memory:');
 $db->exec('CREATE TABLE t1 (i1 integer, v1 varchar)');
-$stmt = $db->prepare("INSERT INTO t1 SELECT value->>'i1', value->>'v1' FROM json_each(?)");
-$stmt->execute([$data_associative]);
+$statement = $db->prepare("INSERT INTO t1 SELECT value->>'i1', value->>'v1' FROM json_each(?)");
+$statement->execute([$data_associative]);
 echo $db->query('SELECT count(*) from t1')->fetchColumn(), PHP_EOL;
 
 /* json-path-associative-prepare-bindvalue */
 $db = new PDO('duckdb::memory:');
 $db->exec('CREATE TABLE t1 (i1 integer, v1 varchar)');
-$stmt = $db->prepare("INSERT INTO t1 SELECT value->>'i1', value->>'v1' FROM json_each(?)");
-$stmt->bindValue(1, $data_associative);
-$stmt->execute();
+$statement = $db->prepare("INSERT INTO t1 SELECT value->>'i1', value->>'v1' FROM json_each(?)");
+$statement->bindValue(1, $data_associative);
+$statement->execute();
 echo $db->query('SELECT count(*) from t1')->fetchColumn(), PHP_EOL;
 
 $data_list = [];
@@ -45,16 +45,16 @@ echo $db->query('SELECT count(*) from t1')->fetchColumn(), PHP_EOL;
 /* json-path-list-prepare */
 $db = new PDO('duckdb::memory:');
 $db->exec('CREATE TABLE t1 (i1 integer, v1 varchar)');
-$stmt = $db->prepare("INSERT INTO t1 SELECT value->>0, value->>1 FROM json_each(?)");
-$stmt->execute([$data_list]);
+$statement = $db->prepare("INSERT INTO t1 SELECT value->>0, value->>1 FROM json_each(?)");
+$statement->execute([$data_list]);
 echo $db->query('SELECT count(*) from t1')->fetchColumn(), PHP_EOL;
 
 /* json-path-list-prepare-bindvalue */
 $db = new PDO('duckdb::memory:');
 $db->exec('CREATE TABLE t1 (i1 integer, v1 varchar)');
-$stmt = $db->prepare("INSERT INTO t1 SELECT value->>0, value->>1 FROM json_each(?)");
-$stmt->bindValue(1, $data_list);
-$stmt->execute();
+$statement = $db->prepare("INSERT INTO t1 SELECT value->>0, value->>1 FROM json_each(?)");
+$statement->bindValue(1, $data_list);
+$statement->execute();
 echo $db->query('SELECT count(*) from t1')->fetchColumn(), PHP_EOL;
 
 ?>
