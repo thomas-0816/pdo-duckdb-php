@@ -1,4 +1,4 @@
-# docker build --platform linux/arm64 --no-cache -f Dockerfile -t pdo_duckdb_arm .
+# docker build --platform linux/arm64 --no-cache -f Dockerfile.arm64 -t pdo_duckdb_arm .
 # docker run --rm -it pdo_duckdb_arm
 
 FROM debian:trixie-slim AS base
@@ -29,8 +29,71 @@ RUN <<EOF
     unzip -o static-libs-linux-arm64.zip -d ./
 EOF
 
+# php 8.2
+FROM base as php82
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get -y --no-install-recommends install php8.2-cli php8.2-dev
+    phpize
+    ./configure --with-pdo-duckdb
+    make
+    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+    NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
+    make install
+    echo "extension=pdo_duckdb.so" > /etc/php/8.2/mods-available/pdo_duckdb.ini
+    phpenmod pdo_duckdb
+    php -m | grep duckdb
+    php test.php
+    make clean
+EOF
+
+# php 8.3
+FROM base as php83
+COPY --from=php82 /etc/issue /etc/issue
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get -y --no-install-recommends install php8.3-cli php8.3-dev
+    phpize
+    ./configure --with-pdo-duckdb
+    make
+    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+    NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
+    make install
+    echo "extension=pdo_duckdb.so" > /etc/php/8.3/mods-available/pdo_duckdb.ini
+    phpenmod pdo_duckdb
+    php -m | grep duckdb
+    php test.php
+    make clean
+EOF
+
+# php 8.4
+FROM base as php84
+COPY --from=php83 /etc/issue /etc/issue
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get -y --no-install-recommends install php8.4-cli php8.4-dev
+    phpize
+    ./configure --with-pdo-duckdb
+    make
+    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+    NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
+    make install
+    echo "extension=pdo_duckdb.so" > /etc/php/8.4/mods-available/pdo_duckdb.ini
+    phpenmod pdo_duckdb
+    php -m | grep duckdb
+    php test.php
+    make clean
+EOF
+
 # php 8.5
-FROM base
+FROM base as php85
+COPY --from=php84 /etc/issue /etc/issue
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
@@ -43,6 +106,27 @@ RUN <<EOF
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
     make install
     echo "extension=pdo_duckdb.so" > /etc/php/8.5/mods-available/pdo_duckdb.ini
+    phpenmod pdo_duckdb
+    php -m | grep duckdb
+    php test.php
+    make clean
+EOF
+
+# php 8.6
+FROM base as php86
+COPY --from=php85 /etc/issue /etc/issue
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get -y --no-install-recommends install php8.6-cli php8.6-dev
+    phpize
+    ./configure --with-pdo-duckdb
+    make
+    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    php -d extension=$(pwd)/modules/pdo_duckdb.so test.php
+    NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
+    make install
+    echo "extension=pdo_duckdb.so" > /etc/php/8.6/mods-available/pdo_duckdb.ini
     phpenmod pdo_duckdb
     php -m | grep duckdb
     php test.php
