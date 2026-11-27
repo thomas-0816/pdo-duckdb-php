@@ -205,10 +205,10 @@ $statement->execute(['other' => 1]);
 }
 
 $server = new PDO('duckdb::memory:');
-$server->exec("CALL quack_serve('quack:127.0.0.1:9494', token='secret')");
+$server->exec("CALL quack_serve('quack:127.0.0.1:9496', token='secret')");
 try {
     $client = new PDO('duckdb::memory:', null, null, [
-        PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); CONNECT remote;",
+        PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9496' AS remote (TOKEN 'secret'); CONNECT remote;",
         PDO::ATTR_EMULATE_PREPARES => true,
     ]);
     $client->exec('CREATE TABLE t (i INTEGER, v VARCHAR)');
@@ -225,7 +225,7 @@ try {
     $statement->execute(['v' => 'invalid', 'i' => 0]);
     var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
 } finally {
-    $server->exec("CALL quack_stop('quack:127.0.0.1:9494')");
+    $server->exec("CALL quack_stop('quack:127.0.0.1:9496')");
 }
 
 var_dump($db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false));

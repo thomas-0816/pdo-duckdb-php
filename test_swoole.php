@@ -108,7 +108,7 @@ for ($i = 0; $i < 10; $i++) {
 for ($i = 0; $i < 10; $i++) {
     $threads[$i]->join();
 }
-$pdo->exec("CALL quack_stop('quack:127.0.0.1')");
+$pdo->exec("CALL quack_stop('quack:127.0.0.1:9494')");
 echo json_encode($pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN)), PHP_EOL;
 
 
