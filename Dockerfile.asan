@@ -28,7 +28,7 @@ EOF
 
 RUN <<EOF
     set -euxo pipefail
-    git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git /tmp/php-src
+    git clone --depth=1 --branch=PHP-8.6 https://github.com/php/php-src.git /tmp/php-src
     cd /tmp/php-src
     # -shared-libasan binaries (the configure C-compiler probe, the built
     # php, the extension) need libclang_rt.asan_*.so at runtime; it lives in
