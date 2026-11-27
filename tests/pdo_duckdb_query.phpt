@@ -1277,7 +1277,7 @@ int(42)
 {"a":42,"b":42,"c":21,"d":21}
 {"a":"21","b":"21"}
 {"a":42,"b":42}
-object(Person)#14 (3) {
+object(Person)#%d (3) {
   ["name"]=>
   string(3) "foo"
   ["numbers"]=>

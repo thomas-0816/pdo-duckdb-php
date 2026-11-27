@@ -11,6 +11,10 @@ var_dump($db->getAttribute(PDO::ATTR_EMULATE_PREPARES));
 $db = new PDO('duckdb::memory:', null, null, [PDO::ATTR_EMULATE_PREPARES => true]);
 var_dump($db->getAttribute(PDO::ATTR_EMULATE_PREPARES));
 
+$statement = $db->prepare('SELECT ? as a, ? as b, ? as c, ? as d, ? as e, ? as f');
+@$statement->execute([null, NAN, INF, -INF, true, false]);
+var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
+
 $db->exec('CREATE TABLE t (i INTEGER, b BOOLEAN, v VARCHAR)');
 
 $statement = $db->prepare('INSERT INTO t VALUES (?, ?, ?)');
@@ -160,7 +164,7 @@ $statement = $db->prepare("SELECT e'it''s ?' AS a, E'line1\nline2 ?' AS b, e'it'
 $statement->execute([42]);
 var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
-$statement = $db->prepare('SELECT 1 /* outer ? :id */ AS x, ? AS value'); // pdo does not support nested comments
+$statement = $db->prepare('SELECT 1 /* outer ? :id */ AS x, ? AS value');
 $statement->execute([42]);
 var_dump($statement->fetch(PDO::FETCH_ASSOC));
 
@@ -226,6 +230,23 @@ var_dump($db->getAttribute(PDO::ATTR_EMULATE_PREPARES));
 --EXPECTF--
 bool(false)
 bool(true)
+array(1) {
+  [0]=>
+  array(6) {
+    ["a"]=>
+    NULL
+    ["b"]=>
+    string(3) "NAN"
+    ["c"]=>
+    string(3) "INF"
+    ["d"]=>
+    string(4) "-INF"
+    ["e"]=>
+    string(1) "1"
+    ["f"]=>
+    string(0) ""
+  }
+}
 array(6) {
   [0]=>
   array(3) {
