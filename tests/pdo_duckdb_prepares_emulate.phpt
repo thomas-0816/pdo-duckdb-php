@@ -33,13 +33,18 @@ $statement->bindValue(2, true, PDO::PARAM_BOOL);
 $statement->bindValue(3, "O'Brian", PDO::PARAM_STR);
 $statement->execute();
 
+$statement->bindValue(1, 5);
+$statement->bindValue(2, false);
+$statement->bindValue(3, 'foo');
+$statement->execute();
+
 $db->exec("set variable foo = 'bar'");
 $statement = $db->prepare('INSERT INTO t VALUES (?, ?, $foo)');
-$statement->execute([5, true]);
+$statement->execute([6, false]);
 
 $db->exec("set variable bar = 'baz'");
 $statement = $db->prepare('INSERT INTO t VALUES (:i, :b, $bar)');
-$statement->execute(['i' => 6, 'b' => 0]); // TODO fix false
+$statement->execute(['i' => 7, 'b' => false]);
 
 $statement = $db->query('SELECT * FROM t');
 var_dump($statement->fetchAll(PDO::FETCH_ASSOC));
@@ -247,7 +252,7 @@ array(1) {
     string(1) "0"
   }
 }
-array(6) {
+array(7) {
   [0]=>
   array(3) {
     ["i"]=>
@@ -289,14 +294,23 @@ array(6) {
     ["i"]=>
     int(5)
     ["b"]=>
-    bool(true)
+    bool(false)
     ["v"]=>
-    string(3) "bar"
+    string(3) "foo"
   }
   [5]=>
   array(3) {
     ["i"]=>
     int(6)
+    ["b"]=>
+    bool(false)
+    ["v"]=>
+    string(3) "bar"
+  }
+  [6]=>
+  array(3) {
+    ["i"]=>
+    int(7)
     ["b"]=>
     bool(false)
     ["v"]=>
