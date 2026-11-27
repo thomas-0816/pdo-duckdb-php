@@ -67,3 +67,20 @@ RUN <<EOF
     apt-get upgrade -y && apt-get clean
     rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
 EOF
+
+# php 8.6
+FROM php:8.6-cli AS php86
+COPY --from=php85 /etc/issue /etc/issue
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get -y --no-install-recommends install unzip
+    curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
+    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2
+    php -m | grep duckdb
+    php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    apt-get upgrade -y && apt-get clean
+    rm -rf /tmp/* /var/lib/apt/lists/* /var/cache/apt/archives/*
+EOF
