@@ -607,20 +607,19 @@ print_r($row->fetch(PDO::FETCH_ASSOC));
 
 ## Client-server mode (Quack Remote Protocol)
 
-Start the DuckDB server:
+Start the DuckDB server (HTTP):
 
 ```bash
+# localhost, port 9494, HTTP
 duckdb database.duckdb --cmd "CALL quack_serve('quack:127.0.0.1:9494', token='secret');"
 ```
 
-Client connect:
+Client connect (HTTP):
 
 ```php
 $client = new PDO('duckdb::memory:', null, null, [
-    PDO::ATTR_EMULATE_PREPARES => true, # important: quack does not support native prepares
-    PDO::DUCKDB_ATTR_INIT_COMMAND =>
-        "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); USE remote;"
-        # "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); CONNECT remote;" // DuckDB 2.x
+    PDO::ATTR_EMULATE_PREPARES => true, # quack does not support native prepares
+    PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret'); CONNECT remote;"
 ]);
 $client->exec('CREATE TABLE IF NOT EXISTS table1 (v VARCHAR, v2 VARCHAR)');
 $statement = $client->prepare("INSERT INTO table1 VALUES (?, ?)");
@@ -628,6 +627,26 @@ $statement->execute(['foo', 'bar']);
 
 $statement = $client->query('SELECT * FROM table1');
 print_r($statement->fetchAll(PDO::FETCH_ASSOC));
+```
+
+Start the DuckDB server (HTTPs):
+
+```bash
+# public server, port 9494, HTTPs, creates self-signed certificates
+duckdb database.duckdb --cmd "CALL quack_serve('quack:0.0.0.0:9494', token='secret', allow_other_hostname=true, disable_ssl=false);"
+
+# get ssl fingerprint
+openssl x509 -in ~/.duckdb/extension_data/quack/server.pem -noout -fingerprint -sha256 | cut -d'=' -f2
+```
+
+Client connect (HTTPs):
+
+```php
+$client = new PDO('duckdb::memory:', null, null, [
+    PDO::ATTR_EMULATE_PREPARES => true, # quack does not support native prepares
+    PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret', SSL_FINGERPRINT '<ssl fingerprint>'); CONNECT remote;"
+]);
+...
 ```
 
 For more information about the Quack Remote Protocol, see the [documentation](https://duckdb.org/docs/current/quack/overview).
