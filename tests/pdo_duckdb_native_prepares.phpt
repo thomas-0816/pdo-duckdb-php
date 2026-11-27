@@ -206,7 +206,7 @@ array(1) {
     ["e"]=>
     string(1) "1"
     ["f"]=>
-    string(0) ""
+    string(1) "0"
   }
 }
 array(5) {

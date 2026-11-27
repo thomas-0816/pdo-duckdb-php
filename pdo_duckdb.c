@@ -73,6 +73,10 @@ static void pdo_duckdb_stmt_execute_override(INTERNAL_FUNCTION_PARAMETERS)
 						zend_throw_exception_ex(php_pdo_get_exception(), 0, "SQLSTATE[HY000]: could not encode parameter %d as JSON", position);
 						RETURN_THROWS();
 					}
+				} else if (Z_TYPE_P(entry) == IS_TRUE || Z_TYPE_P(entry) == IS_FALSE) {
+					zend_string *bool_str = zend_string_init(Z_TYPE_P(entry) == IS_TRUE ? "1" : "0", 1, 0);
+					zval_ptr_dtor(entry);
+					ZVAL_STR(entry, bool_str);
 				}
 			}
 			ZEND_HASH_FOREACH_END();
