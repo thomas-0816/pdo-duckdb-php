@@ -632,10 +632,13 @@ print_r($statement->fetchAll(PDO::FETCH_ASSOC));
 Start the DuckDB server (HTTPs):
 
 ```bash
-# public server, port 9494, HTTPs, creates self-signed certificates
-duckdb database.duckdb --cmd "CALL quack_serve('quack:0.0.0.0:9494', token='secret', allow_other_hostname=true, disable_ssl=false);"
+# get secret
+cat /proc/sys/kernel/random/uuid
 
-# get ssl fingerprint
+# public server, port 9494, HTTPs, creates self-signed certificates
+duckdb database.duckdb --cmd "CALL quack_serve('quack:0.0.0.0:9494', token='<secret>', allow_other_hostname=true, disable_ssl=false);"
+
+# get ssl-fingerprint
 openssl x509 -in ~/.duckdb/extension_data/quack/server.pem -noout -fingerprint -sha256 | cut -d'=' -f2
 ```
 
@@ -644,8 +647,8 @@ Client connect (HTTPs):
 ```php
 $client = new PDO('duckdb::memory:', null, null, [
     PDO::ATTR_EMULATE_PREPARES => true,
-    PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret',
-        SSL_FINGERPRINT '<ssl fingerprint>'); CONNECT remote;"
+    PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN '<secret>',
+        SSL_FINGERPRINT '<ssl-fingerprint>'); CONNECT remote;"
 ]);
 ...
 ```
