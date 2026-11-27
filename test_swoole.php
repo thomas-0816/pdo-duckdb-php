@@ -85,7 +85,6 @@ for ($i = 0; $i < 8; $i++) {
 var_dump($list->toArray());
 echo '5x sleep 0.5s took ', round(microtime(true) - $start, 2), 's', PHP_EOL;
 
-
 // run write in parallel using threads and Quack protocol, on-disk
 $tmpDbFile = tempnam(sys_get_temp_dir(), 'swoole') . '.php';
 $pdo = new PDO('duckdb:' . $tmpDbFile);
@@ -111,15 +110,14 @@ for ($i = 0; $i < 10; $i++) {
 $pdo->exec("CALL quack_stop('quack:127.0.0.1:9494')");
 echo json_encode($pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN)), PHP_EOL;
 
-
 // run read and write in parallel using coroutines to write and threads to read, on-disk
 Swoole\Coroutine\run(function() {
     $tmpPhpFile = tempnam(sys_get_temp_dir(), 'swoole') . '.php';
-    $tmpDbFile = tempnam(sys_get_temp_dir(), 'swoole') . '.php';
+    $tmpDbFile = tempnam(sys_get_temp_dir(), 'swoole') . '.db';
     file_put_contents($tmpPhpFile, <<<"END"
     <?php
         \$args = Swoole\Thread::getArguments();
-        \$pdo = new PDO('duckdb:{$tmpDbFile}', null, null, [PDO::DUCKDB_ATTR_CONFIG => ['access_mode' => 'read_only']]);
+        \$pdo = new PDO('duckdb:{$tmpDbFile}');
         \$args[1][] = json_encode(\$pdo->query("SELECT * from orders")->fetchAll(PDO::FETCH_COLUMN));
     END);
     $pdo = new PDO('duckdb:' . $tmpDbFile);
@@ -131,7 +129,7 @@ Swoole\Coroutine\run(function() {
     for ($i = 0; $i < 10; $i++) {
         $coroutines[] = Swoole\Coroutine::create(function() use ($i, $pdo, $wg) {
             $wg->add();
-            usleep(rand(15_000, 20_000));
+            usleep(rand(5_000, 10_000));
             $pdo->exec("INSERT INTO orders (user_id) VALUES ($i)");
             $wg->done();
         });
