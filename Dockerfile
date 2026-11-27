@@ -30,7 +30,7 @@ RUN <<EOF
 EOF
 
 # php 8.2
-FROM base
+FROM base as php82
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
@@ -48,7 +48,8 @@ RUN <<EOF
 EOF
 
 # php 8.3
-FROM base
+FROM base as php83
+COPY --from=php82 /etc/issue /etc/issue
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
@@ -66,7 +67,8 @@ RUN <<EOF
 EOF
 
 # php 8.4
-FROM base
+FROM base as php84
+COPY --from=php83 /etc/issue /etc/issue
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
@@ -84,7 +86,8 @@ RUN <<EOF
 EOF
 
 # php 8.5
-FROM base
+FROM base as php85
+COPY --from=php84 /etc/issue /etc/issue
 RUN <<EOF
     set -euxo pipefail
     apt-get -y update
@@ -96,6 +99,25 @@ RUN <<EOF
     NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
     make install
     echo "extension=pdo_duckdb.so" > /etc/php/8.5/mods-available/pdo_duckdb.ini
+    phpenmod pdo_duckdb
+    php -m | grep duckdb
+    make clean
+EOF
+
+# php 8.6
+FROM base as php86
+COPY --from=php85 /etc/issue /etc/issue
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get -y --no-install-recommends install php8.6-cli php8.6-dev
+    phpize
+    ./configure --with-pdo-duckdb
+    make
+    php -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
+    make install
+    echo "extension=pdo_duckdb.so" > /etc/php/8.6/mods-available/pdo_duckdb.ini
     phpenmod pdo_duckdb
     php -m | grep duckdb
     make clean
