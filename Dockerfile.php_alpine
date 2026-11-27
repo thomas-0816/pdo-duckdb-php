@@ -63,3 +63,19 @@ RUN <<EOF
     php -m | grep duckdb
     php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
 EOF
+
+# php 8.6
+FROM php:8.6-cli-alpine AS php86
+COPY --from=php85 /etc/issue /etc/issue
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+RUN <<EOF
+    set -euxo pipefail
+    apk update
+    apk add --no-cache tzdata libstdc++
+    ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
+    curl -fsSL -o /tmp/pie https://github.com/php/pie/releases/latest/download/pie.phar
+    php /tmp/pie install --no-build-tools-check -v thomas-0816/pdo-duckdb-php:^2
+    php -m | grep duckdb
+    php -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+EOF
