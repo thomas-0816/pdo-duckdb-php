@@ -643,8 +643,9 @@ Client connect (HTTPs):
 
 ```php
 $client = new PDO('duckdb::memory:', null, null, [
-    PDO::ATTR_EMULATE_PREPARES => true, # quack does not support native prepares
-    PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret', SSL_FINGERPRINT '<ssl fingerprint>'); CONNECT remote;"
+    PDO::ATTR_EMULATE_PREPARES => true,
+    PDO::DUCKDB_ATTR_INIT_COMMAND => "ATTACH 'quack:127.0.0.1:9494' AS remote (TOKEN 'secret',
+        SSL_FINGERPRINT '<ssl fingerprint>'); CONNECT remote;"
 ]);
 ...
 ```
