@@ -27,7 +27,7 @@ RUN <<EOF
 EOF
 
 # php 8.2
-FROM base
+FROM base as php82
 RUN <<EOF
     set -euxo pipefail
     curl -s https://pkg.henderkes.com/api/packages/82/debian/repository.key -o /etc/apt/keyrings/php.asc
@@ -47,7 +47,8 @@ RUN <<EOF
 EOF
 
 # php 8.3
-FROM base
+FROM base as php83
+COPY --from=php82 /etc/issue /etc/issue
 RUN <<EOF
     set -euxo pipefail
     curl -s https://pkg.henderkes.com/api/packages/83/debian/repository.key -o /etc/apt/keyrings/php.asc
@@ -67,7 +68,8 @@ RUN <<EOF
 EOF
 
 # php 8.4
-FROM base
+FROM base as php84
+COPY --from=php83 /etc/issue /etc/issue
 RUN <<EOF
     set -euxo pipefail
     curl -s https://pkg.henderkes.com/api/packages/84/debian/repository.key -o /etc/apt/keyrings/php.asc
@@ -87,11 +89,33 @@ RUN <<EOF
 EOF
 
 # php 8.5
-FROM base
+FROM base as php85
+COPY --from=php84 /etc/issue /etc/issue
 RUN <<EOF
     set -euxo pipefail
     curl -s https://pkg.henderkes.com/api/packages/85/debian/repository.key -o /etc/apt/keyrings/php.asc
     echo "deb [signed-by=/etc/apt/keyrings/php.asc] https://pkg.henderkes.com/api/packages/85/debian php-zts main" | tee /etc/apt/sources.list.d/php.list
+    apt-get -y update
+    apt-get -y --no-install-recommends install php-zts-cli php-zts-pdo php-zts-devel
+    phpize-zts
+    ./configure --with-pdo-duckdb --with-php-config=php-config-zts
+    make
+    php-zts -d extension=$(pwd)/modules/pdo_duckdb.so -m | grep duckdb
+    NO_INTERACTION=1 TEST_PHP_ARGS=" --show-diff --show-clean -q" make test
+    make install
+    sh -c 'echo "extension=pdo_duckdb.so" > /etc/php-zts/conf.d/pdo_duckdb.ini'
+    phpenmod-zts pdo_duckdb
+    php-zts -m | grep duckdb
+    make clean
+EOF
+
+# php 8.6
+FROM base as php86
+COPY --from=php85 /etc/issue /etc/issue
+RUN <<EOF
+    set -euxo pipefail
+    curl -s https://pkg.henderkes.com/api/packages/86/debian/repository.key -o /etc/apt/keyrings/php.asc
+    echo "deb [signed-by=/etc/apt/keyrings/php.asc] https://pkg.henderkes.com/api/packages/86/debian php-zts main" | tee /etc/apt/sources.list.d/php.list
     apt-get -y update
     apt-get -y --no-install-recommends install php-zts-cli php-zts-pdo php-zts-devel
     phpize-zts

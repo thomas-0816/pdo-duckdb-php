@@ -13,7 +13,7 @@ RUN <<EOF
     apt-get install -y build-essential autoconf libtool bison re2c pkg-config unzip git tzdata
     echo ${TZ} > /etc/timezone
     ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime
-    git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git
+    git clone --depth=1 --branch=PHP-8.6 https://github.com/php/php-src.git
     cd php-src/ext
     git clone --depth=1 --branch=main https://github.com/thomas-0816/pdo-duckdb-php.git
     cd pdo-duckdb-php
