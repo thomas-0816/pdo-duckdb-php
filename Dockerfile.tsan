@@ -14,7 +14,7 @@ FROM ubuntu:24.04
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 
-ENV TSAN_OPTIONS="halt_on_error=1:exitcode=1:suppressions=/pdo-duckdb-php/.sanitizer-thread-suppressions.txt"
+ENV TSAN_OPTIONS="halt_on_error=1:exitcode=1:ignore_noninstrumented_modules=1"
 ENV USE_ZEND_ALLOC="0"
 ENV ZEND_DONT_UNLOAD_MODULES="1"
 ENV CC="clang"
