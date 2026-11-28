@@ -227,6 +227,19 @@ jobs:
       - name: ASAN Swoole Tests zts
         run: docker build --pull --no-cache -f Dockerfile.asan_swoole_zts -t pdo_duckdb_asan_swoole_zts .
 
+  tsan:
+    name: TSAN
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: TSAN Tests
+        run: |
+          docker build --pull --no-cache -f Dockerfile.tsan -t pdo_duckdb_tsan .
+          docker run --rm --security-opt seccomp=unconfined pdo_duckdb_tsan
+
   valgrind:
     name: Valgrind
     runs-on: ubuntu-22.04
