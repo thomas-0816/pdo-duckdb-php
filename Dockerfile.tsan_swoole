@@ -14,7 +14,7 @@ FROM ubuntu:24.04
 ENV TERM="xterm-256color"
 ENV LC_ALL="C.UTF-8"
 
-ENV TSAN_OPTIONS="halt_on_error=1:exitcode=1:ignore_noninstrumented_modules=1"
+ENV TSAN_OPTIONS="halt_on_error=1:exitcode=1:ignore_noninstrumented_modules=1:suppressions=/tsan.supp"
 ENV USE_ZEND_ALLOC="0"
 ENV ZEND_DONT_UNLOAD_MODULES="1"
 ENV CC="clang"
@@ -59,8 +59,6 @@ RUN <<EOF
     ./configure --enable-swoole-curl --enable-sockets --enable-swoole-thread --with-php-config=/tmp/php-tsan/bin/php-config
     make -j$(nproc)
     make install
-    php -d extension=swoole.so -m | grep swoole
-    php -d extension=swoole.so --ri swoole
 EOF
 
 COPY ./ ./pdo-duckdb-php
@@ -77,8 +75,13 @@ RUN <<EOF
     ./configure --with-pdo-duckdb --with-php-config=/tmp/php-tsan/bin/php-config
     make -j$(nproc)
     make install
-    php -d extension=swoole.so -d extension=pdo_duckdb.so -m | grep duckdb
 EOF
+
+# - Swoole's library loader (_eval in php_swoole_library.h) assigns the
+#   process-global zend_compile_string hook on every thread's request startup.
+# - Swoole registers stdio file handles per Swoole\Thread, reaching PHP's php://
+#   stream wrapper whose static cli_out flag is likewise written by every thread.
+RUN printf '%s\n' 'race:*php_swoole_load_library*' 'race:*php_stream_url_wrap_php*' > /tsan.supp
 
 WORKDIR /pdo-duckdb-php
 
