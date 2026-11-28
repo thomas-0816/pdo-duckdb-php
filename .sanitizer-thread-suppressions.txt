@@ -1,0 +1,30 @@
+# ThreadSanitizer suppressions for pdo_duckdb.
+#
+# DuckDB is linked from the prebuilt libduckdb_static.a, which is not built
+# with -fsanitize=thread. TSan therefore cannot see the release/acquire
+# synchronization inside DuckDB or its bundled allocator:
+#
+#   * jemalloc publishes a newly created arena with
+#     atomic_store_p(..., ATOMIC_RELEASE) after initializing the arena's
+#     mutexes. TSan only sees the intercepted pthread_mutex_init /
+#     pthread_mutex_trylock calls, so lazy arena creation on a DuckDB worker
+#     thread is reported as a race against first use on another thread.
+#   * DuckDB's task queue (moodycamel::ConcurrentQueue) is lock-free; its
+#     atomics are invisible to TSan for the same reason, so cross-thread
+#     frees/allocations have no visible happens-before edge.
+#
+# These are the same suppressions DuckDB uses in its own TSan CI
+# (duckdb/.sanitizer-thread-suppressions.txt). Real races in the extension's
+# own code are still reported.
+
+race:duckdb_je_*
+race:duckdb_moodycamel
+
+# DuckDB-internal TSan reports that DuckDB itself suppresses. Uncomment if
+# they show up in the extension's test suite.
+# race:InsertMatchesAndIncrementMisses
+# race:NextInnerJoin
+# race:NextRightSemiOrAntiJoin
+# race:ValidityAppend
+# race:ResolveComplexJoin
+# deadlock:InitializeIndexes

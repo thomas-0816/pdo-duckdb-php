@@ -1,0 +1,97 @@
+# docker build --pull --no-cache -f Dockerfile.tsan -t pdo_duckdb_tsan .
+# docker run --rm --security-opt seccomp=unconfined -e TSAN_JOBS=2 pdo_duckdb_tsan
+# docker run --rm -it --security-opt seccomp=unconfined pdo_duckdb_tsan bash
+#
+# ThreadSanitizer disables ASLR with personality(2) when the randomized
+# memory layout is incompatible (common with high-entropy ASLR, e.g.
+# Ubuntu 24.04's vm.mmap_rnd_bits=32). Docker's default seccomp profile
+# blocks that personality() call, which makes TSan abort with:
+#   ThreadSanitizer: CHECK failed: tsan_platform_linux.cpp:... ADDR_NO_RANDOMIZE
+# Hence the --security-opt seccomp=unconfined above. Alternatively lower the
+# host's ASLR entropy (sudo sysctl -w vm.mmap_rnd_bits=28) and drop the flag.
+
+FROM ubuntu:24.04
+
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+
+# Suppress known false positives from the prebuilt DuckDB archive, which is
+# not TSan-instrumented (bundled jemalloc + moodycamel lock-free queue).
+# See .sanitizer-thread-suppressions.txt for the rationale.
+ENV TSAN_OPTIONS="halt_on_error=1:exitcode=1:suppressions=/pdo-duckdb-php/.sanitizer-thread-suppressions.txt"
+ENV USE_ZEND_ALLOC="0"
+ENV ZEND_DONT_UNLOAD_MODULES="1"
+ENV CC="clang"
+ENV CXX="clang++"
+# Applied at make time only, so configure's AC_RUN_IFELSE probes are not
+# TSan binaries (see the ASLR/seccomp note at the top).
+ENV EXTRA_CFLAGS="-O1 -g -fsanitize=thread -fno-omit-frame-pointer"
+ENV EXTRA_CXXFLAGS="-O1 -g -fsanitize=thread -fno-omit-frame-pointer"
+
+SHELL ["/bin/bash", "-c"]
+
+# docker builder prune
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get -y --no-install-recommends install git apt-transport-https curl ca-certificates llvm clang libclang-rt-dev re2c bison autoconf unzip build-essential tzdata
+    ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+EOF
+
+RUN <<EOF
+    set -euxo pipefail
+    git clone --depth=1 --branch=PHP-8.6 https://github.com/php/php-src.git /tmp/php-src
+    cd /tmp/php-src
+    ./buildconf --force
+    # Configure without sanitizer flags: TSan binaries cannot reliably run
+    # inside the build container (see the ASLR/seccomp note at the top), and
+    # configure's AC_RUN_IFELSE probes would abort. Instrument only the
+    # actual build via EXTRA_CFLAGS/EXTRA_CXXFLAGS at make time.
+    ./configure --enable-debug --enable-zts --disable-all --enable-cli --enable-pdo --prefix=/tmp/php-tsan
+    make -j$(nproc)
+    make install
+EOF
+
+COPY ./ ./pdo-duckdb-php
+
+RUN <<EOF
+    set -euxo pipefail
+    export PATH="/tmp/php-tsan/bin:$PATH"
+
+    cd pdo-duckdb-php
+    make clean || true
+    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v2.0.1/duckdb-static-libs-linux-amd64.tar.gz" -o duckdb-static-libs-linux-amd64.tar.gz
+    tar xvzf duckdb-static-libs-linux-amd64.tar.gz
+    tar xvzf libduckdb-src.tar.gz
+    phpize
+    ./configure --with-pdo-duckdb --with-php-config="/tmp/php-tsan/bin/php-config"
+    make -j$(nproc)
+    make install
+
+    # Smoke-check that the extension loads. TSan may be unable to start inside
+    # the default build sandbox (see the ASLR/seccomp note at the top); only
+    # skip the check for that known failure, the test suite is the real
+    # verification and is run with --security-opt seccomp=unconfined.
+    if out=$(php -d extension=pdo_duckdb.so -m 2>&1); then
+        printf '%s\n' "$out" | grep -qx 'pdo_duckdb' || { printf '%s\n' "$out"; exit 1; }
+        echo "pdo_duckdb loaded"
+    elif printf '%s\n' "$out" | grep -q 'ThreadSanitizer'; then
+        echo "WARNING: skipping extension load check: TSan cannot start in the build sandbox"
+    else
+        printf '%s\n' "$out"
+        exit 1
+    fi
+EOF
+
+WORKDIR /pdo-duckdb-php
+
+ENV PATH="/tmp/php-tsan/bin:${PATH}"
+ENV TEST_PHP_ARGS="-d extension=pdo_duckdb.so"
+ENV NO_INTERACTION="1"
+ENV REPORT_EXIT_STATUS="1"
+
+# TSan is much slower and more memory hungry than a normal build, so default
+# to low parallelism and give each test more time. Override with
+# `docker run -e TSAN_JOBS=8 ...`.
+ENV TSAN_JOBS="2"
+CMD ["bash", "-c", "exec php run-tests.php --show-diff --show-clean -j${TSAN_JOBS} --set-timeout 300 -g PASS,FAIL,XFAIL,BORK,LEAK,XLEAK,SKIP"]
