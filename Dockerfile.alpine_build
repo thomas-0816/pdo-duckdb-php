@@ -10,7 +10,7 @@ ARG tag
 RUN <<EOF
     set -euxo pipefail
     apk update
-    apk add --no-cache git build-base icu-dev tzdata zip \
+    apk add --no-cache git build-base tzdata zip \
         php83 php83-pdo php83-mbstring php83-dev \
         php84 php84-pdo php84-mbstring php84-dev \
         php85 php85-pdo php85-mbstring php85-dev
