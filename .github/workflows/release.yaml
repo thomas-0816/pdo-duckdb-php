@@ -90,6 +90,8 @@ jobs:
         run: |
           docker build --build-arg tag=${tag} -f Dockerfile.alpine_build -t pdo-duckdb-alpine-build .
           docker run --rm -w /pdo-duckdb-php/ pdo-duckdb-alpine-build /bin/sh -c 'tar -cf - *.zip' | tar -xvf -
+          docker build --build-arg tag=${tag} -f Dockerfile.alpine_zts_build -t pdo-duckdb-alpine-zts-build .
+          docker run --rm pdo-duckdb-alpine-zts-build /bin/sh -c 'tar -cf - *.zip' | tar -xvf -
           ls -l *.zip
           gh release upload "$tag" *.zip --clobber
 
