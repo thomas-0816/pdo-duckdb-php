@@ -239,6 +239,10 @@ jobs:
         run: |
           docker build --pull --no-cache -f Dockerfile.tsan -t pdo_duckdb_tsan .
           docker run --rm --security-opt seccomp=unconfined pdo_duckdb_tsan
+      - name: TSAN Tests Swoole
+        run: |
+          docker build --pull --no-cache -f Dockerfile.tsan_swoole -t pdo_duckdb_tsan_swoole .
+          docker run --rm --security-opt seccomp=unconfined pdo_duckdb_tsan_swoole
 
   valgrind:
     name: Valgrind

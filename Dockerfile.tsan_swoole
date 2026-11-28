@@ -1,0 +1,89 @@
+# docker build --pull --no-cache -f Dockerfile.tsan_swoole -t pdo_duckdb_tsan_swoole .
+# docker run --rm --security-opt seccomp=unconfined pdo_duckdb_tsan_swoole
+#
+# ThreadSanitizer disables ASLR with personality(2) when the randomized
+# memory layout is incompatible (common with high-entropy ASLR, e.g.
+# Ubuntu 24.04's vm.mmap_rnd_bits=32). Docker's default seccomp profile
+# blocks that personality() call, which makes TSan abort with:
+#   ThreadSanitizer: CHECK failed: tsan_platform_linux.cpp:... ADDR_NO_RANDOMIZE
+# Hence the --security-opt seccomp=unconfined above. Alternatively lower the
+# host's ASLR entropy (sudo sysctl -w vm.mmap_rnd_bits=28) and drop the flag.
+
+FROM ubuntu:24.04
+
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+
+ENV TSAN_OPTIONS="halt_on_error=1:exitcode=1:ignore_noninstrumented_modules=1"
+ENV USE_ZEND_ALLOC="0"
+ENV ZEND_DONT_UNLOAD_MODULES="1"
+ENV CC="clang"
+ENV CXX="clang++"
+ENV EXTRA_CFLAGS="-O1 -fsanitize=thread -fno-omit-frame-pointer"
+ENV EXTRA_CXXFLAGS="-O1 -fsanitize=thread -fno-omit-frame-pointer"
+
+SHELL ["/bin/bash", "-c"]
+
+# docker builder prune
+RUN <<EOF
+    set -euxo pipefail
+    apt-get -y update
+    apt-get -y --no-install-recommends install git apt-transport-https curl ca-certificates llvm clang libclang-rt-dev re2c bison autoconf unzip \
+        build-essential tzdata pkg-config libssl-dev libcurl4-openssl-dev zlib1g-dev
+    ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
+EOF
+
+RUN <<EOF
+    set -euxo pipefail
+    git clone --depth=1 --branch=PHP-8.5 https://github.com/php/php-src.git /tmp/php-src
+    cd /tmp/php-src
+    # TSan's sigaction interceptor keeps its proxy installed whenever
+    # SA_SIGINFO is set, even when the handler is SIG_DFL. PHP's re-raise path
+    # sets sa_handler = SIG_DFL but leaves sa_flags untouched, so under TSan
+    # the re-raised SIGTERM is swallowed and shutdown warns that the handler
+    # was replaced. Clear sa_flags so the default disposition is really used.
+    sed -i 's/sa\.sa_handler = SIG_DFL;/sa.sa_handler = SIG_DFL;\n\t\t\tsa.sa_flags = 0;/' Zend/zend_signal.c
+    grep -q 'sa\.sa_flags = 0;' Zend/zend_signal.c
+    ./buildconf --force
+    ./configure --enable-debug --enable-zts --disable-all --enable-cli --with-zlib --with-curl --enable-sockets --enable-pdo --disable-phpdbg --prefix=/tmp/php-tsan
+    make -j$(nproc)
+    make install
+EOF
+
+RUN <<EOF
+    set -euxo pipefail
+    export PATH="/tmp/php-tsan/bin:$PATH"
+    git clone --depth=1 --branch=v6.3.0 https://github.com/swoole/swoole-src.git
+    cd /swoole-src
+    phpize
+    ./configure --enable-swoole-curl --enable-sockets --enable-swoole-thread --with-php-config=/tmp/php-tsan/bin/php-config
+    make -j$(nproc)
+    make install
+    php -d extension=swoole.so -m | grep swoole
+    php -d extension=swoole.so --ri swoole
+EOF
+
+COPY ./ ./pdo-duckdb-php
+
+RUN <<EOF
+    set -euxo pipefail
+    export PATH="/tmp/php-tsan/bin:$PATH"
+    cd pdo-duckdb-php
+    make clean || true
+    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v2.0.1/duckdb-static-libs-linux-amd64.tar.gz" -o duckdb-static-libs-linux-amd64.tar.gz
+    tar xvzf duckdb-static-libs-linux-amd64.tar.gz
+    tar xvzf libduckdb-src.tar.gz
+    phpize
+    ./configure --with-pdo-duckdb --with-php-config=/tmp/php-tsan/bin/php-config
+    make -j$(nproc)
+    make install
+    php -d extension=swoole.so -d extension=pdo_duckdb.so -m | grep duckdb
+EOF
+
+WORKDIR /pdo-duckdb-php
+
+ENV PATH="/tmp/php-tsan/bin:${PATH}"
+ENV TEST_PHP_ARGS="-d extension=swoole.so -d extension=pdo_duckdb.so"
+ENV NO_INTERACTION="1"
+ENV REPORT_EXIT_STATUS="1"
+CMD ["bash", "-c", "php run-tests.php --show-diff --show-clean -j$(nproc) -g PASS,FAIL,XFAIL,BORK,LEAK,XLEAK,SKIP && exec php -d extension=swoole.so -d extension=pdo_duckdb.so test_swoole.php"]
