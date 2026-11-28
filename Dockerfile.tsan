@@ -60,7 +60,7 @@ RUN <<EOF
     tar xvzf duckdb-static-libs-linux-amd64.tar.gz
     tar xvzf libduckdb-src.tar.gz
     phpize
-    ./configure --with-pdo-duckdb --with-php-config="/tmp/php-tsan/bin/php-config"
+    ./configure --with-pdo-duckdb --with-php-config=/tmp/php-tsan/bin/php-config
     make -j$(nproc)
     make install
 EOF
@@ -71,4 +71,4 @@ ENV PATH="/tmp/php-tsan/bin:${PATH}"
 ENV TEST_PHP_ARGS="-d extension=pdo_duckdb.so"
 ENV NO_INTERACTION="1"
 ENV REPORT_EXIT_STATUS="1"
-CMD ["bash", "-c", "exec php run-tests.php --show-diff --show-clean -j$(nproc) --set-timeout 300 -g PASS,FAIL,XFAIL,BORK,LEAK,XLEAK,SKIP"]
+CMD ["bash", "-c", "exec php run-tests.php --show-diff --show-clean -j$(nproc) -g PASS,FAIL,XFAIL,BORK,LEAK,XLEAK,SKIP"]
