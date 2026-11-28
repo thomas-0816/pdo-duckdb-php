@@ -1,0 +1,155 @@
+# docker build --build-arg tag=${tag} -f Dockerfile.alpine_zts_build -t pdo-duckdb-alpine-zts-build .
+
+FROM php:8.2-zts-alpine AS php82
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+ARG tag
+RUN <<EOF
+    set -euxo pipefail
+    apk update
+    apk add --no-cache git build-base tzdata zip autoconf
+    ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
+    git clone --depth=1 --branch=${tag} https://github.com/thomas-0816/pdo-duckdb-php.git
+    cd /pdo-duckdb-php
+    arch=$(uname -m)
+    case "$arch" in
+        x86_64|amd64)  duckdb_arch=amd64 ; arch_name=x86_64 ;;
+        aarch64|arm64) duckdb_arch=arm64 ; arch_name=arm64 ;;
+        *) echo "unsupported arch: $arch"; exit 1 ;;
+    esac
+    wget https://github.com/duckdb/duckdb/releases/download/v2.0.1/duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
+    tar xvzf duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
+    tar xvzf libduckdb-src.tar.gz
+    phpize
+    ./configure --with-pdo-duckdb
+    make
+    php -dextension=modules/pdo_duckdb.so -m | grep duckdb
+    php -dextension=modules/pdo_duckdb.so -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php_version=$(php-config --version | cut -d. -f1-2)
+    zip -j "../php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl-zts.zip" modules/pdo_duckdb.so
+EOF
+
+FROM php:8.3-zts-alpine AS php83
+COPY --from=php82 /*.zip /
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+ARG tag
+RUN <<EOF
+    set -euxo pipefail
+    apk update
+    apk add --no-cache git build-base tzdata zip autoconf
+    ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
+    git clone --depth=1 --branch=${tag} https://github.com/thomas-0816/pdo-duckdb-php.git
+    cd /pdo-duckdb-php
+    arch=$(uname -m)
+    case "$arch" in
+        x86_64|amd64)  duckdb_arch=amd64 ; arch_name=x86_64 ;;
+        aarch64|arm64) duckdb_arch=arm64 ; arch_name=arm64 ;;
+        *) echo "unsupported arch: $arch"; exit 1 ;;
+    esac
+    wget https://github.com/duckdb/duckdb/releases/download/v2.0.1/duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
+    tar xvzf duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
+    tar xvzf libduckdb-src.tar.gz
+    phpize
+    ./configure --with-pdo-duckdb
+    make
+    php -dextension=modules/pdo_duckdb.so -m | grep duckdb
+    php -dextension=modules/pdo_duckdb.so -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php_version=$(php-config --version | cut -d. -f1-2)
+    zip -j "../php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl-zts.zip" modules/pdo_duckdb.so
+EOF
+
+FROM php:8.4-zts-alpine AS php84
+COPY --from=php83 /*.zip /
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+ARG tag
+RUN <<EOF
+    set -euxo pipefail
+    apk update
+    apk add --no-cache git build-base tzdata zip autoconf
+    ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
+    git clone --depth=1 --branch=${tag} https://github.com/thomas-0816/pdo-duckdb-php.git
+    cd /pdo-duckdb-php
+    arch=$(uname -m)
+    case "$arch" in
+        x86_64|amd64)  duckdb_arch=amd64 ; arch_name=x86_64 ;;
+        aarch64|arm64) duckdb_arch=arm64 ; arch_name=arm64 ;;
+        *) echo "unsupported arch: $arch"; exit 1 ;;
+    esac
+    wget https://github.com/duckdb/duckdb/releases/download/v2.0.1/duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
+    tar xvzf duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
+    tar xvzf libduckdb-src.tar.gz
+    phpize
+    ./configure --with-pdo-duckdb
+    make
+    php -dextension=modules/pdo_duckdb.so -m | grep duckdb
+    php -dextension=modules/pdo_duckdb.so -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php_version=$(php-config --version | cut -d. -f1-2)
+    zip -j "../php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl-zts.zip" modules/pdo_duckdb.so
+EOF
+
+FROM php:8.5-zts-alpine AS php85
+COPY --from=php84 /*.zip /
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+ARG tag
+RUN <<EOF
+    set -euxo pipefail
+    apk update
+    apk add --no-cache git build-base tzdata zip autoconf
+    ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
+    git clone --depth=1 --branch=${tag} https://github.com/thomas-0816/pdo-duckdb-php.git
+    cd /pdo-duckdb-php
+    arch=$(uname -m)
+    case "$arch" in
+        x86_64|amd64)  duckdb_arch=amd64 ; arch_name=x86_64 ;;
+        aarch64|arm64) duckdb_arch=arm64 ; arch_name=arm64 ;;
+        *) echo "unsupported arch: $arch"; exit 1 ;;
+    esac
+    wget https://github.com/duckdb/duckdb/releases/download/v2.0.1/duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
+    tar xvzf duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
+    tar xvzf libduckdb-src.tar.gz
+    phpize
+    ./configure --with-pdo-duckdb
+    make
+    php -dextension=modules/pdo_duckdb.so -m | grep duckdb
+    php -dextension=modules/pdo_duckdb.so -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php_version=$(php-config --version | cut -d. -f1-2)
+    zip -j "../php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl-zts.zip" modules/pdo_duckdb.so
+EOF
+
+FROM php:8.6-zts-alpine AS php86
+COPY --from=php85 /*.zip /
+ENV TERM="xterm-256color"
+ENV LC_ALL="C.UTF-8"
+ARG tag
+RUN <<EOF
+    set -euxo pipefail
+    apk update
+    apk add --no-cache git build-base tzdata zip autoconf
+    ln -s /usr/share/zoneinfo/Europe/Brussels /etc/localtime
+    git clone --depth=1 --branch=${tag} https://github.com/thomas-0816/pdo-duckdb-php.git
+    cd /pdo-duckdb-php
+    arch=$(uname -m)
+    case "$arch" in
+        x86_64|amd64)  duckdb_arch=amd64 ; arch_name=x86_64 ;;
+        aarch64|arm64) duckdb_arch=arm64 ; arch_name=arm64 ;;
+        *) echo "unsupported arch: $arch"; exit 1 ;;
+    esac
+    wget https://github.com/duckdb/duckdb/releases/download/v2.0.1/duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
+    tar xvzf duckdb-static-libs-linux-${duckdb_arch}-musl.tar.gz
+    tar xvzf libduckdb-src.tar.gz
+    phpize
+    ./configure --with-pdo-duckdb
+    make
+    php -dextension=modules/pdo_duckdb.so -m | grep duckdb
+    php -dextension=modules/pdo_duckdb.so -r 'print_r((new PDO("duckdb::memory:"))->query("SELECT 42 as n")->fetch(PDO::FETCH_ASSOC));'
+    php run-tests.php -d extension=$(pwd)/modules/pdo_duckdb.so --show-diff --show-clean -q
+    php_version=$(php-config --version | cut -d. -f1-2)
+    zip -j "../php_pdo_duckdb-${tag}_php${php_version}-${arch_name}-linux-musl-zts.zip" modules/pdo_duckdb.so
+EOF
