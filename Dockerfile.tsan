@@ -36,6 +36,13 @@ RUN <<EOF
     set -euxo pipefail
     git clone --depth=1 --branch=PHP-8.6 https://github.com/php/php-src.git /tmp/php-src
     cd /tmp/php-src
+    # TSan's sigaction interceptor keeps its proxy installed whenever
+    # SA_SIGINFO is set, even when the handler is SIG_DFL. PHP's re-raise path
+    # sets sa_handler = SIG_DFL but leaves sa_flags untouched, so under TSan
+    # the re-raised SIGTERM is swallowed and shutdown warns that the handler
+    # was replaced. Clear sa_flags so the default disposition is really used.
+    sed -i 's/sa\.sa_handler = SIG_DFL;/sa.sa_handler = SIG_DFL;\n\t\t\tsa.sa_flags = 0;/' Zend/zend_signal.c
+    grep -q 'sa\.sa_flags = 0;' Zend/zend_signal.c
     ./buildconf --force
     ./configure --enable-debug --enable-zts --disable-all --enable-cli --enable-pdo --disable-phpdbg --prefix=/tmp/php-tsan
     make -j$(nproc)
